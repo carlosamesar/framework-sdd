@@ -1,0 +1,15 @@
+[Unit]
+Description=Engram Memory Sync Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=cto-grupo4d
+WorkingDirectory=/home/cto-grupo4d/Documents/Good4D/Framework-SDD
+ExecStart=/home/cto-grupo4d/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh start
+ExecStop=/home/cto-grupo4d/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
