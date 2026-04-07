@@ -143,3 +143,4 @@ vite.config.ts.timestamp-*
 # Each project has its own git repository, so they are excluded from this core repo.
 /develop/*
 !/develop/.gitkeep
+engineering-knowledge-base/
