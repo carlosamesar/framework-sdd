@@ -352,35 +352,74 @@ Idea → Specify → Clarify → Plan → Break Down → Implement → Review �
 
 ## Memoria Persistente (Engram)
 
-El framework usa **Engram** para memoria persistente que sobrevive entre sesiones. Configurado para 3 proyectos:
+El framework utiliza **Engram** como sistema de memoria persistente que sobrevive entre sesiones y compactaciones de contexto. Los datos se almacenan en `engineering-knowledge-base/` y se sincronizan automáticamente con el repositorio Git.
 
-| Proyecto | Descripción |
-|----------|-------------|
-| `framework-sdd` | Framework raíz, lambdas, servicios NestJS |
-| `gooderp-client` | Frontend Angular 17+ (develop/frontend/) |
-| `gooderp-orchestation` | Backend NestJS + Lambda (develop/backend/) |
+### Configuración Inicial de Memoria (Engram)
 
-### Protocolo de Uso
+Para que el sistema de memoria persistente funcione correctamente y se sincronice con el repositorio central de conocimiento, los usuarios **DEBEN** clonar el repositorio de base de conocimiento dentro de la raíz del framework:
 
 ```bash
-# Guardar después de decisiones/completar trabajo
-# Especificar el proyecto correcto:
-mem_save title: "Fixed bug" type: bugfix project: "framework-sdd"
-mem_save title: "Angular component" type: discovery project: "gooderp-client"
-mem_save title: "Lambda orchestration" type: pattern project: "gooderp-orchestation"
+# 1. Navegar a la raíz del framework
+cd Framework-SDD
 
-# Buscar en todas las memorias
-mem_search query: "Cognito"
+# 2. Clonar el repositorio de base de conocimiento (Engram)
+# IMPORTANTE: El directorio DEBE llamarse 'engineering-knowledge-base'
+git clone https://github.com/carlosamesar/engineering-knowledge-base engineering-knowledge-base
 
-# Buscar en proyecto específico
-mem_search query: "autenticación" project: "gooderp-client"
+# 3. Iniciar el daemon de sincronización automática
+./scripts/engram-sync-daemon.sh start
 ```
 
-### Después de Compactación
+### Proyectos Configurados
 
-1. Llamar `mem_session_summary` inmediatamente
-2. Luego `mem_context` para recuperar contexto adicional
-3. Solo entonces continuar trabajando
+| Proyecto | ID | Ubicación |
+|----------|----|-----------|
+| **Core** | `framework-sdd` | Raíz del repositorio |
+| **Frontend** | `gooderp-client` | `develop/frontend/gooderp-client/` |
+| **Backend** | `gooderp-orchestation` | `develop/backend/gooderp-orchestation/` |
+
+### Sincronización Automática (Daemon)
+
+Para mantener la memoria actualizada en el repositorio remoto, se debe ejecutar el daemon de sincronización en segundo plano. Este daemon verifica cambios cada 30 segundos y realiza `commit` / `push` automáticamente.
+
+#### Control del Daemon:
+```bash
+# Iniciar el daemon
+./scripts/engram-sync-daemon.sh start
+
+# Ver estado
+./scripts/engram-sync-daemon.sh status
+
+# Detener el daemon
+./scripts/engram-sync-daemon.sh stop
+```
+
+#### Instalación como Servicio (Recomendado):
+Para que el daemon inicie automáticamente con tu sesión de usuario:
+```bash
+mkdir -p ~/.config/systemd/user/
+cp scripts/engram-sync-daemon.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable engram-sync-daemon
+systemctl --user start engram-sync-daemon
+```
+
+### Protocolo para Agentes (OBLIGATORIO)
+
+#### 1. Guardar (`mem_save`)
+Los agentes deben llamar a `mem_save` proactivamente después de:
+- Tomar decisiones arquitectónicas o de diseño.
+- Completar un bug fix (incluyendo causa raíz).
+- Establecer nuevas convenciones o patrones.
+- Descubrir comportamientos inesperados o "gotchas".
+
+#### 2. Buscar (`mem_search`)
+Antes de iniciar una tarea, el agente debe consultar la memoria:
+1. `mem_context`: Recupera contexto de la sesión actual/reciente.
+2. `mem_search`: Búsqueda semántica en el historial histórico de todos los proyectos.
+
+#### 3. Cierre de Sesión (`mem_session_summary`)
+Al finalizar una sesión de trabajo, es **obligatorio** generar un resumen estructurado con `Goal`, `Instructions`, `Discoveries`, `Accomplished` y `Next Steps`.
 
 ---
 

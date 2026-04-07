@@ -144,3 +144,24 @@ vite.config.ts.timestamp-*
 /develop/*
 !/develop/.gitkeep
 engineering-knowledge-base/
+
+# Root Restrictions: Ignore all files in root except README.md and .gitignore
+/*
+!/README.md
+!/.gitignore
+!/AGENTS.md
+!/.cursorrules
+!/CLAUDE.md
+!/GEMINI.md
+!/.opencode.json
+!/package.json
+!/package-lock.json
+!/scripts/
+!/docs/
+!/openspec/
+!/rag/
+!/sql/
+!/lib/
+!/servicio-contabilidad/
+!/servicio-tesoreria/
+!/terraform/
