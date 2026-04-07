@@ -137,3 +137,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# SDD Framework Development
+# All project development is done inside /develop.
+# Each project has its own git repository, so they are excluded from this core repo.
+/develop/*
+!/develop/.gitkeep

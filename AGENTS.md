@@ -149,6 +149,8 @@ No negociables. Siempre aplicadas. Sin excepciones.
 | **I. TDD** | Todo código requiere tests | `RED` → `GREEN` → `REFACTOR`, sin excepciones |
 | **II. Debugging** | Primero la causa raíz | Reproducir → Aislar → Entender → Corregir → Verificar |
 | **III. Verificación** | Evidencia antes que afirmaciones | ✅ "Tests pasan" > ❌ "Creo que funciona" |
+| **IV. Location** | El desarrollo es bajo `develop/` | Todo proyecto o código debe residir dentro del directorio `/develop` |
+| **V. Evidence** | Certificación por evidencia | Todo cierre de implementación requiere un `EVIDENCE.md` con tests funcionales, endpoints y payloads |
 
 ---
 
@@ -253,12 +255,15 @@ Comandos: `npm run metrics` o `npm run dashboard` para visualizar.
 
 ## 1. Arquitectura General
 
+**Estructura de Directorios:** Por lineamiento obligatorio, todos los proyectos, microservicios y desarrollos deben crearse dentro del directorio `/develop`. No se permite la creación de proyectos fuera de esta ruta.
+
 **Premisa SDD Fundamental:** Este proyecto sigue el marco **Specification-Driven Development (SDD)**. Toda implementación debe comenzar con una especificación verificable, pasar por quality gates, y demostrar evidencia antes de considerarse completa.
 
 - **Backend híbrido**: Lambdas AWS (Node.js 20 ESM en `lib/lambda`) + microservicio NestJS de contabilidad (`servicio-contabilidad`) + Terraform IaC.
 - **Base de datos**: PostgreSQL, con uso intensivo de JSONB y extensión pgVector en `servicio-contabilidad`.
 - **Automatización avanzada en contabilidad**: `servicio-contabilidad` integra Redis, n8n, formularios dinámicos, IA sobre Bedrock y pgVector, según los módulos y docs bajo `servicio-contabilidad/docs` y `servicio-contabilidad/src`. El uso de BPMN/Camunda forma parte del diseño arquitectónico y está previsto para una fase posterior.
 - **Patrón SAGA orquestado**: la solución implementa de forma explícita el patrón SAGA para coordinar transacciones distribuidas entre servicios (por ejemplo, contabilidad, tesorería y otros dominios), usando lambdas de orquestación como base madura de referencia. La integración con BPMN/Camunda para orquestación avanzada está planificada como evolución en una segunda fase.
+- **Configuración de Entorno (Microservicios):** Todo microservicio debe incluir un archivo `.env.example` con las semillas de las variables de entorno necesarias (DB, API Keys, etc.). El usuario configurará el `.env` final para migraciones y conexiones externas.
 
 ---
 
@@ -691,6 +696,17 @@ En este proyecto, el desarrollo guiado por especificaciones se basa en **documen
     - Los flujos certificados en `INFORME-PRUEBAS-FUNCIONALES-CONTABILIDAD.md` siguen funcionando (o se amplían con casos nuevos documentados).
   - No se considera un cambio “listo” hasta que esta validación haya sido razonada explícitamente en la SPEC o en un doc de resultados (siguiendo el estilo de `RESUMEN-FINAL-ANALISIS.md` o `RESUMEN-CORRECCION-ORQUESTADOR.md`).
 
+- **5. Cierre y Certificación (OBLIGATORIO para Nivel 2+)**:
+  - Tras una implementación exitosa, el agente debe ejecutar automáticamente (o proponer) los siguientes pasos:
+    - **Migraciones de BD**: Ejecutar scripts de migración usando Node.js/TypeORM para actualizar el esquema.
+    - **Seed de Datos**: Crear/Ejecutar seeds con datos de prueba realistas para el nuevo dominio.
+    - **Pruebas E2E Reales**: Ejecutar pruebas contra endpoints reales con datos reales para certificar la solución.
+    - **Despliegue de Infraestructura**: Confirmar y proponer el despliegue según el tipo de componente:
+      - Lambdas: Vía scripts PowerShell/AWS CLI.
+      - Microservicios: Vía Docker/ECS.
+      - Frontend: Vía AWS Amplify.
+    - **Generación de Evidencia**: Crear el archivo `EVIDENCE.md` con los resultados de los puntos anteriores.
+
 ### 10. Prohibiciones explícitas
 
 - **Prohibido** introducir nuevos mecanismos ad‑hoc de multi‑tenant (headers personalizados, query params de `tenant`, body sin seguir los patrones documentados).
@@ -836,6 +852,8 @@ Cada cambio debe alinearse al plan de la capa afectada. Los planes definen **qu�
 | Lambda (handler/util) | Unit + integración del módulo | Integración + multi‑tenant |
 | NestJS (controller/service) | Unit + tests del controlador | Contrato + flujos de informe funcional |
 | OpenAPI / rutas certificadas | Tests de contrato afectados | Suite de regresión del dominio |
+| Frontend / UI | **Playwright E2E** + Unit | Regression UI |
+| API / Contratos | **Newman (Postman)** + Spec validation | E2E Integración |
 | Terraform | validate + plan | Smoke post-deploy (opcional) |
 | RAG | `rag/scripts/test-functional.mjs` | — |
 
@@ -2328,6 +2346,7 @@ El framework ofrece **94+ comandos** organizados por categoría. Todos son texto
 | `/gd:presentar` | | Generar presentación interactiva HTML desde contenido |
 | `/gd:spec-score` | | Puntuación cuantitativa de calidad de especificaciones (0-100) |
 | `/gd:tea` | | Testing Autónomo End-to-End: genera, ejecuta y reporta tests |
+| `/gd:playwright` | | Automatización de pruebas funcionales E2E para Frontend |
 | `/gd:tech-debt` | | Detectar y cuantificar deuda técnica |
 | `/gd:time-travel` | | Debugger de razonamiento que muestra decisiones del framework |
 | `/gd:voice` | | Integrar con Claude Code Voice Mode para dictar specs |
@@ -2504,6 +2523,7 @@ El framework implementa **agentes autonomos profundos** especializados por domin
 | 🎨 **Agente Frontend** | Angular apps, componentes | UI/UX, servicios, estados, routing | `project.md`, componentes docs |
 | 🏗️ **Agente Infraestructura** | `terraform/`, docker, cloud | IaC, despliegue, recursos, networking | `terraform/` state, configs |
 | 🧪 **Agente QA/E2E** | Pruebas automatizadas | Funcionales, integración, contrato | `INFORME-PRUEBAS-FUNCIONALES-*` |
+| 🎭 **Agente Playwright** | Frontend Automation | Pruebas funcionales E2E de UI/UX | `project.md`, Playwright scripts |
 | 🔍 **Agente Review** | Code review, calidad | Static analysis, security, performance | `RESUMEN-*.md`, análisis previos |
 | 📊 **Agente Negocio** | Requisitos, validación | BDD scenarios, validación domain | SPECs, Gherkin, certificación |
 
@@ -2667,6 +2687,7 @@ jobs:
 | `/gd:breakdown` | Dividir en tareas con orden, paralelismo y criterios de aceptación |
 | `/gd:implement` | Ejecutar RED → GREEN → REFACTOR con evidencia |
 | `/gd:review` | Peer review 7 dimensiones con评分 y recomendaciones |
+| `/gd:verify` | Validar contra SPEC, ejecutar migraciones, seeds y certificar con EVIDENCE.md |
 
 ### Comandos de Análisis
 
