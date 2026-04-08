@@ -1,0 +1,96 @@
+# Registro de herramientas para orquestación tipo ReAct (razonamiento + acción).
+# Cada herramienta debe mapearse a capacidades reales del runtime (CLI, MCP, IDE).
+
+version: 1
+
+policies:
+  max_tool_iterations: 25
+  stop_on_first_hard_fail: false
+
+tools:
+  - name: spec_validate
+    description: Valida estructura OpenSpec bajo openspec/changes
+    type: exec
+    command: npm run spec:validate
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      properties: {}
+    output: stdout_exit_code
+
+  - name: rag_query
+    description: Consulta RAG (pgvector) sobre docs del framework
+    type: exec
+    command: npm run rag:query --
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+
+  - name: rag_migrate
+    description: Migración esquema rag.* en PostgreSQL
+    type: exec
+    command: npm run rag:migrate
+    cwd: repo_root
+    risk: write_db
+
+  - name: spec_validate_react
+    description: Compila esquemas JSON Schema ReAct y valida ejemplos (Ajv)
+    type: exec
+    command: npm run spec:validate-react
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      properties: {}
+    output: stdout_exit_code
+
+  - name: spec_verify_report
+    description: Genera reports/verify-<slug>.json para un change
+    type: exec
+    command: npm run spec:verify --
+    cwd: repo_root
+    risk: write_reports
+    input_schema:
+      type: object
+      required: [change_slug]
+      properties:
+        change_slug:
+          type: string
+        all:
+          type: boolean
+          description: Si true, pasar --all en lugar de slug
+
+  - name: read_file
+    description: Leer archivo del repositorio (capacidad del agente IDE)
+    type: agent_capability
+    risk: read_only
+
+  - name: run_terminal
+    description: Ejecutar comando en shell acotado (tests, build)
+    type: agent_capability
+    risk: execute
+
+  - name: mem_search
+    description: Búsqueda en memoria persistente (Engram MCP) cuando esté configurado
+    type: mcp
+    server: user-engram
+    risk: read_only
+    optional: true
+
+  - name: memory_daemons_start
+    description: Arranca daemons Engram + RAG (lineamiento Framework-SDD)
+    type: exec
+    command: npm run memory:daemons:start
+    cwd: repo_root
+    risk: long_running
+
+notes:
+  - Los comandos /gd:* en .claude/commands son prompts; la "acción" la ejecuta el modelo invocando herramientas listadas arriba.
+  - Ampliar este manifiesto con herramientas de dominio (terraform, aws, jest) por proyecto bajo develop/.
+  - Memoria automática: `docs/lineamiento-memoria-automatica.md` (Engram sync + RAG index en background).

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "architecture_summary": "Guard _shouldIncludeContabilidad(tipo) en orquestador; extractTenantId canónico en lambdas hijas.",
+  "api_contracts": [
+    {
+      "method": "POST",
+      "path": "/api/v1/transacciones-unificadas",
+      "purpose": "Orquestación unificada existente",
+      "request_shape": "Evento SAGA + tenant en JWT o body",
+      "response_shape": "ResponseBuilder.success"
+    }
+  ],
+  "data_model_refs": ["transacciones existentes"],
+  "tenant_rule": "tenant_id solo desde JWT (P1-P2) o body (P3-P4) según AGENTS.md",
+  "risks": ["Regresión en tipos de transacción no cubiertos por el guard"]
+}

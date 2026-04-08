@@ -1,9 +1,21 @@
 # GOODERP — Índice Maestro OpenSpec
 
 > Fuente de verdad del estado de todos los módulos y cambios activos del proyecto.
-> Última actualización: 2026-03-08
+> Última actualización: 2026-04-09
 >
 > 📋 **Para referencia rápida por ID**: ver [`registry.md`](./registry.md) — Sistema de numeración `M.C.S`
+
+---
+
+## Layout OpenSpec en este repositorio (fuente de verdad)
+
+- **Configuración**: [`openspec/config.yaml`](./openspec/config.yaml) define rutas y reglas validadas en CI (`npm run spec:validate`).
+- **Cambios (delta specs)**: [`openspec/changes/`](./openspec/changes/) — cada carpeta `<slug>` es un change con `proposal.md` / `design.md` / `tasks.md` y opcionalmente `specs/**/*.md`.
+- **Módulos numerados** (`openspec/modules/01-module-menu/...`): layout completo ERP descrito abajo; **opcional** si el clon solo incluye framework + backend parcial. Cuando no exista `openspec/modules/`, el estado canónico de specs son únicamente `openspec/changes/`.
+- **Guía rápida OpenSpec**: [`openspec/README.md`](./openspec/README.md).
+- **Índice de documentación del framework**: [`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](./docs/INDICE-DOCUMENTACION-FRAMEWORK.md).
+- **Memoria SDD (enlaces)**: [`openspec/MEMORY.md`](./openspec/MEMORY.md).
+- **Prerrequisitos** (RAG en repo, Engram, opcionales): [`docs/framework-prerequisites.md`](./docs/framework-prerequisites.md).
 
 ---
 
@@ -11,7 +23,7 @@
 
 - **Maestro único**: [`AGENTS.md`](AGENTS.md) en la raíz del repo. Define arquitectura, multi-tenant, ResponseBuilder, SAGA, TDD/BDD, pruebas y prohibiciones. Todas las specs e implementaciones deben alinearse a él.
 - **Memoria infinita**: Este archivo (`project.md`) + [`registry.md`](./registry.md) + `AGENTS.md` + [`openspec/config.yaml`](./openspec/config.yaml) forman el estado canónico. Al cerrar o cambiar estado de un change, **actualizar** `registry.md` y este `project.md` para que cualquier modelo (Claude, Gemini, Copilot) tenga el estado actual sin redescubrir.
-- **Ultra-economizer**: Lectura quirúrgica (máx. 3–5 archivos por tarea, bloques 100–150 líneas); SPEC antes de código; copiar patrón espejo de lambdas/contabilidad; al final de cada bloque de trabajo emitir **AUDITORÍA DE EFICIENCIA** (tokens consumidos/ahorrados, eficacia, técnica). Ver [`openspec/MEMORY.md`](./openspec/MEMORY.md).
+- **Ultra-economizer**: Lectura quirúrgica (máx. 3–5 archivos por tarea, bloques 100–150 líneas); SPEC antes de código; copiar patrón espejo de lambdas/contabilidad; al final de cada bloque de trabajo emitir **AUDITORÍA DE EFICIENCIA** (tokens consumidos/ahorrados, eficacia, técnica). Ver [`openspec/MEMORY.md`](./openspec/MEMORY.md) y [`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](./docs/INDICE-DOCUMENTACION-FRAMEWORK.md).
 
 ---
 

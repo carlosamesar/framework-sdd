@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framework-sdd.local/schemas/verify-output.json",
+  "title": "ReAct — salida /gd:verify (además de reports/verify-<slug>.json)",
+  "type": "object",
+  "required": ["schema_version", "overall", "requirements_coverage", "gaps"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "overall": { "type": "string", "enum": ["PASS", "FAIL"] },
+    "requirements_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["requirement_id", "implemented"],
+        "properties": {
+          "requirement_id": { "type": "string" },
+          "implemented": { "type": "boolean" },
+          "evidence_paths": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "gaps": { "type": "array", "items": { "type": "string" } },
+    "extras": { "type": "array", "items": { "type": "string" } },
+    "commands_run": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

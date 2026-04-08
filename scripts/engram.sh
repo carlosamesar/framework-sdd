@@ -1,9 +1,10 @@
 #!/bin/bash
 # Engram wrapper para Framework-SDD
-# Usa el directorio de datos del repositorio engineering-knowledge-base
+# Datos: repo anidado engineering-knowledge-base (gitignored en el padre; ver docs/validacion-memoria-engram-rag.md)
 
-export ENGRAM_DATA_DIR="/home/cto-grupo4d/Documents/Good4D/Framework-SDD/engineering-knowledge-base"
-export ENGRAM_PROJECT="framework-sdd"
+FRAME_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export ENGRAM_DATA_DIR="${ENGRAM_DATA_DIR:-$FRAME_ROOT/engineering-knowledge-base}"
+export ENGRAM_PROJECT="${ENGRAM_PROJECT:-framework-sdd}"
 export PATH="$HOME/go/bin:$PATH"
 
 exec engram "$@"

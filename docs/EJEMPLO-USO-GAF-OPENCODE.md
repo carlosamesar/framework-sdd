@@ -84,10 +84,40 @@ Puedes invocar razonamientos profundos ante problemas complejos:
 
 ---
 
+## OpenSpec y CI (Node en la raíz)
+
+Desde la raíz de Framework-SDD (Node 20+):
+
+| Comando | Uso |
+|---------|-----|
+| `npm install` | Dependencias del validador (una vez) |
+| `npm run spec:validate` | Estructura `openspec/changes/` |
+| `npm run spec:validate-react` | Esquemas JSON ReAct + ejemplos (Ajv) |
+| `npm run framework:ci` | Ambos (como en CI) |
+| `npm run spec:verify -- <slug>` | Reporte JSON en `reports/` |
+
+Índice de documentación: [`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](INDICE-DOCUMENTACION-FRAMEWORK.md).
+
+---
+
+## RAG y Postgres (opcional)
+
+El código RAG está en `rag/`. Para consultas semánticas sobre documentación:
+
+1. `rag/.env` desde `rag/.env.example` (BD y proveedor de embeddings).
+2. Postgres con pgvector: `npm run rag:db:up` (Docker; detalle en [`rag/README.md`](../rag/README.md)).
+3. `npm run rag:migrate` → `npm run rag:index` → `npm run rag:query -- "tu pregunta"`.
+
+Para mantener el índice actualizado en desarrollo, usar los daemons descritos en [`lineamiento-memoria-automatica.md`](lineamiento-memoria-automatica.md).
+
+---
+
 ## 📝 Notas Adicionales
-1. **Memoria Persistente:** El framework usa Engram. Si necesitas que el agente recuerde algo de sesiones pasadas, usa `/gd:recall`.
-2. **Cierre de Sesión:** Antes de terminar tu trabajo, usa `/gd:close` para que el agente guarde un resumen estructurado.
-3. **Detección de Complejidad:** El framework ajustará automáticamente las fases de desarrollo (Nivel 0 al 4) según la magnitud de tu solicitud.
+1. **Memoria persistente (Engram):** datos en `engineering-knowledge-base/`; MCP `mem_*` y daemons de sync. Guía: [`lineamiento-memoria-automatica.md`](lineamiento-memoria-automatica.md).
+2. **RAG:** complementa Engram para búsqueda en Markdown del repo; ver arriba y [`openspec/MEMORY.md`](../openspec/MEMORY.md).
+3. **Memoria en el chat:** si necesitas contexto de sesiones previas en flujo GAF, usa `/gd:recall` cuando esté disponible en tu instalación.
+4. **Cierre de sesión:** antes de terminar, `/gd:close` para resumen estructurado (alineado a `AGENTS.md`).
+5. **Detección de complejidad:** el framework ajusta fases (nivel 0–4) según la magnitud de la solicitud.
 
 ---
 *GAF Framework - Specification-Driven Development - Grupo 4D*

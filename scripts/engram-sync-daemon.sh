@@ -5,14 +5,39 @@
 
 set -e
 
-# Configuración
-KB_DIR="/home/cto-grupo4d/Documents/Good4D/Framework-SDD/engineering-knowledge-base"
-ENGRAM_BIN="$HOME/go/bin/engram"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Raíz Framework-SDD = directorio padre de scripts/
+FRAME_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Cargar secretos sin commitearlos: ~/.config/... luego proyecto config/engram-daemon.local.env;
+# opcional ENGRAM_DAEMON_ENV_FILE (ruta extra, p. ej. systemd EnvironmentFile).
+load_engram_daemon_env() {
+    local f
+    for f in "${HOME}/.config/framework-sdd/engram-daemon.env" \
+             "$FRAME_ROOT/config/engram-daemon.local.env"; do
+        [[ -f "$f" ]] || continue
+        set -a
+        # shellcheck disable=SC1090
+        source "$f"
+        set +a
+    done
+    if [[ -n "${ENGRAM_DAEMON_ENV_FILE:-}" && -f "${ENGRAM_DAEMON_ENV_FILE}" ]]; then
+        set -a
+        # shellcheck disable=SC1090
+        source "${ENGRAM_DAEMON_ENV_FILE}"
+        set +a
+    fi
+}
+load_engram_daemon_env
+
+KB_DIR="${ENGRAM_DATA_DIR:-$FRAME_ROOT/engineering-knowledge-base}"
+ENGRAM_BIN="${ENGRAM_BIN:-$HOME/go/bin/engram}"
 PID_FILE="$KB_DIR/.engram-sync.pid"
 LOG_FILE="$KB_DIR/.engram-sync.log"
 CHECK_INTERVAL=30  # segundos entre verificaciones
 LAST_SIZE_FILE="$KB_DIR/.engram-last-size"
-GIT_TOKEN="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"
+# ENGRAM_GIT_TOKEN: definir en ~/.config/framework-sdd/engram-daemon.env (ver config/engram-daemon.env.example).
+ENGRAM_GIT_REMOTE="${ENGRAM_GIT_REMOTE:-https://github.com/carlosamesar/engineering-knowledge-base.git}"
 
 # Colores para logs
 RED='\033[0;31m'
@@ -38,10 +63,9 @@ log_error() {
 
 check_git_config() {
     cd "$KB_DIR"
-    
-    # Configurar remote con token
-    git remote set-url origin "https://${GIT_TOKEN}@github.com/carlosamesar/engineering-knowledge-base.git" 2>/dev/null || true
-    
+    if [[ -n "${ENGRAM_GIT_TOKEN:-}" && "$ENGRAM_GIT_REMOTE" == https://* ]]; then
+        git remote set-url origin "https://${ENGRAM_GIT_TOKEN}@${ENGRAM_GIT_REMOTE#https://}" 2>/dev/null || true
+    fi
     return 0
 }
 
@@ -91,7 +115,7 @@ sync_memories() {
             git commit -m "sync: engram memories $(date '+%Y-%m-%d %H:%M')" 2>/dev/null
             
             # Push automático
-            if git push origin master 2>/dev/null; then
+            if git push origin "$(git rev-parse --abbrev-ref HEAD)" 2>/dev/null; then
                 log_success "Memorias sincronizadas y enviadas a remoto"
             else
                 log_warn "No se pudo hacer push (sin cambios remotos o error de conexión)"
@@ -130,7 +154,7 @@ start_daemon() {
     check_git_config
     
     # Iniciar en background usando ruta ABSOLUTA
-    nohup /bin/bash "/home/cto-grupo4d/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh" run >> "$LOG_FILE" 2>&1 &
+    nohup /bin/bash "$SCRIPT_DIR/engram-sync-daemon.sh" run >> "$LOG_FILE" 2>&1 &
     echo $! > "$PID_FILE"
     
     sleep 2  # Dar tiempo al daemon para iniciar

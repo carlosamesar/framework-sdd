@@ -1,0 +1,23 @@
+# OpenSpec — configuración canónica del Framework-SDD (este repositorio)
+# Versión del esquema de layout soportado por validate-spec.mjs
+
+version: 1
+
+paths:
+  # Cambios activos o históricos (delta specs). Obligatorio en monorepo mínimo.
+  changes_root: openspec/changes
+  # Módulos numerados (Angular / ERP) — opcional; si no existen, el validador solo exige changes/.
+  modules_root: openspec/modules
+
+# Artefactos mínimos por carpeta de change bajo changes_root
+change_requirements:
+  # Al menos uno de estos archivos en la raíz del change
+  entry_any_of:
+    - proposal.md
+    - design.md
+    - tasks.md
+  # Si existe specs/, cada *.md debe cumplir scenario_pattern (ver validate-spec.mjs)
+  specs_subdir: specs
+
+# Salida estructurada para agentes (ReAct) — plantillas en openspec/templates/react-outputs/
+react_templates_root: openspec/templates/react-outputs

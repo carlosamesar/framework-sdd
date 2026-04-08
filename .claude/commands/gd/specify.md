@@ -40,5 +40,9 @@ Feature: Nombre del feature
 ## Alias
 - `/gd:especificar`
 
+## Salida estructurada (agentes ReAct)
+
+Opcional: además del Markdown, emitir un bloque JSON que cumpla `openspec/templates/react-outputs/specify.output.schema.json` para que un orquestador parsee escenarios y preguntas abiertas.
+
 ## Siguiente Paso
 Después de especificar, usar `/gd:clarify` para validar la especificación.

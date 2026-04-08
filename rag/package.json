@@ -1,0 +1,20 @@
+{
+  "name": "framework-sdd-rag",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RAG con pgvector sobre docs del framework (AGENTS, OpenSpec, registry)",
+  "scripts": {
+    "migrate": "node scripts/run-migration.mjs",
+    "index": "node scripts/index.mjs",
+    "query": "node scripts/query.mjs",
+    "test": "node scripts/test-functional.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1"
+  }
+}

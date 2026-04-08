@@ -2,9 +2,9 @@
 
 **Regla única**: Todo agente o modelo que trabaje en este repo debe seguir **AGENTS.md** como contrato maestro.
 
-- **Memoria primero**: Toda pregunta debe pasar primero por la Memoria: estado en [project.md](project.md) y [registry.md](registry.md); preguntas sobre reglas o cambios pasados vía RAG (`rag/scripts/query.mjs`). No responder sin consultar. Ver [openspec/MEMORY.md](openspec/MEMORY.md).
+- **Memoria primero**: Toda pregunta debe pasar primero por la Memoria: estado en [project.md](project.md) y [registry.md](registry.md); preguntas sobre reglas o cambios pasados vía RAG (`npm run rag:query -- "pregunta"`). No responder sin consultar. Ver [openspec/MEMORY.md](openspec/MEMORY.md) y [docs/INDICE-DOCUMENTACION-FRAMEWORK.md](docs/INDICE-DOCUMENTACION-FRAMEWORK.md).
 - **Maestro**: [AGENTS.md](AGENTS.md) — arquitectura, multi-tenant, ResponseBuilder, SAGA, TDD/BDD, planes de pruebas, RAG, migraciones (solo Node.js), prohibiciones.
-- **Memoria infinita**: Al cerrar un change, actualizar [registry.md](registry.md) y [project.md](project.md). Ver [openspec/MEMORY.md](openspec/MEMORY.md).
+- **Memoria infinita**: Al cerrar un change, actualizar [registry.md](registry.md) y [project.md](project.md). Ver [openspec/MEMORY.md](openspec/MEMORY.md) y el índice [docs/INDICE-DOCUMENTACION-FRAMEWORK.md](docs/INDICE-DOCUMENTACION-FRAMEWORK.md).
 - **Ultra-economizer**: Lectura mínima (3–5 archivos, bloques 100–150 líneas), SPEC antes de código, copiar patrones maduros, emitir auditoría de tokens al final.
 - **Guías por herramienta** (opcional): [GEMINI.md](GEMINI.md), [CLAUDE.md](CLAUDE.md), [COPILOT.md](COPILOT.md) repiten y refuerzan lo anterior para cada producto.
 

@@ -33,5 +33,9 @@ Crear un blueprint técnico completo con arquitectura, contratos API y esquema f
 - `/gd:diseñar`
 - `/gd:planificar-tecnico`
 
+## Salida estructurada (agentes ReAct)
+
+Opcional: JSON según `openspec/templates/react-outputs/plan.output.schema.json` (contratos API, riesgos, regla de tenant).
+
 ## Siguiente Paso
 Después del plan, usar `/gd:breakdown` para dividir en tareas concretas.

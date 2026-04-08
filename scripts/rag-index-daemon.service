@@ -1,0 +1,16 @@
+[Unit]
+Description=RAG index daemon (Framework-SDD pgvector)
+After=network.target
+
+[Service]
+Type=simple
+User=%u
+EnvironmentFile=-%h/.config/framework-sdd/rag-daemon.env
+# Ajustar rutas si el clon no está aquí:
+WorkingDirectory=%h/Documents/Good4D/Framework-SDD/rag
+ExecStart=%h/Documents/Good4D/Framework-SDD/scripts/rag-index-daemon.sh run
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=default.target

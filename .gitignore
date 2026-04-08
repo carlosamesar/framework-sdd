@@ -149,6 +149,7 @@ engineering-knowledge-base/
 /*
 !/README.md
 !/.gitignore
+!/.cursor/
 !/AGENTS.md
 !/.cursorrules
 !/CLAUDE.md
@@ -159,9 +160,19 @@ engineering-knowledge-base/
 !/scripts/
 !/docs/
 !/openspec/
+!/config/
 !/rag/
 !/sql/
 !/lib/
 !/servicio-contabilidad/
 !/servicio-tesoreria/
 !/terraform/
+
+# SDD: reportes JSON generados por npm run spec:verify (mantener directorio con .gitkeep)
+reports/*.json
+!reports/.gitkeep
+
+# Secretos locales (daemon / MCP overrides)
+config/mcp.local.env
+config/engram-daemon.local.env
+config/rag-daemon.local.env

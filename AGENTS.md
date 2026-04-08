@@ -1,6 +1,6 @@
 # AGENTS.md — Contrato Maestro de Implementación
 
-> **Versión**: 2.0 | **Última actualización**: 2026-04-06 | **Estado**: Activo
+> **Versión**: 2.0 | **Última actualización**: 2026-04-09 | **Estado**: Activo
 
 Este documento establece las **reglas de implementación obligatorias** para cualquier agente, modelo de IA o desarrollador que trabaje en este repositorio. Todo está basado exclusivamente en código y documentación existente bajo `lib/lambda`, `servicio-contabilidad` y `servicio-tesoreria`.
 
@@ -34,13 +34,15 @@ Este documento establece las **reglas de implementación obligatorias** para cua
 
 **Memoria persistente (Engram):** Este proyecto usa Engram para memoria persistente que sobrevive entre sesiones y compactaciones. El directorio de datos está configurado en `engineering-knowledge-base/` con sincronización automática via git.
 
+**Lineamiento obligatorio (entornos de desarrollo):** Los desarrolladores **deben** ejecutar en background los daemons de **Engram** (`scripts/engram-sync-daemon.sh`) y **RAG** (`scripts/rag-index-daemon.sh`), o instalar las unidades **systemd** equivalentes. Sin ello, la memoria no se sincroniza al repo remoto y el índice vectorial queda obsoleto. Guía: `docs/lineamiento-memoria-automatica.md`. Arranque: `scripts/start-memory-daemons.sh`.
+
 - **Al guardar**: Usar `mem_save` después de decisiones, completados de trabajo, y descubrimientos
 - **Al buscar**: Usar `mem_search` cuando el usuario pregunta sobre cosas pasadas, o proactivamente cuando se detecta trabajo relacionado
 - **Al cerrar sesión**: Usar `mem_session_summary` con estructura definida (Goal, Instructions, Discoveries, Accomplished, Next Steps, Relevant Files)
 - **Después de compactación**: Usar `mem_context` para recuperar estado antes de continuar
 - Ver `engineering-knowledge-base/ENGRAM.md` para detalles de configuración
 
-**Memoria SDD:** Toda pregunta o tarea debe pasar primero por la Memoria (estado en `project.md` / `registry.md`; preguntas sobre reglas o cambios pasados vía RAG: `rag/scripts/query.mjs`). No responder sin consultar. Ver `openspec/MEMORY.md`.
+**Memoria SDD:** Toda pregunta o tarea debe pasar primero por la Memoria (estado en `project.md` / `registry.md`; preguntas sobre reglas o cambios pasados vía RAG: `npm run rag:query -- "pregunta"` o `node rag/scripts/query.mjs`). No responder sin consultar. Ver `openspec/MEMORY.md` y `docs/INDICE-DOCUMENTACION-FRAMEWORK.md`.
 
 ---
 
@@ -54,8 +56,9 @@ Este proyecto usa **Engram** como sistema de memoria persistente que sobrevive e
 |------------|-------|
 | Directorio de datos | `engineering-knowledge-base/` |
 | Proyecto | `framework-sdd` |
-| Sync | Automático via git (daemon) |
-| MCP server | Configurado en `opencode.json` |
+| Sync Engram | Automático via git (**daemon obligatorio** en dev) |
+| Sync RAG | Reindexado periódico (**daemon obligatorio** en dev; `RAG_INDEX_INTERVAL`) |
+| MCP server | Cursor: `.cursor/mcp.json` / global `~/.cursor/mcp.json`; otros IDEs: `docs/mcp-engram-multi-ide.md` |
 
 ### Protocolo de Memoria (OBLIGATORIO para todos los modelos)
 
@@ -119,16 +122,18 @@ Si ves mensaje de compactación o context reset, o ves "FIRST ACTION REQUIRED":
 
 > **No skipping step 1** — sin esto, todo lo hecho antes de la compactación se pierde de la memoria.
 
-### Sincronización Automática
+### Sincronización automática (Engram + RAG)
 
-El daemon de sincronización corre en background y:
-- Verifica cambios en la DB cada 30 segundos
+**Engram:** el daemon (`scripts/engram-sync-daemon.sh` o systemd `engram-sync-daemon.service`) corre en background y:
+- Verifica cambios en la DB cada ~30 segundos
 - Ejecuta `engram sync` para crear chunks
-- Hace commit y push automático al repositorio git
+- Hace commit y push automático al repositorio git (requiere `ENGRAM_GIT_TOKEN` en `~/.config/framework-sdd/engram-daemon.env`)
 
-Para más detalles ver `engineering-knowledge-base/ENGRAM.md`.
+**RAG:** el daemon (`scripts/rag-index-daemon.sh` o systemd `rag-index-daemon.service`) reejecuta `rag/scripts/index.mjs` cada `RAG_INDEX_INTERVAL` segundos (default 3600) para mantener `rag.document_chunks` alineado con los Markdown del repo.
 
-**Principio de Lectura First:** antes de responder cualquier pregunta o comenzar una tarea, consultar la memoria del proyecto (`project.md`, `registry.md`). Para preguntas sobre decisiones pasadas o reglas, usar RAG: `node rag/scripts/query.mjs "pregunta"`.
+Detalle operativo: `docs/lineamiento-memoria-automatica.md` y `engineering-knowledge-base/ENGRAM.md`.
+
+**Principio de Lectura First:** antes de responder cualquier pregunta o comenzar una tarea, consultar la memoria del proyecto (`project.md`, `registry.md`). Para preguntas sobre decisiones pasadas o reglas, usar RAG: `npm run rag:query -- "pregunta"` (o `node rag/scripts/query.mjs`).
 
 **Convenciones de nomenclatura:**
 - Lambdas: `fn<Recurso>` (ej: `fnBanco`, `fnTransaccion`)
@@ -863,7 +868,7 @@ Cada cambio debe alinearse al plan de la capa afectada. Los planes definen **qu�
 
 - `terraform/`: define VPC, ALB, ECS, Lambdas, API Gateway y otros recursos de infraestructura (no documentado aquí en detalle; seguir archivos `.tf` existentes).
 - `sql/` y `servicio-contabilidad/database/migrations`: migraciones SQL/manuales; **no** se usa `synchronize: true` en producción. **Regla fundamental**: las migraciones a la BD se ejecutan **siempre con Node.js** (scripts o runner de migraciones del proyecto), **nunca con `psql`** ni con clientes SQL interactivos para aplicar cambios de esquema.
-- **RAG (memoria infinita con índice vectorial)**: en `rag/` se implementa un RAG con pgVector y chunking fino sobre AGENTS.md, project.md, registry.md, specs y memoria OpenSpec. Migraciones del RAG: solo con Node.js (`rag/scripts/run-migration.mjs`). Indexar: `node rag/scripts/index.mjs`. Consultar: `node rag/scripts/query.mjs "pregunta"` para obtener chunks relevantes y reducir tokens al responder sobre cambios pasados o reglas del maestro. Ver `rag/README.md`.
+- **RAG (memoria infinita con índice vectorial)**: el código vive en `rag/` (pgVector, chunking sobre AGENTS.md, project.md, registry.md, specs OpenSpec). Postgres puede ser **local** (`npm run rag:db:up` + `rag/docker-compose.postgres.yml`) o remoto vía `RAG_DB_*` en `rag/.env`. Migraciones: solo Node.js (`npm run rag:migrate` / `rag/scripts/run-migration.mjs`). Indexar: `npm run rag:index`. Consultar: `npm run rag:query -- "pregunta"`. Mantener al día: daemon `scripts/rag-index-daemon.sh` o `npm run memory:daemons:start`. Ver `rag/README.md` y `docs/lineamiento-memoria-automatica.md`.
 - Scripts npm en la raíz (cuando estén definidos) se usan para:
   - `npm run extract`: extracción de datos de prueba desde RDS.
   - `npm run generate:postman`: generación de colección Postman desde OpenAPI.
@@ -2531,7 +2536,7 @@ El framework implementa **agentes autonomos profundos** especializados por domin
 
 **Para cada tarea, el agente debe:**
 1. **Consultar memoria primero** — Leer `project.md`, `registry.md`, SPECs relacionadas
-2. **Consultar RAG** — Para preguntas sobre decisiones pasadas: `node rag/scripts/query.mjs "pregunta"`
+2. **Consultar RAG** — Para preguntas sobre decisiones pasadas: `npm run rag:query -- "pregunta"`
 3. **Verificar SPEC** — Toda implementación debe partir de SPEC verificable
 4. **Ejecutar TDD** — RED → GREEN → REFACTOR obligatorio
 5. **Validar Quality Gates** — Spec, TDD, Coverage, OWASP, Architecture, Docs
@@ -2648,7 +2653,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate SPEC
-        run: node scripts/validate-spec.js
+        run: npm run spec:validate
 
   tdd-gate:
     runs-on: ubuntu-latest
@@ -2765,7 +2770,7 @@ jobs:
 | `project.md` | Estado actual de módulos y cambios |
 | `registry.md` | Índice numerado de todos los cambios |
 | `AGENTS.md` | Este archivo — contrato maestro |
-| `rag/scripts/query.mjs` | Consultar decisiones pasadas |
+| `npm run rag:query -- "…"` / `rag/scripts/query.mjs` | Consultar decisiones pasadas (RAG) |
 
 ---
 
@@ -2775,7 +2780,7 @@ Para cualquier cambio, verificar:
 
 ### Antes de empezar
 - [ ] Consultar `project.md` y `registry.md`
-- [ ] Consultar RAG si hay preguntas: `node rag/scripts/query.mjs "pregunta"`
+- [ ] Consultar RAG si hay preguntas: `npm run rag:query -- "pregunta"`
 - [ ] Identificar nivel de complejidad (0-P-1-2-3-4)
 - [ ] Determinar fases SDD requeridas
 

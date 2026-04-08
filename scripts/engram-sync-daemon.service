@@ -1,15 +1,17 @@
 [Unit]
-Description=Engram Memory Sync Daemon
+Description=Engram Memory Sync Daemon (Framework-SDD)
 After=network.target
 
 [Service]
 Type=simple
-User=cto-grupo4d
-WorkingDirectory=/home/cto-grupo4d/Documents/Good4D/Framework-SDD
-ExecStart=/home/cto-grupo4d/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh start
-ExecStop=/home/cto-grupo4d/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh stop
+User=%u
+# Secretos: ~/.config/framework-sdd/engram-daemon.env (ver config/engram-daemon.env.example)
+EnvironmentFile=-%h/.config/framework-sdd/engram-daemon.env
+# Ajustar la ruta si el clon no está en esta ruta (o usar symlink):
+ExecStart=%h/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh start
+ExecStop=%h/Documents/Good4D/Framework-SDD/scripts/engram-sync-daemon.sh stop
 Restart=on-failure
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

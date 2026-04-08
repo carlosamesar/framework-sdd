@@ -34,5 +34,9 @@ Dividir el blueprint técnico en tareas implementables con orden de ejecución y
 ## Alias
 - `/gd:desglosar`
 
+## Salida estructurada (agentes ReAct)
+
+Opcional: JSON según `openspec/templates/react-outputs/breakdown.output.schema.json` (tareas con criterios de aceptación y dependencias).
+
 ## Siguiente Paso
 Después del breakdown, ejecutar `/gd:implement` para comenzar la fase de desarrollo.

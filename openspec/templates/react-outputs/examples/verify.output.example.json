@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "overall": "PASS",
+  "requirements_coverage": [
+    {
+      "requirement_id": "R1",
+      "implemented": true,
+      "evidence_paths": ["lib/lambda/transacciones/fnOrquestadorTransaccionUnificada/"]
+    }
+  ],
+  "gaps": [],
+  "extras": [],
+  "commands_run": ["npm test", "npm run spec:validate"]
+}

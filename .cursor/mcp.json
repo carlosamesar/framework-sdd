@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "engram": {
+      "command": "bash",
+      "args": ["./scripts/engram-mcp.sh"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}

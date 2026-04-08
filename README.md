@@ -1,6 +1,6 @@
 # Framework SDD - Specification-Driven Development
 
-> **Versión**: 2.0 | **Última actualización**: 2026-04-07
+> **Versión**: 2.0 | **Última actualización**: 2026-04-09
 
 Framework de desarrollo basado en especificaciones para proyectos enterprise con arquitectura híbrida Lambda + NestJS.
 
@@ -16,6 +16,16 @@ Para poner en marcha el Framework GAF (SDD) en tu entorno local y configurarlo p
 1.  **Instalar Comandos:** `./scripts/gd-init.sh`
 2.  **Activar Entorno:** `source ~/.bashrc`
 3.  **Verificar:** `gd:doctor`
+4.  **Validar OpenSpec (Node 20+):** `npm install` una vez, luego `npm run spec:validate` — estructura de `openspec/changes/`
+5.  **Esquemas ReAct:** `npm run spec:validate-react` — JSON Schema + ejemplos en `openspec/templates/react-outputs/examples/`
+6.  **Reporte de verificación por change:** `npm run spec:verify -- <slug>` → `reports/verify-<slug>.json`  
+    **CI framework:** `npm run framework:ci` (OpenSpec + ReAct)
+
+Prerrequisitos (RAG en repo, Engram, layout modular): [`docs/framework-prerequisites.md`](docs/framework-prerequisites.md).
+
+### Índice de documentación
+
+Mapa único de guías, memoria, OpenSpec y RAG: **[`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](docs/INDICE-DOCUMENTACION-FRAMEWORK.md)** · memoria SDD: [`openspec/MEMORY.md`](openspec/MEMORY.md).
 
 ---
 
@@ -35,18 +45,23 @@ Para poner en marcha el Framework GAF (SDD) en tu entorno local y configurarlo p
 
 ```
 Framework-SDD/
+├── openspec/             # Delta specs, config, tools-manifest, plantillas ReAct
+├── rag/                  # RAG pgvector (scripts, Docker Postgres local opcional)
+├── config/               # Plantillas daemon Engram / RAG (sin secretos)
+├── .github/workflows/    # CI framework (OpenSpec + ReAct)
+├── docs/                 # Guías (índice, memoria, MCP, prerrequisitos)
 ├── lib/lambda/           # Lambdas AWS por dominio
 │   └── transacciones/    # Transacciones, bancos, productos, etc.
 ├── develop/
-│   ├── backend/         # Código backend
+│   ├── backend/          # Código backend
 │   │   └── gooderp-orchestation/   # Orquestación NestJS + Lambda
-│   └── frontend/        # Cliente Angular
+│   └── frontend/         # Cliente Angular
 │       └── gooderp-client/         # Frontend Angular 17+
 ├── servicio-contabilidad/  # Microservicio NestJS Contabilidad
 ├── servicio-tesoreria/     # Microservicio NestJS Tesorería
-├── terraform/           # Infraestructura como código
-├── scripts/             # Scripts de automatización
-└── engineering-knowledge-base/  # Memoria persistente Engram
+├── terraform/            # Infraestructura como código
+├── scripts/              # gd-init, daemons memoria, engram-mcp
+└── engineering-knowledge-base/  # Memoria Engram (clon aparte; a menudo gitignored)
 ```
 
 ---
@@ -350,9 +365,21 @@ Idea → Specify → Clarify → Plan → Break Down → Implement → Review �
 
 ---
 
-## Memoria Persistente (Engram)
+## Memoria Persistente (Engram + RAG)
 
-El framework utiliza **Engram** como sistema de memoria persistente que sobrevive entre sesiones y compactaciones de contexto. Los datos se almacenan en `engineering-knowledge-base/` y se sincronizan automáticamente con el repositorio Git.
+### Lineamiento obligatorio (entornos de desarrollo)
+
+Quien use **Engram** y **RAG** en este framework **debe** mantener la actualización automática:
+
+1. **Daemon Engram** — sync periódica de la memoria SQLite hacia el repo `engineering-knowledge-base` (commit/push).
+2. **Daemon RAG** — reindexado periódico de la documentación hacia PostgreSQL (`rag.document_chunks`).
+
+**Guía única para el equipo:** [`docs/lineamiento-memoria-automatica.md`](docs/lineamiento-memoria-automatica.md).  
+Arranque conjunto: `./scripts/start-memory-daemons.sh` · Estado: `./scripts/status-memory-daemons.sh`.
+
+---
+
+El framework utiliza **Engram** como sistema de memoria persistente que sobrevive entre sesiones y compactaciones de contexto. Los datos se almacenan en `engineering-knowledge-base/`. La sincronización **continua** con Git exige el **daemon** (no basta con usar solo MCP).
 
 ### Configuración Inicial de Memoria (Engram)
 
@@ -366,9 +393,18 @@ cd Framework-SDD
 # IMPORTANTE: El directorio DEBE llamarse 'engineering-knowledge-base'
 git clone https://github.com/carlosamesar/engineering-knowledge-base engineering-knowledge-base
 
-# 3. Iniciar el daemon de sincronización automática
-./scripts/engram-sync-daemon.sh start
+# 3. Configurar push seguro (sin tokens en el repo)
+mkdir -p ~/.config/framework-sdd
+cp config/engram-daemon.env.example ~/.config/framework-sdd/engram-daemon.env
+chmod 600 ~/.config/framework-sdd/engram-daemon.env
+# Editar: ENGRAM_GIT_TOKEN, ENGRAM_DATA_DIR (ruta absoluta a engineering-knowledge-base)
+
+# 4. Iniciar daemons de memoria automática (OBLIGATORIO según lineamiento)
+./scripts/start-memory-daemons.sh
+# O por separado: ./scripts/engram-sync-daemon.sh start && ./scripts/rag-index-daemon.sh start
 ```
+
+Ver también: [`docs/lineamiento-memoria-automatica.md`](docs/lineamiento-memoria-automatica.md), [`docs/mcp-engram-multi-ide.md`](docs/mcp-engram-multi-ide.md).
 
 ### Proyectos Configurados
 
@@ -378,30 +414,36 @@ git clone https://github.com/carlosamesar/engineering-knowledge-base engineering
 | **Frontend** | `gooderp-client` | `develop/frontend/gooderp-client/` |
 | **Backend** | `gooderp-orchestation` | `develop/backend/gooderp-orchestation/` |
 
-### Sincronización Automática (Daemon)
+### Sincronización automática — Engram
 
-Para mantener la memoria actualizada en el repositorio remoto, se debe ejecutar el daemon de sincronización en segundo plano. Este daemon verifica cambios cada 30 segundos y realiza `commit` / `push` automáticamente.
+**Obligatorio** para cumplir el lineamiento: el daemon Engram verifica cambios cada ~30 s, ejecuta `engram sync` y hace `commit` / `push` cuando corresponde.
 
-#### Control del Daemon:
 ```bash
-# Iniciar el daemon
-./scripts/engram-sync-daemon.sh start
-
-# Ver estado
-./scripts/engram-sync-daemon.sh status
-
-# Detener el daemon
-./scripts/engram-sync-daemon.sh stop
+./scripts/engram-sync-daemon.sh start|status|stop
 ```
 
-#### Instalación como Servicio (Recomendado):
-Para que el daemon inicie automáticamente con tu sesión de usuario:
+### Sincronización automática — RAG
+
+**Obligatorio** para índice al día: `scripts/rag-index-daemon.sh` ejecuta `npm run index` en `rag/` cada `RAG_INDEX_INTERVAL` segundos (default **3600**). Configuración: `config/rag-daemon.env.example` → `~/.config/framework-sdd/rag-daemon.env`.
+
 ```bash
-mkdir -p ~/.config/systemd/user/
-cp scripts/engram-sync-daemon.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable engram-sync-daemon
-systemctl --user start engram-sync-daemon
+./scripts/rag-index-daemon.sh start|status|stop
+```
+
+### Systemd — ambos daemons (recomendado)
+
+Ver pasos completos en [`docs/lineamiento-memoria-automatica.md`](docs/lineamiento-memoria-automatica.md). Plantillas: `scripts/engram-sync-daemon.service`, `scripts/rag-index-daemon.service`.
+
+### RAG (pgvector) — setup inicial
+
+Búsqueda semántica: [`rag/README.md`](rag/README.md).
+
+```bash
+npm run rag:db:up     # Postgres + pgvector en Docker (puerto host típico 5433); ver rag/README.md
+npm run rag:migrate   # una vez (extensión vector + tabla rag.*)
+# Ollama: ollama pull nomic-embed-text  (o OpenAI en rag/.env)
+npm run rag:index     # manual; el daemon lo repite en ciclo
+npm run rag:query -- "multi-tenant JWT"
 ```
 
 ### Protocolo para Agentes (OBLIGATORIO)
@@ -435,9 +477,11 @@ Al finalizar una sesión de trabajo, es **obligatorio** generar un resumen estru
 
 ### Documentación
 - `AGENTS.md` - Contrato maestro
+- `docs/INDICE-DOCUMENTACION-FRAMEWORK.md` - Mapa de toda la documentación
+- `openspec/MEMORY.md` - Memoria SDD y enlaces rápidos
 - `project.md` - Estado actual
 - `registry.md` - Índice de cambios
-- `rag/scripts/query.mjs` - Consultar decisiones pasadas
+- `npm run rag:query -- "…"` / `rag/scripts/query.mjs` - RAG sobre specs y AGENTS
 
 ---
 

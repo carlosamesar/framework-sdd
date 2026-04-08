@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framework-sdd.local/schemas/plan-output.json",
+  "title": "ReAct — salida /gd:plan (tech-plan)",
+  "type": "object",
+  "required": ["schema_version", "architecture_summary", "api_contracts", "risks"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "architecture_summary": { "type": "string" },
+    "api_contracts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["method", "path", "purpose"],
+        "properties": {
+          "method": { "type": "string" },
+          "path": { "type": "string" },
+          "purpose": { "type": "string" },
+          "request_shape": { "type": "string" },
+          "response_shape": { "type": "string" }
+        }
+      }
+    },
+    "data_model_refs": { "type": "array", "items": { "type": "string" } },
+    "tenant_rule": { "type": "string" },
+    "risks": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

@@ -26,11 +26,23 @@ Output: PASS/FAIL con detalles de gaps y excesos
 
 ## Salida del Comando
 
-- **Estado**: PASS si implementación == SPEC + Tasks, FASS si hay diferencias
+- **Estado**: PASS si implementación == SPEC + Tasks, **FAIL** si hay diferencias relevantes
 - **Gaps**: Funcionalidad especificada pero no implementada
 - **Excesos**: Funcionalidad implementada pero no especificada
 - **Cobertura**: Porcentaje de requerimientos cubiertos
 - **Tareas Completadas**: Número y porcentaje de tareas del breakdown hechas
+
+### Verificación mecánica (CI / agentes ReAct)
+
+Desde la raíz del repositorio:
+
+```bash
+npm run spec:verify -- <slug-del-change>
+# o todos los changes:
+npm run spec:verify -- --all
+```
+
+Genera `reports/verify-<slug>.json` (estado de checklist `tasks.md` + lista de `specs/**`). Para **observación estructurada** adicional del modelo, emitir también JSON según `openspec/templates/react-outputs/verify.output.schema.json`.
 
 ## Uso
 

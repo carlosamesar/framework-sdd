@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "parallel_groups": [["T1", "T2"]],
+  "tasks": [
+    {
+      "id": "T1",
+      "description": "Implementar guard en orquestador",
+      "acceptance": "Tipos General omiten paso Contabilidad",
+      "depends_on": [],
+      "estimated_complexity": "M"
+    },
+    {
+      "id": "T2",
+      "description": "Alinear extractTenantId en lambdas hijas",
+      "acceptance": "Prioridades 1-4 según fnTransaccionLineas",
+      "depends_on": [],
+      "estimated_complexity": "M"
+    }
+  ]
+}

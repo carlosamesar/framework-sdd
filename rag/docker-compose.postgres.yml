@@ -1,0 +1,42 @@
+# PostgreSQL local con pgvector para RAG (Framework-SDD).
+# Volumen nombrado: datos persisten entre reinicios del contenedor.
+#
+# Uso:
+#   docker compose -f rag/docker-compose.postgres.yml up -d
+#   npm run rag:migrate && npm run rag:index
+#
+# Parar (conserva datos en el volumen):
+#   docker compose -f rag/docker-compose.postgres.yml down
+#
+# Eliminar BD y volumen (irreversible):
+#   docker compose -f rag/docker-compose.postgres.yml down -v
+#
+# Opcional: credenciales/puerto vía rag/.env (RAG_DOCKER_*):
+#   docker compose --env-file rag/.env -f rag/docker-compose.postgres.yml up -d
+
+name: framework-sdd-rag
+
+services:
+  rag-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: framework-sdd-rag-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${RAG_DOCKER_USER:-rag}
+      POSTGRES_PASSWORD: ${RAG_DOCKER_PASSWORD:-rag_local_dev}
+      POSTGRES_DB: ${RAG_DOCKER_DB:-framework_rag}
+    ports:
+      - "${RAG_DOCKER_PORT:-5433}:5432"
+    volumes:
+      - framework_sdd_rag_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Coincidir con POSTGRES_USER / POSTGRES_DB por defecto; si cambias RAG_DOCKER_*, ajusta aquí.
+      test: ['CMD-SHELL', 'pg_isready -U rag -d framework_rag']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  framework_sdd_rag_pgdata:
+    name: framework_sdd_rag_pgdata

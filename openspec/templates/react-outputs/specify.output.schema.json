@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://framework-sdd.local/schemas/specify-output.json",
+  "title": "ReAct — salida /gd:specify",
+  "type": "object",
+  "required": ["schema_version", "feature_title", "gherkin_scenarios", "open_questions"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "feature_title": { "type": "string" },
+    "complexity_level": {
+      "type": "string",
+      "enum": ["0", "P", "1", "2", "3", "4"]
+    },
+    "gherkin_scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "given", "when", "then"],
+        "properties": {
+          "id": { "type": "string" },
+          "given": { "type": "string" },
+          "when": { "type": "string" },
+          "then": { "type": "string" },
+          "priority": { "type": "string" }
+        }
+      }
+    },
+    "dbml_hint": { "type": "string" },
+    "open_questions": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

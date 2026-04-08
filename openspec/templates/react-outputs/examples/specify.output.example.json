@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "feature_title": "Orquestación admin — tipos General vs Contable",
+  "complexity_level": "2",
+  "gherkin_scenarios": [
+    {
+      "id": "S1",
+      "given": "Evento SAGA con tipo INGRESO_ADMINISTRATIVO_GENERAL y tenant en JWT",
+      "when": "El orquestador ejecuta el flujo",
+      "then": "No se invoca Contabilidad y tenant_id se propaga a pasos ejecutados",
+      "priority": "P0"
+    }
+  ],
+  "dbml_hint": "Sin tablas nuevas en alcance",
+  "open_questions": []
+}

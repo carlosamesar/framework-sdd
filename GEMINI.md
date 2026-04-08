@@ -4,7 +4,7 @@ Guía para modelos Gemini trabajando en `gooderp-orchestation`.
 
 **Regla prioritaria:** ser **ultra-economizadores de tokens**. Minimizar siempre el contexto leído y generado; lectura quirúrgica, SPEC antes de código, copiar patrones maduros. Ver sección 2 y 3 abajo.
 
-**Memoria primero:** toda pregunta debe pasar primero por la Memoria (estado en project.md/registry.md; preguntas sobre reglas o cambios pasados: `node rag/scripts/query.mjs "pregunta"`). No responder sin consultar. Ver `openspec/MEMORY.md`.
+**Memoria primero:** toda pregunta debe pasar primero por la Memoria (estado en project.md/registry.md; preguntas sobre reglas o cambios pasados: `npm run rag:query -- "pregunta"`). No responder sin consultar. Ver `openspec/MEMORY.md` y `docs/INDICE-DOCUMENTACION-FRAMEWORK.md`.
 
 ### 1. Fuente de verdad obligatoria
 
