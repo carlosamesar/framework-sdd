@@ -1,6 +1,6 @@
 # Framework SDD - Specification-Driven Development
 
-> **Versión**: 2.0 | **Última actualización**: 2026-04-09
+> **Versión**: 2.1 | **Última actualización**: 2026-04-11
 
 Framework de desarrollo basado en especificaciones para proyectos enterprise con arquitectura híbrida Lambda + NestJS.
 
@@ -16,16 +16,35 @@ Para poner en marcha el Framework GAF (SDD) en tu entorno local y configurarlo p
 1.  **Instalar Comandos:** `./scripts/gd-init.sh`
 2.  **Activar Entorno:** `source ~/.bashrc`
 3.  **Verificar:** `gd:doctor`
-4.  **Validar OpenSpec (Node 20+):** `npm install` una vez, luego `npm run spec:validate` — estructura de `openspec/changes/`
+4.  **Validar OpenSpec (Node 20+):** `npm install` una vez, luego `npm run spec:validate` — estructura de `openspec/changes/` y `archive/`
 5.  **Esquemas ReAct:** `npm run spec:validate-react` — JSON Schema + ejemplos en `openspec/templates/react-outputs/examples/`
-6.  **Reporte de verificación por change:** `npm run spec:verify -- <slug>` → `reports/verify-<slug>.json`  
-    **CI framework:** `npm run framework:ci` (OpenSpec + ReAct)
+6.  **Drift `implements:`:** `npm run spec:implements` — rutas internas del repo coherentes con el frontmatter de specs
+7.  **Smoke completo:** `npm run framework:test` — `framework:ci` + E2E `implements:` + extract JSON + **path sandbox** (`spec:verify` / validate-react / react-runner)
+8.  **ReAct runner (plan contra manifiesto):** `npm run react:smoke` — encadena `spec:validate`, `spec:validate-react`, `spec:implements`
+9.  **Reporte por change:** `npm run spec:verify -- <slug>` o `--all` (incluye `archive/<slug>`) → `reports/verify-*.json`  
+    **CI framework:** validate + ReAct + implements + E2E + `react:smoke` + `spec:verify --all` (ver `.github/workflows/sdd-framework.yml`)
 
 Prerrequisitos (RAG en repo, Engram, layout modular): [`docs/framework-prerequisites.md`](docs/framework-prerequisites.md).
 
+### Uso con `npx` (otro repo o CI)
+
+Instala el paquete en el proyecto que tenga `openspec/` y ejecuta el bin sin copiar el monorepo completo:
+
+```bash
+npm pack   # en el clon Framework-SDD → genera framework-sdd-2.1.0.tgz
+npm install /ruta/al/framework-sdd-2.1.0.tgz --save-dev
+# Tras publicar en el registro npm: npm install framework-sdd --save-dev
+npx framework-sdd spec:validate
+npx sdd react:smoke
+```
+
+Raíz del proyecto: por defecto es el **cwd** si existe `openspec/changes` u `openspec/config.yaml`. Si no, usa `npx framework-sdd --project-root /ruta/al/repo spec:validate` o la variable `FRAMEWORK_SDD_PROJECT_ROOT`.
+
+Publicación: el campo `"private": true` evita publicaciones accidentales en npm; para publicar, quitar `private` o usar un scope (`@org/framework-sdd`) y `npm publish`.
+
 ### Índice de documentación
 
-Mapa único de guías, memoria, OpenSpec y RAG: **[`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](docs/INDICE-DOCUMENTACION-FRAMEWORK.md)** · memoria SDD: [`openspec/MEMORY.md`](openspec/MEMORY.md).
+Mapa único de guías, memoria, OpenSpec y RAG: **[`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](docs/INDICE-DOCUMENTACION-FRAMEWORK.md)** · memoria SDD: [`openspec/MEMORY.md`](openspec/MEMORY.md) · **madurez (~4,0/5, GAF 2+):** [`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`](docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md) (§1, §10, §12) · **ReAct runner:** `npm run react:smoke`.
 
 ---
 

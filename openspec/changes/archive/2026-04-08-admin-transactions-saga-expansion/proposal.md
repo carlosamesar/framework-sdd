@@ -2,7 +2,7 @@
 
 ## Estado
 
-DRAFT — alineado con `design.md` y `specs/saga/spec.md`.
+**APPROVED / CERRADO** (2026-04-10) — implementación verificada en `gooderp-orchestation`; spec en `status: APPROVED`. Change archivado bajo `openspec/changes/archive/2026-04-08-admin-transactions-saga-expansion/`.
 
 ## Intención
 
@@ -31,4 +31,6 @@ Extender el orquestador de transacciones unificadas para soportar cuatro tipos a
 
 ## Aprobación
 
-Revisión técnica → estado APPROVED en frontmatter del spec antes de considerar IMPL completo.
+- Revisión técnica completada.
+- Frontmatter del spec: `status: APPROVED`, `closed: 2026-04-10`.
+- Evidencia resumida: `CIERRE-SPEC.md` en esta carpeta de archivo.

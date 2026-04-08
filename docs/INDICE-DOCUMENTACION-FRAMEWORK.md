@@ -1,6 +1,6 @@
 # Índice — Documentación Framework-SDD
 
-> Actualizado con el estado del repo: OpenSpec validable, RAG + Postgres local Docker, Engram con daemons y MCP, lineamientos de memoria automática.
+> Estado 2026-04-11: OpenSpec + CI + **react-runner** (`react:smoke`), validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`.
 
 ---
 
@@ -19,14 +19,15 @@
 
 | Documento / ruta | Contenido |
 |------------------|-----------|
-| [`openspec/README.md`](../openspec/README.md) | Layout `changes/`, `config.yaml`, validación |
+| [`openspec/README.md`](../openspec/README.md) | Layout `changes/`, `specs/`, `config.yaml`, validación |
+| [`openspec/specs/saga/admin-unified-orchestrator-transaction-types.md`](../openspec/specs/saga/admin-unified-orchestrator-transaction-types.md) | Spec **APPROVED** — SAGA admin (Lambda orquestador) |
 | [`openspec/config.yaml`](../openspec/config.yaml) | Rutas OpenSpec |
 | [`openspec/tools-manifest.yaml`](../openspec/tools-manifest.yaml) | Herramientas para orquestación (`spec_validate`, `rag_query`, `memory_daemons_start`, …) |
 | [`openspec/templates/react-outputs/`](../openspec/templates/react-outputs/) | JSON Schema salidas `/gd:specify`, `plan`, `breakdown`, `verify` |
-| [`.github/workflows/sdd-framework.yml`](../.github/workflows/sdd-framework.yml) | CI: `spec:validate`, `spec:validate-react`, `spec:verify` |
-| [`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`](AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md) | Auditoría de madurez (referencia histórica; contrastar con estado actual) |
+| [`.github/workflows/sdd-framework.yml`](../.github/workflows/sdd-framework.yml) | CI: validate + ReAct + implements + E2E + **react:smoke** + verify |
+| [`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`](AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md) | Madurez **~4,0/5** (pilar ejecución ~4,7); GAF **2+**; secciones 1–2, 10 y 12 |
 
-**Comandos raíz:** `npm run spec:validate`, `npm run spec:validate-react`, `npm run framework:ci`, `npm run spec:verify -- <slug>|--all`
+**Comandos raíz:** `npm run framework:ci`, `npm run framework:test` (incluye `test:path-sandbox-e2e`), `npm run framework:platform-smoke`, `npm run react:smoke`, `npm run react:list-tools`, **`npx framework-sdd`** / **`npx sdd`**, `spec:extract-json` (`--all` → NDJSON), `validate-react-schemas --stdin-ndjson`, `spec:verify`, `react-runner --dry-run`
 
 ---
 

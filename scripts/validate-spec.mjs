@@ -5,10 +5,9 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { getProjectRoot } from './lib/paths.mjs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(__dirname, '..');
+const REPO_ROOT = getProjectRoot();
 
 function readChangesRoot() {
   const cfg = path.join(REPO_ROOT, 'openspec', 'config.yaml');
@@ -28,6 +27,23 @@ function isDir(p) {
   }
 }
 
+/** Carpetas de change bajo changes_root: hijos directos + hijos de archive/ (no tratar archive como change). */
+function listChangeDirectories(changesAbs) {
+  const dirs = [];
+  for (const ent of fs.readdirSync(changesAbs, { withFileTypes: true })) {
+    if (!ent.isDirectory()) continue;
+    if (ent.name === 'archive') {
+      const arch = path.join(changesAbs, 'archive');
+      for (const sub of fs.readdirSync(arch, { withFileTypes: true })) {
+        if (sub.isDirectory()) dirs.push(path.join(arch, sub.name));
+      }
+      continue;
+    }
+    dirs.push(path.join(changesAbs, ent.name));
+  }
+  return dirs;
+}
+
 /** Spec debe contener escenarios verificables (Gherkin o Dado/Cuando/Entonces o escenarios tabulados). */
 function specHasScenarios(content) {
   const c = content.replace(/\r\n/g, '\n');
@@ -35,10 +51,18 @@ function specHasScenarios(content) {
     /\*\*(?:GIVEN|WHEN|THEN|Dado|Cuando|Entonces)\*\*/i.test(c) ||
     (/\*\*Dado\*\*/i.test(c) && /\*\*Cuando\*\*/i.test(c) && /\*\*Entonces\*\*/i.test(c));
   const lineGherkin = /^(GIVEN|WHEN|THEN)\s+/im.test(c);
-  const scenarioBlocks = /(?:^|\n)###\s+(?:Scenario|Escenario|\d+|R\d+)/i.test(c);
+  const listGherkin = /(^|\n)\s*-\s+(GIVEN|WHEN|THEN|Dado|Cuando|Entonces)\b/i.test(c);
+  const scenarioBlocks = /(?:^|\n)#{3,4}\s+(?:Scenario|Escenario|\d+|R\d+)/i.test(c);
   const tableMust =
     /\n\|\s*#\s*\|\s*Requirement/i.test(c) && /\bMUST\b/.test(c) && /\|\s*R\d+/i.test(c);
-  return boldGherkin || lineGherkin || (scenarioBlocks && /\*\*(?:WHEN|GIVEN|THEN|Cuando)/i.test(c)) || tableMust;
+  return (
+    boldGherkin ||
+    lineGherkin ||
+    listGherkin ||
+    (scenarioBlocks && /\*\*(?:WHEN|GIVEN|THEN|Cuando)/i.test(c)) ||
+    (scenarioBlocks && listGherkin) ||
+    tableMust
+  );
 }
 
 function parseFrontmatter(content) {
@@ -88,23 +112,23 @@ function main() {
     process.exit(1);
   }
 
-  const entries = fs.readdirSync(changesAbs, { withFileTypes: true }).filter((d) => d.isDirectory());
+  const changeDirs = listChangeDirectories(changesAbs);
 
-  if (entries.length === 0) {
-    warnings.push(`Sin carpetas bajo ${changesRel} (OK si aún no hay changes).`);
+  if (changeDirs.length === 0) {
+    warnings.push(`Sin carpetas de change bajo ${changesRel} (OK si aún no hay changes).`);
   }
 
-  for (const ent of entries) {
-    const changeDir = path.join(changesAbs, ent.name);
+  for (const changeDir of changeDirs) {
+    const slug = path.relative(changesAbs, changeDir);
     const hasEntry = ENTRY_FILES.some((f) => fs.existsSync(path.join(changeDir, f)));
     if (!hasEntry) {
-      errors.push(`[${ent.name}] falta al menos uno de: ${ENTRY_FILES.join(', ')}`);
+      errors.push(`[${slug}] falta al menos uno de: ${ENTRY_FILES.join(', ')}`);
       continue;
     }
 
     const tasksPath = path.join(changeDir, 'tasks.md');
     if (fs.existsSync(tasksPath) && !hasTaskCheckboxes(tasksPath)) {
-      warnings.push(`[${ent.name}] tasks.md sin checkboxes - [ ] / [x] (recomendado)`);
+      warnings.push(`[${slug}] tasks.md sin checkboxes - [ ] / [x] (recomendado)`);
     }
 
     const specsDir = path.join(changeDir, 'specs');

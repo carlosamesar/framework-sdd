@@ -1,14 +1,36 @@
 {
   "name": "framework-sdd",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "description": "Specification-Driven Development — validación OpenSpec y artefactos de verificación para agentes",
   "type": "module",
+  "bin": {
+    "framework-sdd": "./bin/framework-sdd.mjs",
+    "sdd": "./bin/framework-sdd.mjs"
+  },
+  "files": [
+    "bin/framework-sdd.mjs",
+    "scripts/**/*.mjs",
+    "scripts/**/*.sh",
+    "scripts/fixtures/**",
+    "openspec/tools-manifest.yaml",
+    "openspec/templates/**"
+  ],
   "scripts": {
     "spec:validate": "node scripts/validate-spec.mjs",
     "spec:validate-react": "node scripts/validate-react-schemas.mjs",
     "spec:verify": "node scripts/verify-change.mjs",
-    "framework:ci": "npm run spec:validate && npm run spec:validate-react",
+    "spec:implements": "node scripts/check-spec-implements.mjs",
+    "test:implements-e2e": "node scripts/e2e-spec-implements.mjs",
+    "test:extract-json-e2e": "node scripts/e2e-extract-json.mjs",
+    "test:path-sandbox-e2e": "node scripts/e2e-path-sandbox.mjs",
+    "spec:extract-json": "node scripts/extract-json-block.mjs",
+    "framework:test": "npm run framework:ci && npm run test:implements-e2e && npm run test:extract-json-e2e && npm run test:path-sandbox-e2e",
+    "framework:platform-smoke": "npm run framework:test && npm run react:smoke",
+    "framework:ci": "npm run spec:validate && npm run spec:validate-react && npm run spec:implements",
+    "react:run": "node scripts/react-runner.mjs",
+    "react:list-tools": "node scripts/react-runner.mjs --list-tools",
+    "react:smoke": "node scripts/react-runner.mjs --plan scripts/fixtures/react-plan-smoke.json",
     "rag:db:up": "docker compose -f rag/docker-compose.postgres.yml up -d",
     "rag:db:down": "docker compose -f rag/docker-compose.postgres.yml down",
     "rag:db:down:volume": "docker compose -f rag/docker-compose.postgres.yml down -v",
@@ -19,10 +41,12 @@
     "rag:test": "cd rag && npm install && node scripts/test-functional.mjs",
     "memory:daemons:start": "bash scripts/start-memory-daemons.sh",
     "memory:daemons:stop": "bash scripts/stop-memory-daemons.sh",
-    "memory:daemons:status": "bash scripts/status-memory-daemons.sh"
+    "memory:daemons:status": "bash scripts/status-memory-daemons.sh",
+    "pack:check": "npm pack --dry-run 2>&1"
   },
-  "devDependencies": {
-    "ajv": "^8.17.1"
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "yaml": "^2.8.3"
   },
   "engines": {
     "node": ">=20"

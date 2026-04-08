@@ -17,5 +17,5 @@ Este archivo enlaza el protocolo de **memoria de proyecto** descrito en el contr
 ## Comandos frecuentes
 
 - RAG: `npm run rag:query -- "pregunta"` (desde la raíz; equivale a `node rag/scripts/query.mjs`)
-- OpenSpec: `npm run spec:validate`, `npm run framework:ci`
+- OpenSpec: `npm run spec:validate`, `npm run framework:ci`, `npm run framework:test`, `npm run react:smoke` (plan ReAct read-only)
 - Memoria automática: `npm run memory:daemons:start` o `./scripts/start-memory-daemons.sh`

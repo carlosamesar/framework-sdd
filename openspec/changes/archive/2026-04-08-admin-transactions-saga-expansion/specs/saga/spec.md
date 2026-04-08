@@ -3,15 +3,20 @@ id: "6.6.1"
 module: "TXN"
 change: "admin-transactions-saga-expansion"
 title: "SAGA — Admin Transaction Types: Ingreso/Egreso Contable y General"
-status: "DRAFT"
+status: "APPROVED"
 author: "OpenCode"
 created: "2026-04-07"
-updated: "2026-04-07"
+updated: "2026-04-10"
+closed: "2026-04-10"
 implements:
   - "lib/lambda/transacciones/fnOrquestadorTransaccionUnificada/services/orchestrator.mjs"
+  - "lib/lambda/transacciones/fnOrquestadorTransaccionUnificada/utils/sanitization.mjs"
+  - "lib/lambda/transacciones/fnOrquestadorTransaccionUnificada/index.mjs"
   - "lib/lambda/transacciones/fnTransaccionImpuesto/utils/sanitization.mjs"
   - "lib/lambda/transacciones/fnTransaccionDescuento/utils/sanitization.mjs"
   - "lib/lambda/transacciones/fnTransaccionEstado/utils/sanitization.mjs"
+  - "lib/lambda/transacciones/fnTransaccionComplemento/utils/sanitization.mjs"
+  - "lib/lambda/transacciones/fnTransaccionLineaBodegas/utils/sanitization.mjs"
 ---
 
 # SAGA — Admin Transaction Types Specification
@@ -128,8 +133,16 @@ Define the behavior of the SAGA orchestrator when processing the four new admini
 | Priority | Source | Condition |
 |----------|--------|-----------|
 | 1 | `requestContext.authorizer.claims["custom:tenant_id"]` | HTTP API Gateway (Cognito JWT) |
-| 2 | `requestContext.authorizer["custom:tenant_id"]` | REST API Gateway (Cognito JWT) |
+| 2 | `requestContext.authorizer.jwt.claims["custom:tenant_id"]` | HTTP API (formato alternativo; canon `fnTransaccionLineas`) |
 | 3 | `event.body.tenant_id` (parsed JSON) | Step Functions internal invocation |
-| 4 | Raw `event.tenant_id` | Direct Lambda invocation (no requestContext) |
+| 4 | `event.body.tenant_id` (parsed JSON) | Invocación directa sin `requestContext` |
 
 If all priorities fail → MUST return `403 Unauthorized`.
+
+---
+
+## Cierre
+
+- **Estado:** `APPROVED` (`closed: 2026-04-10`).
+- **Evidencia:** `CIERRE-SPEC.md` en el directorio de archivo del change.
+- **Spec publicado:** `openspec/specs/saga/admin-unified-orchestrator-transaction-types.md`.

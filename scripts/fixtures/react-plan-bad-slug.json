@@ -1,0 +1,6 @@
+[
+  {
+    "tool": "spec_verify_report",
+    "input": { "change_slug": "../.." }
+  }
+]

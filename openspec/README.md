@@ -12,5 +12,11 @@ Este directorio concentra **especificaciones en delta** bajo `changes/`. La estr
 | `changes/<slug>/specs/**/*.md` | Requisitos y escenarios (Gherkin o **Dado/Cuando/Entonces**) |
 | `templates/react-outputs/*.schema.json` | Esquemas JSON de salida para encadenar agentes (ReAct) |
 | `tools-manifest.yaml` | Registro de herramientas para orquestación |
+| `specs/saga/spec.md` | Spec activa SAGA NestJS (certificación) |
+| `specs/saga/admin-unified-orchestrator-transaction-types.md` | Spec **APPROVED** — tipos administrativos orquestador Lambda unificado |
+| `specs/workspace/spec.md` | Spec workspace (p. ej. SIGAT) |
+| `changes/archive/` | Changes cerrados con `proposal`, `design`, `tasks`, `CIERRE-SPEC.md` |
 
-Validación: desde la raíz del repo, `npm run spec:validate`. Reportes de checklist: `npm run spec:verify -- <slug>`.
+Validación: desde la raíz del repo, `npm run spec:validate`. Esquemas ReAct + ejemplos: `npm run spec:validate-react`. **Drift `implements:`** (rutas bajo `openspec/`, `docs/`, `scripts/`, `rag/`, `.github/` deben existir): `npm run spec:implements` (`--root /otro/repo` para comprobar otro árbol; `--verbose` lista refs externas tipo `lib/`). Prueba real automatizada: `npm run test:implements-e2e`; smoke completo: `npm run framework:test`. **Runtime ReAct (plan):** `npm run react:smoke` o `node scripts/react-runner.mjs --plan scripts/fixtures/react-plan-smoke.json` (lee `openspec/tools-manifest.yaml`). **JSON del modelo por stdin:** `node scripts/validate-react-schemas.mjs --stdin --schema specify` (un objeto JSON en stdin). **CLI publicado (`npx framework-sdd` / `npx sdd`):** mismos gates que `npm run spec:*` en un proyecto con `openspec/`; ver README raíz § “Uso con npx”.
+
+**Transcript con markdown:** `spec:extract-json` (primer objeto); **`--all`** emite NDJSON (varios objetos). Cadena: `… | node scripts/extract-json-block.mjs --all | node scripts/validate-react-schemas.mjs --stdin-ndjson --schema specify`. **ReAct:** `--dry-run`, **`npm run react:list-tools`**. Validar **un JSON arbitrario** contra un esquema: `npm run spec:validate-react -- --data ruta/salida.json --schema specify` (nombres: `specify`, `plan`, `breakdown`, `verify`, o ruta a `*.schema.json`). Reportes de checklist: `npm run spec:verify -- <slug>` (estado `FAIL` = tareas pendientes, no rompe CI).

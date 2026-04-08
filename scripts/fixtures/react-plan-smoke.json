@@ -1,0 +1,5 @@
+[
+  { "tool": "spec_validate", "input": {} },
+  { "tool": "spec_validate_react", "input": {} },
+  { "tool": "spec_implements", "input": {} }
+]

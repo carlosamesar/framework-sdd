@@ -6,12 +6,24 @@ version: 1
 policies:
   max_tool_iterations: 25
   stop_on_first_hard_fail: false
+  # Slugs spec_verify_report: sin .. ni rutas absolutas; data_path (spec_validate_react_data) bajo repo (react-runner + validate-react-schemas).
 
 tools:
   - name: spec_validate
     description: Valida estructura OpenSpec bajo openspec/changes
     type: exec
     command: npm run spec:validate
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      properties: {}
+    output: stdout_exit_code
+
+  - name: spec_implements
+    description: Verifica rutas internas en frontmatter implements de specs OpenSpec
+    type: exec
+    command: npm run spec:implements
     cwd: repo_root
     risk: read_only
     input_schema:
@@ -50,6 +62,24 @@ tools:
       properties: {}
     output: stdout_exit_code
 
+  - name: spec_validate_react_data
+    description: Valida un archivo JSON contra un esquema ReAct (salida del modelo antes de commit)
+    type: exec
+    command: "node scripts/validate-react-schemas.mjs --data <data_path> --schema <schema>"
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      required: [data_path, schema]
+      properties:
+        data_path:
+          type: string
+          description: Ruta al .json a validar (relativa al repo o absoluta)
+        schema:
+          type: string
+          description: specify | plan | breakdown | verify | ruta a *.schema.json
+    notes: Equivalente npm run spec:validate-react con --data y --schema (ver README).
+
   - name: spec_verify_report
     description: Genera reports/verify-<slug>.json para un change
     type: exec
@@ -58,13 +88,23 @@ tools:
     risk: write_reports
     input_schema:
       type: object
-      required: [change_slug]
       properties:
         change_slug:
           type: string
         all:
           type: boolean
           description: Si true, pasar --all en lugar de slug
+      description: Requiere change_slug o all true (validado en runtime)
+
+  - name: test_implements_e2e
+    description: E2E del gate implements en sandboxes temporales (sin RAG)
+    type: exec
+    command: npm run test:implements-e2e
+    cwd: repo_root
+    risk: read_only
+    input_schema:
+      type: object
+      properties: {}
 
   - name: read_file
     description: Leer archivo del repositorio (capacidad del agente IDE)
@@ -91,6 +131,10 @@ tools:
     risk: long_running
 
 notes:
-  - Los comandos /gd:* en .claude/commands son prompts; la "acción" la ejecuta el modelo invocando herramientas listadas arriba.
+  - >-
+    Runtime CLI local: npm run react:smoke o node scripts/react-runner.mjs --plan scripts/fixtures/react-plan-smoke.json
+    (bucle de herramientas sin LLM; el IDE puede alimentar --stdin con NDJSON).
+  - Los comandos /gd:* en .claude/commands son prompts; la acción la ejecuta el modelo invocando herramientas listadas arriba.
   - Ampliar este manifiesto con herramientas de dominio (terraform, aws, jest) por proyecto bajo develop/.
-  - Memoria automática: `docs/lineamiento-memoria-automatica.md` (Engram sync + RAG index en background).
+  - >-
+    Memoria automática: docs/lineamiento-memoria-automatica.md (Engram sync + RAG index en background).

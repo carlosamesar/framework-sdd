@@ -23,7 +23,18 @@ Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de s
 | `openspec/config.yaml` + `openspec/changes/` | Delta specs |
 | `npm run spec:validate` | Estructura OpenSpec |
 | `npm run spec:validate-react` | Validación Ajv de esquemas ReAct + ejemplos |
-| `npm run framework:ci` | Ambas validaciones (local / CI) |
+| `npm run spec:implements` | Rutas `implements:` en specs vs archivos del repo (árbol framework) |
+| `npm run framework:ci` | Las tres validaciones anteriores (local / CI) |
+| `npm run test:implements-e2e` | Prueba real en sandboxes temporales (`implements` OK / fallo / `..` / `lib/`) |
+| `npm run framework:test` | `framework:ci` + `test:implements-e2e` (smoke antes de release) |
+| `npm run react:smoke` | Plan read-only contra `tools-manifest.yaml` (3 herramientas: validate, ReAct, implements) |
+| `npm run framework:platform-smoke` | `framework:test` + `react:smoke` |
+| `npm run spec:extract-json` | Extrae primer objeto JSON de markdown/transcript (stdin o archivo); flags `--all`, `--array`, `--pretty` |
+| `npm run test:extract-json-e2e` | Pruebas del extractor (incluye modo `--all`) |
+| `npm run test:path-sandbox-e2e` | Anti path traversal: `spec:verify`, `validate-react-schemas --data`, `react-runner --dry-run` |
+| `npx framework-sdd` / `npx sdd` | Bin del paquete (`bin/framework-sdd.mjs`): `spec:validate`, `react:smoke`, `--project-root`, etc. |
+| `npm run react:list-tools` | Lista herramientas del manifiesto en JSON |
+| `validate-react-schemas --stdin-ndjson` | Valida cada línea stdin contra un esquema (tras `extract-json-block --all`) |
 | `npm run spec:verify -- <slug>` | Reporte JSON en `reports/verify-<slug>.json` |
 | `openspec/tools-manifest.yaml` | Registro de herramientas para orquestación |
 

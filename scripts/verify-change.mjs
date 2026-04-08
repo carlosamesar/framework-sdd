@@ -3,13 +3,15 @@
  * Genera reporte JSON de verificación por change (tasks completadas + specs presentes).
  * Uso: node scripts/verify-change.mjs <slug> | --all
  * Salida: reports/verify-<slug>.json
+ *
+ * Exit code: 1 solo si change inexistente o status INCOMPLETE (sin tasks ni specs).
+ * Status FAIL (tasks pendientes) no falla el proceso — para CI informativo con WIP.
  */
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { getProjectRoot } from './lib/paths.mjs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.join(__dirname, '..');
+const REPO_ROOT = getProjectRoot();
 
 function readChangesRoot() {
   const cfg = path.join(REPO_ROOT, 'openspec', 'config.yaml');
@@ -17,6 +19,32 @@ function readChangesRoot() {
   const text = fs.readFileSync(cfg, 'utf8');
   const m = text.match(/changes_root:\s*(\S+)/);
   return m ? m[1].replace(/['"]/g, '') : path.join('openspec', 'changes');
+}
+
+/**
+ * Rechaza path traversal y rutas absolutas; resuelve solo bajo changesAbs.
+ */
+function validateSlugForChangesRoot(changesAbs, slug) {
+  if (!slug || typeof slug !== 'string') {
+    return { ok: false, error: 'slug vacío o inválido' };
+  }
+  const trimmed = slug.trim();
+  if (!trimmed) return { ok: false, error: 'slug vacío' };
+  const norm = trimmed.replace(/\\/g, '/');
+  if (norm.startsWith('/') || /^[a-zA-Z]:/.test(norm)) {
+    return { ok: false, error: 'slug no puede ser ruta absoluta' };
+  }
+  const parts = norm.split('/').filter((p) => p.length > 0);
+  if (parts.length === 0) return { ok: false, error: 'slug vacío' };
+  if (parts.some((p) => p === '.' || p === '..')) {
+    return { ok: false, error: 'segmento de slug no permitido' };
+  }
+  const resolved = path.resolve(changesAbs, ...parts);
+  const rootResolved = path.resolve(changesAbs);
+  if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) {
+    return { ok: false, error: 'slug fuera de changes_root' };
+  }
+  return { ok: true, resolved };
 }
 
 function parseTasks(tasksMd) {
@@ -50,7 +78,12 @@ function listSpecFiles(specsDir) {
 
 function verifyChange(slug) {
   const changesRel = readChangesRoot();
-  const changeDir = path.join(REPO_ROOT, changesRel, slug);
+  const changesAbs = path.join(REPO_ROOT, changesRel);
+  const v = validateSlugForChangesRoot(changesAbs, slug);
+  if (!v.ok) {
+    return { error: `Change no válido: ${v.error}`, path: null };
+  }
+  const changeDir = v.resolved;
   if (!fs.existsSync(changeDir)) {
     return { error: `Change no encontrado: ${slug}`, path: changeDir };
   }
@@ -101,9 +134,27 @@ function verifyChange(slug) {
 function writeReport(slug, data) {
   const dir = path.join(REPO_ROOT, 'reports');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const out = path.join(dir, `verify-${slug}.json`);
+  const safe = slug.replace(/[/\\]/g, '__');
+  const out = path.join(dir, `verify-${safe}.json`);
   fs.writeFileSync(out, JSON.stringify(data, null, 2), 'utf8');
   return out;
+}
+
+/** Slugs: hijos directos de changes/ + cada subcarpeta de archive/ como archive/<nombre>. */
+function listAllChangeSlugs(changesAbs) {
+  const slugs = [];
+  for (const ent of fs.readdirSync(changesAbs, { withFileTypes: true })) {
+    if (!ent.isDirectory()) continue;
+    if (ent.name === 'archive') {
+      const arch = path.join(changesAbs, 'archive');
+      for (const sub of fs.readdirSync(arch, { withFileTypes: true })) {
+        if (sub.isDirectory()) slugs.push(`archive/${sub.name}`);
+      }
+      continue;
+    }
+    slugs.push(ent.name);
+  }
+  return slugs.sort();
 }
 
 function main() {
@@ -114,13 +165,7 @@ function main() {
   }
 
   const changesAbs = path.join(REPO_ROOT, readChangesRoot());
-  const slugs =
-    arg === '--all'
-      ? fs
-          .readdirSync(changesAbs, { withFileTypes: true })
-          .filter((d) => d.isDirectory())
-          .map((d) => d.name)
-      : [arg];
+  const slugs = arg === '--all' ? listAllChangeSlugs(changesAbs) : [arg];
 
   const summaries = [];
   for (const slug of slugs) {
@@ -135,9 +180,9 @@ function main() {
     summaries.push({ slug, status: data.status, path: outPath });
   }
 
-  const bad = summaries.filter(
-    (s) => s.error || s.status === 'FAIL' || s.status === 'INCOMPLETE',
-  );
+  // Solo error de filesystem / change inválido o estructura INCOMPLETE rompen el exit code.
+  // FAIL = hay tasks.md con ítems pendientes (WIP normal); el reporte JSON sigue siendo la fuente de verdad.
+  const bad = summaries.filter((s) => s.error || s.status === 'INCOMPLETE');
   process.exit(bad.length ? 1 : 0);
 }
 

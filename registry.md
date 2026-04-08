@@ -1,7 +1,7 @@
 # 📋 OpenSpec Registry — Índice Global de Referencia
 
 > **Sistema de numeración**: `M.C.S` → Módulo.Change.Spec
-> **Última actualización**: 2026-03-08
+> **Última actualización**: 2026-04-11 — gates `framework:ci`, `framework:test` (+ `test:path-sandbox-e2e`), `react:smoke`, **`npx framework-sdd`** (v2.1); verify `archive/*` con slugs endurecidos; madurez ~4,0/5 (`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`, §1, §10, §12).
 > **Instrucción**: Este archivo es la fuente rápida de referencia. Para encontrar una spec, busca el ID aquí y navega a la ruta indicada.
 >
 > **Memoria infinita**: Este archivo + `AGENTS.md` + `project.md` forman el estado canónico. Al cerrar un change o cambiar estado de una spec, actualiza este registry (y `project.md`) para que todos los modelos tengan el estado persistido y se evite consumo extra de tokens rediscovering.
@@ -140,12 +140,14 @@
 | **6.3** | `03-fix-retention-calculation` | fix | ⏳ REV | 0 | `06-module-transactions/changes/03-fix-retention-calculation/` |
 | **6.4** | `04-improve-transactions-ui` | improve | ⏳ PEND | 0 | `06-module-transactions/changes/04-improve-transactions-ui/` |
 | **6.5** | `05-improve-tercero-lookup-create-button` | improve | ✅ IMPL | 1 | `06-module-transactions/changes/05-improve-tercero-lookup-create-button/` |
+| **6.6** | `admin-transactions-saga-expansion` (Framework-SDD) | build | ✅ DONE | 1 | `openspec/changes/archive/2026-04-08-admin-transactions-saga-expansion/` |
 
 ### Specs — Módulo 6
 
 | ID | Archivo | Componente |
 |:--|---------|-----------|
 | **6.1.1** | `01-update-transaction-types-20260306/specs/` | Tipos de transacción (21 tipos) |
+| **6.6.1** | `openspec/specs/saga/admin-unified-orchestrator-transaction-types.md` | SAGA admin General/Contable — orquestador Lambda (`APPROVED`, cerrado 2026-04-10) |
 | **6.2.1** | `02-fix-save-button/specs/` | Botón guardar en formulario unificado |
 | **6.5.1** | `05-improve-tercero-lookup-create-button/specs/spec-create-tercero-from-transaction.md` | Botón crear tercero desde lookup de transacciones |
 

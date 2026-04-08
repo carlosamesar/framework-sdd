@@ -1,7 +1,7 @@
 # GOODERP — Índice Maestro OpenSpec
 
 > Fuente de verdad del estado de todos los módulos y cambios activos del proyecto.
-> Última actualización: 2026-04-09
+> Última actualización: 2026-04-11
 >
 > 📋 **Para referencia rápida por ID**: ver [`registry.md`](./registry.md) — Sistema de numeración `M.C.S`
 
@@ -10,7 +10,8 @@
 ## Layout OpenSpec en este repositorio (fuente de verdad)
 
 - **Configuración**: [`openspec/config.yaml`](./openspec/config.yaml) define rutas y reglas validadas en CI (`npm run spec:validate`).
-- **Cambios (delta specs)**: [`openspec/changes/`](./openspec/changes/) — cada carpeta `<slug>` es un change con `proposal.md` / `design.md` / `tasks.md` y opcionalmente `specs/**/*.md`.
+- **Cambios (delta specs)**: [`openspec/changes/`](./openspec/changes/) — changes activos por `<slug>`; los cerrados suelen vivir en [`openspec/changes/archive/`](./openspec/changes/archive/) (el validador no trata `archive` como un único change, sino cada subcarpeta).
+- **Gates npm (framework)**: `npm run framework:ci` (OpenSpec + ReAct + `spec:implements`); `npm run framework:test` (+ E2E `implements:` + extract + **path sandbox**); `npm run react:smoke` ejecuta un plan contra [`openspec/tools-manifest.yaml`](./openspec/tools-manifest.yaml); **`npx framework-sdd` / `npx sdd`** (bin publicado, v2.1+); `npm run framework:platform-smoke` = test + react smoke. Madurez: [`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`](./docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md) (~**4,0/5** global, 2026-04-11).
 - **Módulos numerados** (`openspec/modules/01-module-menu/...`): layout completo ERP descrito abajo; **opcional** si el clon solo incluye framework + backend parcial. Cuando no exista `openspec/modules/`, el estado canónico de specs son únicamente `openspec/changes/`.
 - **Guía rápida OpenSpec**: [`openspec/README.md`](./openspec/README.md).
 - **Índice de documentación del framework**: [`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](./docs/INDICE-DOCUMENTACION-FRAMEWORK.md).
