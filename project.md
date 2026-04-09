@@ -75,7 +75,7 @@ XX-<slug>/
 | 2 | Configuración | `02-module-configurations/` | ⏳ En progreso | `/configuration`, `/settings` |
 | 3 | Artículos | `03-module-items/` | ✅ Completado | `/items` |
 | 4 | Contactos | `04-module-contacts/` | ✅ Operativo | `/contacts/:contact` |
-| 5 | Inventario | `05-module-inventory/` | ⏳ Pendiente | `/inventory/*` |
+| 5 | Inventario | `05-module-inventory/` | ✅ DONE | `fnReservaInventario` |
 | 6 | Transacciones | `06-module-transactions/` | ⚠️ Bugs críticos | `/purchases/*`, `/sales/*` |
 | 7 | Tesorería | `07-module-treasury/` | ⏳ En progreso | `/tesoreria`, `/treasury` |
 

@@ -127,7 +127,13 @@
 
 | ID | Change (carpeta) | Tipo | Estado | Specs | Ruta |
 |:--|-----------------|:---:|:------:|:---:|------|
-| — | *(sin changes documentados)* | — | — | — | `05-module-inventory/` |
+| **5.1** | `01-build-reserva-inventario` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnReservaInventario/` |
+
+### Specs — Módulo 5
+
+| ID | Archivo | Componente |
+|:--|---------|-----------|
+| **5.1.1** | `archive/2026-04-11-inventory-reserva-lambda-certification/spec.md` | CRUD reservas + confirmar/cancelar + validación stock + expiración 15min |
 
 ---
 

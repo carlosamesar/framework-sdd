@@ -1,73 +1,81 @@
-## CLAUDE.md
+## CLAUDE.md — Ultra-Light (para Claude Sonnet)
 
-Guía para modelos Claude trabajando en `gooderp-orchestation`.
+**Versión**: 3.0 | **Optimizado**: 2026-04-09 | **Tokens**: ~1,200 (vs 32,000 de AGENTS.md completo)
 
-**Regla prioritaria:** ser **ultra-economizadores de tokens**. Minimizar siempre el contexto leído y generado; lectura quirúrgica, SPEC antes de código, copiar patrones maduros. Ver sección 2 y 3 abajo.
+### 5 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
 
-**Memoria primero:** toda pregunta debe pasar primero por la Memoria (estado en project.md/registry.md; preguntas sobre reglas o cambios pasados: `npm run rag:query -- "pregunta"`). No responder sin consultar. Ver `openspec/MEMORY.md` y `docs/INDICE-DOCUMENTACION-FRAMEWORK.md`.
+1. **Multi-tenant**: `tenantId` SIEMPRE desde JWT (`custom:tenant_id`), **NUNCA** de body/params/query
+2. **TDD obligatorio**: RED → GREEN → REFACTOR, coverage ≥ 85% en módulos de negocio
+3. **Copiar patrones maduros**: `fnTransaccionLineas` (Lambda), `servicio-tesoreria` (NestJS) — **NO inventar**
+4. **ResponseBuilder**: todas las lambdas usan `utils/responseBuilder.mjs` — **NO devolver respuestas crudas**
+5. **Memory first**: consultar `project.md`/`registry.md` o `npm run rag:query` antes de responder
 
-### 1. Fuente de verdad obligatoria
+---
 
-- Sigue siempre `AGENTS.md` como contrato maestro del repositorio.  
-- Considera `servicio-contabilidad` y las lambdas maduras de `lib/lambda/transacciones` como **base madura** y patrón canónico para cualquier nuevo microservicio, lambda o cambio de arquitectura.  
-- Respeta sin excepciones las reglas de multi‑tenant, ResponseBuilder, patrón SAGA y certificación funcional descritas en `AGENTS.md`.
+### Lazy Loading (NO cargar AGENTS.md completo)
 
-### 2. Modo de trabajo ULTRA‑ECONOMIZER
+**Regla**: Leer solo la sección específica necesaria según la tarea:
 
-- **Lectura quirúrgica**:
-  - Antes de abrir archivos grandes, identifica la *pieza espejo madura* (lambda/módulo/`*.tf`/tabla) y lee solo 2–5 archivos clave, con bloques de 30–150 líneas como máximo.
-  - Usa búsqueda selectiva (equivalente a `rg`/`grep`) para localizar únicamente:
-    - `CREATE TABLE` de las 2–3 tablas críticas.
-    - Controladores/handlers espejo.
-    - Bloques Terraform del recurso equivalente.
-    - Fragmentos OpenAPI/Swagger que definan el contrato.
-- **Mini‑SPEC obligatoria antes de implementar**:
-  - Para cada tarea relevante (nueva lambda, módulo NestJS, cambio Terraform, diseño de tablas), redacta una SPEC corta (1–2 pantallas) con:
-    - Objetivo de negocio.  
-    - Endpoints/recursos (método + ruta + payloads).  
-    - Multi‑tenant y seguridad (cómo se obtiene `tenantId` y `userId`).  
-    - Manejo de errores y shape de respuesta.  
-    - Integración con SAGA / orquestadores cuando aplique.
-- **Copiar patrones maduros, no inventar**:
-  - **Lambdas**: copia el patrón de `fnTransaccionLineas` / `fnTransaccion` / `fnOrquestadorTransaccionUnificada` para router, extracción de tenant, ResponseBuilder, acceso a datos y manejo de errores; ajusta solo el dominio (tabla, nombres, rutas).
-  - **NestJS**: copia el patrón de `AsientoContableController`, `PlanContableController`, `JwtTenantGuard` y módulos asociados; ajusta DTOs, rutas y lógica, manteniendo multi‑tenant y contratos certificados.
-  - **Terraform**: copia recursos existentes de lambda/ECS/API GW/ALB y parametriza en lugar de escribir recursos desde cero.
-  - **DDL**: diseña tablas nuevas basadas en tablas espejo del mismo dominio, respetando naming, tipos, `tenant_id`, y campos de soft delete (`eliminado_por`, `eliminado_en`).
+| Tipo de tarea | Qué leer | Líneas aprox. |
+|---------------|----------|---------------|
+| **Lambda nueva** | `AGENTS.md` § "Lambdas en lib/lambda" | 235-700 |
+| **NestJS nuevo** | `AGENTS.md` § "Microservicios NestJS" | 800-2100 |
+| **Comando /gd:*** | `.claude/commands/gd/[nombre].md` | archivo individual |
+| **Seguridad** | `AGENTS.md` § "Seguridad y Multi-Tenant" | 120-230 |
+| **Testing** | `AGENTS.md` § "Pruebas, TDD/BDD" | 700-1100 |
 
-### 3. Auditoría de eficiencia de tokens
+**Si no estás seguro qué sección**: consultar RAG primero (`npm run rag:query -- "pregunta"`)
 
-Al finalizar un bloque de trabajo significativo, incluye siempre una auditoría como esta:
+---
 
-```text
---- AUDITORÍA DE EFICIENCIA (ULTRA-ECONOMIZER)
-- Tokens Consumidos (Est.): ~X,XXX
-- Tokens Ahorrados (Est.): ~Y,YYY  (motivo: p.ej. se evitó leer archivo DDL completo de 50KB; solo se extrajeron 3 CREATE TABLE)
-- Eficacia de Contexto (Est.): ZZ%
-- Técnica Aplicada: p.ej. lectura quirúrgica + patrón espejo + mini-SPEC
+### Comandos Rápidos (referencia)
+
+```bash
+# Memory/Decisiones pasadas
+npm run rag:query -- "cómo extraer tenantId"
+
+# Validar SPEC
+npm run spec:validate
+
+# Tests del módulo
+cd lib/lambda/transacciones && npm test
+
+# Ver estado del proyecto
+cat engineering-knowledge-base/project.md
 ```
 
-Las cifras son estimadas, pero deben reflejar:
-- Cuántos archivos grandes se dejaron de leer en su totalidad.  
-- Cuántos fragmentos/localizaciones se inspeccionaron realmente.
+---
 
-### 4. Orden de prioridades ante ambigüedades
+### Patrones de Referencia (NO explicar, solo copiar)
 
-1. Respetar `AGENTS.md` (multi-tenant, SAGA, ResponseBuilder, certificación).  
-2. Aplicar estrictamente el marco ULTRA‑ECONOMIZER (mínimo contexto necesario).  
-3. Reusar y extender patrones maduros antes que introducir arquitecturas nuevas.  
-4. Mantener SPECs breves y trazables junto al código (lambdas, módulos, Terraform, DDL) antes de tocar implementación.  
+**Lambda madura**: `lib/lambda/transacciones/fnTransaccionLineas/`
+- Router: `index.mjs`
+- Tenant: `utils/sanitization.mjs` → `extractTenantId()`
+- Respuestas: `utils/responseBuilder.mjs`
+- BD: `utils/database.mjs` (pool singleton)
+
+**NestJS maduro**: `servicio-tesoreria/src/`
+- Controller: `tesoreria/controllers/caja.controller.ts`
+- Service: `tesoreria/services/caja.service.ts`
+- Guard: `common/guards/jwt-tenant.guard.ts` (global en AppModule)
+- Decoradores: `common/decorators/tenant-id.decorator.ts` → `@TenantId()`
+
+---
+
+### Para reglas completas
+
+Ver `AGENTS.md` (128 KB, ~32,000 tokens) — **cargar solo la sección relevante**, nunca el archivo completo.
+
+Documentación de optimización de tokens: `docs/TOKEN-OPTIMIZATION-STRATEGY.md`
 
 ---
 
 ## Memoria Persistente (Engram)
 
-**Importante:** El protocolo de memoria está completamente documentado en **AGENTS.md** (sección "Memoria Persistente (Engram)").
+El protocolo completo está en **AGENTS.md** (sección "Memoria Persistente (Engram)").
 
-Este documento es el contrato maestro — consulta ahí para:
-- Cuándo usar `mem_save` (decisiones, completados, descubrimientos)
-- Cuándo usar `mem_search` (reactivo y proactivo)
-- Cómo usar `mem_session_summary` (obligatorio al cerrar sesión)
-- Recuperación después de compactación
-
-El directorio de datos está en `engineering-knowledge-base/` con sincronización automática via git.
-
+**Resumen rápido**:
+- **Guardar**: `mem_save` después de decisiones, completados, descubrimientos
+- **Buscar**: `mem_search` cuando pregunten sobre cosas pasadas
+- **Cerrar sesión**: `mem_session_summary` (obligatorio)
+- **Datos**: `engineering-knowledge-base/` con sync automático via git

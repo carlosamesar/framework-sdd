@@ -1,70 +1,124 @@
-## QWEN.md
+## QWEN.md — Ultra-Light (para Qwen Code)
 
-Guía para modelos Qwen trabajando en `gooderp-orchestation`.
+**Versión**: 5.0 | **Optimizado**: 2026-04-09 | **Tokens**: ~1,800
 
-**Regla prioritaria:** ser **ultra-economizadores de tokens**. Minimizar siempre el contexto leído y generado; lectura quirúrgica, SPEC antes de código, copiar patrones maduros. Ver sección 2 y 3 abajo.
-
-**Memoria primero:** toda pregunta debe pasar primero por la Memoria (estado en project.md/registry.md; preguntas sobre reglas o cambios pasados: `npm run rag:query -- "pregunta"`). No responder sin consultar. Ver `openspec/MEMORY.md` y `docs/INDICE-DOCUMENTACION-FRAMEWORK.md`.
-
-### 1. Fuente de verdad obligatoria
-
-- Sigue siempre `AGENTS.md` como contrato maestro del repositorio.  
-- Considera `servicio-contabilidad` y las lambdas maduras de `lib/lambda/transacciones` como **patrón de referencia** para cualquier nuevo microservicio, lambda o cambio de arquitectura.  
-- Respeta estrictamente las reglas de multi‑tenant, ResponseBuilder, SAGA, y certificación funcional descritas allí.
-
-### 2. Modo de trabajo ULTRA‑ECONOMIZER
-
-- **Lectura quirúrgica**:
-  - Antes de leer archivos grandes, identifica la *pieza espejo madura* y lee solo 2–5 archivos clave (30–150 líneas por archivo) necesarios para la tarea.
-  - Usa búsqueda selectiva (por ejemplo, patrones equivalentes a `grep` / `rg`) para localizar:
-    - `CREATE TABLE` de las 2–3 tablas críticas.
-    - Controladores/handlers espejo y bloques Terraform equivalentes.
-- **Mini‑SPEC antes de codificar**:
-  - Redacta una SPEC corta (1–2 pantallas) por tarea importante, con:
-    - Objetivo de negocio.
-    - Endpoints/recursos (método + ruta + payloads).
-    - Multi‑tenant (de dónde sale `tenantId` y `userId`).
-    - Manejo de errores (códigos y shape de respuesta).
-    - Integración con SAGA / orquestadores cuando aplique.
-- **Copiar patrones maduros, no inventar**:
-  - Para lambdas: copia estructura de `fnTransaccionLineas` / `fnTransaccion` / `fnOrquestadorTransaccionUnificada` (router, `utils/sanitization.mjs`, `utils/responseBuilder.mjs`, `utils/database.mjs`) y ajusta solo nombres, SQL y rutas.
-  - Para NestJS: copia el patrón de `AsientoContableController`, `PlanContableController`, `JwtTenantGuard` y su módulo, ajustando DTOs/rutas pero manteniendo multi‑tenant y certificación.
-  - Para Terraform: copia recursos existentes (lambda, ECS, API Gateway, ALB) y parametriza, sin diseñar bloques desde cero.
-  - Para DDL: respeta naming, tipos, `tenant_id`, y soft delete (`eliminado_por`, `eliminado_en`) según tablas espejo.
-
-### 3. Auditoría de eficiencia de tokens
-
-Al cerrar una tarea relevante (nueva lambda, módulo Nest, recurso Terraform o cambio DDL), incluye una sección de auditoría estilo:
-
-```text
---- AUDITORÍA DE EFICIENCIA (ULTRA-ECONOMIZER)
-- Tokens Consumidos (Est.): ~X,XXX
-- Tokens Ahorrados (Est.): ~Y,YYY  (motivo: p.ej. lectura selectiva de N bloques en vez de archivo completo de 50KB)
-- Eficacia de Contexto (Est.): ZZ%
-- Técnica Aplicada: p.ej. patrón espejo + mini-SPEC + lectura quirúrgica de DDL/OpenAPI
-```
-
-Usa estimaciones razonables basadas en:
-- Archivos grandes cuyo parseo completo se evitó.
-- Número de bloques de código/documentación realmente inspeccionados.
-
-### 4. Prioridades cuando haya dudas
-
-1. Respeta siempre `AGENTS.md` y las reglas de multi‑tenant, SAGA y certificación funcional.  
-2. Minimiza el contexto leído siguiendo el modo ULTRA‑ECONOMIZER.  
-3. Prefiere extender patrones maduros sobre introducir nuevos diseños.  
-4. Documenta cambios significativos mediante SPECs breves ubicadas junto al código afectado.
+**Importante**: Este archivo se carga AUTOMÁTICAMENTE al iniciar Qwen Code en este repositorio.
 
 ---
 
-## Memoria Persistente (Engram)
+### 5 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
 
-**Importante:** El protocolo de memoria está completamente documentado en **AGENTS.md** (sección "Memoria Persistente (Engram)").
+1. **Multi-tenant**: `tenantId` SIEMPRE desde JWT (`custom:tenant_id`), **NUNCA** de body/params/query
+2. **TDD obligatorio**: RED → GREEN → REFACTOR, coverage ≥ 85%
+3. **Copiar patrones maduros**: `fnTransaccionLineas` (Lambda), `servicio-tesoreria` (NestJS)
+4. **ResponseBuilder**: todas las lambdas usan `utils/responseBuilder.mjs` — NO devolver respuestas crudas
+5. **Memory first**: consultar `project.md`/`registry.md` o `npm run rag:query` antes de responder
 
-Este documento es el contrato maestro — consulta ahí para:
-- Cuándo usar `mem_save` (decisiones, completados, descubrimientos)
-- Cuándo usar `mem_search` (reactivo y proactivo)
-- Cómo usar `mem_session_summary` (obligatorio al cerrar sesión)
-- Recuperación después de compactación
+---
 
-El directorio de datos está en `engineering-knowledge-base/` con sincronización automática via git.
+### Optimización de Tokens (AUTOMÁTICA)
+
+#### ❌ NO HACER (gasta tokens innecesarios)
+- NO cargar `AGENTS.md` completo (128 KB, ~32,000 tokens)
+- NO explicar patrones que ya existen en `PATTERNS-CACHE.md`
+- NO incluir documentación extensa en respuestas
+- NO leer todos los comandos `/gd:*` — usar `COMMANDS-INDEX.md`
+
+#### ✅ HACER (ahorra 85%+ tokens)
+- Usar **lazy loading**: cargar solo módulos de `.agents-core/` según la tarea
+- **Referenciar** patrones: "Pattern #1 (PATTERNS-CACHE.md)" en lugar de explicar
+- **Consultar RAG** para dudas específicas: `npm run rag:query -- "pregunta"`
+- Respuestas concisas: código + explicación mínima necesaria
+
+---
+
+### Lazy Loading Index (cargar solo según tarea)
+
+| Tarea | Archivo | Tokens | Cuándo |
+|-------|---------|--------|--------|
+| **Multi-tenant / Auth** | `.agents-core/multi-tenant.md` | ~2,500 | Lambdas o NestJS con auth |
+| **Crear Lambda** | `.agents-core/lambdas-pattern.md` | ~4,000 | Nueva lambda o modificar |
+| **Crear NestJS** | `.agents-core/nestjs-pattern.md` | ~6,000 | Nuevo módulo/controller |
+| **Tests** | `.agents-core/testing-rules.md` | ~2,500 | Escribir o ejecutar tests |
+| **SAGA / Orquestador** | `.agents-core/saga-pattern.md` | ~3,000 | Lambdas en SAGA |
+| **Comando /gd:*** | `COMMANDS-INDEX.md` | ~2,000 | Usuario ejecuta comando |
+| **Snippets** | `PATTERNS-CACHE.md` | ~50 | Referenciar, no copiar completo |
+
+**Contexto base**: ~1,800 tokens (este archivo)  
+**Con 1 módulo**: ~4,300-7,800 tokens  
+**VS antes**: 32,000-74,600 tokens (**-75-95%**)
+
+---
+
+### Patrones de Referencia (NO explicar, solo copiar)
+
+**Para snippets listos**: `PATTERNS-CACHE.md`
+
+| # | Patrón | Ubicación real |
+|---|--------|----------------|
+| 1 | extractTenantId | `lib/lambda/transacciones/fnTransaccionLineas/utils/sanitization.mjs` |
+| 2 | ResponseBuilder | `lib/lambda/transacciones/fnTransaccionLineas/utils/responseBuilder.mjs` |
+| 3 | Router lastSegment | `lib/lambda/transacciones/fnTransaccion/index.mjs` |
+| 4 | JwtTenantGuard | `servicio-tesoreria/src/common/guards/jwt-tenant.guard.ts` |
+| 5 | Controller MT | `servicio-tesoreria/src/tesoreria/controllers/caja.controller.ts` |
+| 6 | Entity TypeORM | `servicio-tesoreria/src/tesoreria/entities/caja.entity.ts` |
+| 7 | QueryRunner TX | `servicio-tesoreria/src/tesoreria/services/caja.service.ts` |
+
+---
+
+### Comandos SDD (usar `COMMANDS-INDEX.md` para catálogo)
+
+#### Pipeline Principal
+- `/gd:start` — Iniciar tarea con detección de complejidad
+- `/gd:specify` — Especificación Gherkin
+- `/gd:implement` — TDD (RED→GREEN→REFACTOR)
+- `/gd:review` — Peer review 7 dimensiones
+- `/gd:verify` — Validar vs SPEC
+
+#### Testing
+- `/gd:validar-spec` — Validar calidad de SPEC
+- `/gd:tea` — Testing E2E autónomo backend
+- `/gd:playwright` — Testing E2E frontend
+
+#### Sesión
+- `/gd:reflexionar` — Lecciones aprendidas
+- `/gd:time-travel` — Ver decisiones pasadas
+
+---
+
+### Multi-Entorno (este repo usa 4 herramientas)
+
+| Herramienta | Archivo de contexto | Optimización |
+|-------------|---------------------|--------------|
+| **Claude Code** | `CLAUDE.md` | ✅ Automática |
+| **OpenCode** | `OPENCODE.md` | ✅ Automática |
+| **Qwen Code** | `QWEN.md` (este archivo) | ✅ Automática |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | ✅ Automática |
+
+**Regla**: Cada herramienta lee su archivo específico. Todos aplican las mismas 5 reglas de oro y lazy loading.
+
+---
+
+### Cognito User Pools
+
+| Tipo | User Pool ID | Servicios |
+|------|--------------|-----------|
+| **Microservicios NestJS** | `us-east-1_gmre5QtIx` | servicio-contabilidad, servicio-tesoreria, etc. |
+| **Lambdas + API Gateway** | `us-east-1_fQl9BKSxq` | lib/lambda/*, servicio-transacciones, etc. |
+
+---
+
+### Memoria Persistente (Engram)
+
+- **Guardar**: `mem_save` después de decisiones, completados, descubrimientos
+- **Buscar**: `mem_search` cuando pregunten sobre cosas pasadas
+- **Cerrar sesión**: `mem_session_summary` (obligatorio)
+- **Datos**: `engineering-knowledge-base/` con sync via git
+
+---
+
+### Para reglas completas
+
+Ver `AGENTS.md` (128 KB) — **cargar solo la sección relevante**, nunca el archivo completo.
+
+Documentación de optimización: `docs/TOKEN-OPTIMIZATION-STRATEGY.md`
