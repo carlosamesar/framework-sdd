@@ -6,15 +6,29 @@
   "type": "module",
   "bin": {
     "framework-sdd": "./bin/framework-sdd.mjs",
-    "sdd": "./bin/framework-sdd.mjs"
+    "sdd": "./bin/framework-sdd.mjs",
+    "sdd-agent": "./bin/sdd-agent.mjs"
   },
   "files": [
     "bin/framework-sdd.mjs",
+    "bin/sdd-agent.mjs",
+    "scripts/install-sdd-agent.mjs",
     "scripts/**/*.mjs",
     "scripts/**/*.sh",
     "scripts/fixtures/**",
     "openspec/tools-manifest.yaml",
-    "openspec/templates/**"
+    "openspec/templates/**",
+    "packages/sdd-agent-orchestrator/package.json",
+    "packages/sdd-agent-orchestrator/package-lock.json",
+    "packages/sdd-agent-orchestrator/src/**",
+    "packages/sdd-agent-orchestrator/design/**",
+    "packages/sdd-agent-orchestrator/README.md",
+    "packages/sdd-agent-orchestrator/.env.example",
+    ".claude/commands/gd/*.md",
+    "docs/orquestador-agente-sdd.md",
+    "docs/orquestador-produccion.md",
+    "docs/openspec-proyectos.md",
+    "openspec/projects/README.md"
   ],
   "scripts": {
     "spec:validate": "node scripts/validate-spec.mjs",
@@ -25,7 +39,14 @@
     "test:extract-json-e2e": "node scripts/e2e-extract-json.mjs",
     "test:path-sandbox-e2e": "node scripts/e2e-path-sandbox.mjs",
     "spec:extract-json": "node scripts/extract-json-block.mjs",
-    "framework:test": "npm run framework:ci && npm run test:implements-e2e && npm run test:extract-json-e2e && npm run test:path-sandbox-e2e",
+    "framework:test": "npm run framework:ci && npm run test:implements-e2e && npm run test:extract-json-e2e && npm run test:path-sandbox-e2e && npm run orchestrator:test && npm run orchestrator:pipeline",
+    "agent:install": "node scripts/install-sdd-agent.mjs",
+    "agent:install:production": "node scripts/install-sdd-agent.mjs --production",
+    "orchestrator:test": "npm ci --prefix packages/sdd-agent-orchestrator && npm test --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:pipeline": "npm run graph:pipeline --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:llm": "npm run graph:llm --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:gd-cycle": "npm run graph:gd-cycle --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:audit-inventario": "npm run graph:audit-inventario --prefix packages/sdd-agent-orchestrator",
     "framework:platform-smoke": "npm run framework:test && npm run react:smoke",
     "framework:ci": "npm run spec:validate && npm run spec:validate-react && npm run spec:implements",
     "react:run": "node scripts/react-runner.mjs",

@@ -118,6 +118,7 @@ Para mantener el índice actualizado en desarrollo, usar los daemons descritos e
 3. **Memoria en el chat:** si necesitas contexto de sesiones previas en flujo GAF, usa `/gd:recall` cuando esté disponible en tu instalación.
 4. **Cierre de sesión:** antes de terminar, `/gd:close` para resumen estructurado (alineado a `AGENTS.md`).
 5. **Detección de complejidad:** el framework ajusta fases (nivel 0–4) según la magnitud de la solicitud.
+6. **Orquestador terminal (`sdd-agent`):** instalación local [`orquestador-agente-sdd.md`](orquestador-agente-sdd.md); **CI y producción** [`orquestador-produccion.md`](orquestador-produccion.md) (`npm run agent:install:production`, secretos, `pipeline` vs `gd-cycle`).
 
 ---
 *GAF Framework - Specification-Driven Development - Grupo 4D*

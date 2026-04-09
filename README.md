@@ -19,12 +19,15 @@ Para poner en marcha el Framework GAF (SDD) en tu entorno local y configurarlo p
 4.  **Validar OpenSpec (Node 20+):** `npm install` una vez, luego `npm run spec:validate` — estructura de `openspec/changes/` y `archive/`
 5.  **Esquemas ReAct:** `npm run spec:validate-react` — JSON Schema + ejemplos en `openspec/templates/react-outputs/examples/`
 6.  **Drift `implements:`:** `npm run spec:implements` — rutas internas del repo coherentes con el frontmatter de specs
+6b. **Specs por producto (monorepo):** `openspec/projects/` + `FRAMEWORK_SDD_OPENSPEC_PROJECT` — [`docs/openspec-proyectos.md`](docs/openspec-proyectos.md)
 7.  **Smoke completo:** `npm run framework:test` — `framework:ci` + E2E `implements:` + extract JSON + **path sandbox** (`spec:verify` / validate-react / react-runner)
 8.  **ReAct runner (plan contra manifiesto):** `npm run react:smoke` — encadena `spec:validate`, `spec:validate-react`, `spec:implements`
 9.  **Reporte por change:** `npm run spec:verify -- <slug>` o `--all` (incluye `archive/<slug>`) → `reports/verify-*.json`  
     **CI framework:** validate + ReAct + implements + E2E + `react:smoke` + `spec:verify --all` (ver `.github/workflows/sdd-framework.yml`)
 
 Prerrequisitos (RAG en repo, Engram, layout modular): [`docs/framework-prerequisites.md`](docs/framework-prerequisites.md).
+
+**Orquestador agente en producción** (CI endurecido, secretos, checklist, `npm pack`): [**`docs/orquestador-produccion.md`**](docs/orquestador-produccion.md).
 
 ### Uso con `npx` (otro repo o CI)
 
@@ -41,6 +44,12 @@ npx sdd react:smoke
 Raíz del proyecto: por defecto es el **cwd** si existe `openspec/changes` u `openspec/config.yaml`. Si no, usa `npx framework-sdd --project-root /ruta/al/repo spec:validate` o la variable `FRAMEWORK_SDD_PROJECT_ROOT`.
 
 Publicación: el campo `"private": true` evita publicaciones accidentales en npm; para publicar, quitar `private` o usar un scope (`@org/framework-sdd`) y `npm publish`.
+
+### Orquestación agente (LangGraph) — fábrica “cero desarrolladores”
+
+Paquete **[`packages/sdd-agent-orchestrator/`](packages/sdd-agent-orchestrator/README.md)**: grafo que encadena fases tipo `/gd:start` con los gates del framework; diseño en [`ARQUITECTURA-CERO-DEV-LANGRAPH.md`](packages/sdd-agent-orchestrator/design/ARQUITECTURA-CERO-DEV-LANGRAPH.md). Change OpenSpec: [`openspec/changes/agent-factory-langgraph/`](openspec/changes/agent-factory-langgraph/proposal.md).
+
+**Puesta en marcha:** dev → [`docs/orquestador-agente-sdd.md`](docs/orquestador-agente-sdd.md) (`npm run agent:install`, **`npx sdd-agent`**: `pipeline`, **`gd-cycle`**, **`audit-inventario`** — auditoría lambdas inventario × SAGA, `list-tools`, `llm`, `demo`). **Producción** → [`docs/orquestador-produccion.md`](docs/orquestador-produccion.md) (`npm run agent:install:production`, secretos, qué ejecutar en CI).
 
 ### Índice de documentación
 

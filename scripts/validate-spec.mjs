@@ -6,16 +6,9 @@
 import fs from 'fs';
 import path from 'path';
 import { getProjectRoot } from './lib/paths.mjs';
+import { resolveOpenspecContext } from './lib/openspec-config.mjs';
 
 const REPO_ROOT = getProjectRoot();
-
-function readChangesRoot() {
-  const cfg = path.join(REPO_ROOT, 'openspec', 'config.yaml');
-  if (!fs.existsSync(cfg)) return path.join('openspec', 'changes');
-  const text = fs.readFileSync(cfg, 'utf8');
-  const m = text.match(/changes_root:\s*(\S+)/);
-  return m ? m[1].replace(/['"]/g, '') : path.join('openspec', 'changes');
-}
 
 const ENTRY_FILES = ['proposal.md', 'design.md', 'tasks.md'];
 
@@ -100,7 +93,14 @@ function hasTaskCheckboxes(tasksPath) {
 }
 
 function main() {
-  const changesRel = readChangesRoot();
+  let ctx;
+  try {
+    ctx = resolveOpenspecContext(REPO_ROOT);
+  } catch (e) {
+    console.error(e.message || String(e));
+    process.exit(1);
+  }
+  const changesRel = ctx.changesRoot;
   const changesAbs = path.join(REPO_ROOT, changesRel);
 
   const errors = [];
@@ -148,11 +148,11 @@ function main() {
     walkMd(specsDir);
   }
 
-  printReport(errors, warnings);
+  printReport(errors, warnings, ctx);
   process.exit(errors.length ? 1 : 0);
 }
 
-function printReport(errors, warnings) {
+function printReport(errors, warnings, ctx) {
   if (warnings.length) {
     console.warn('Advertencias:');
     for (const w of warnings) console.warn(`  - ${w}`);
@@ -161,7 +161,11 @@ function printReport(errors, warnings) {
     console.error('Errores de validación OpenSpec:');
     for (const e of errors) console.error(`  - ${e}`);
   } else {
-    console.log('spec:validate — OK');
+    const hint =
+      ctx?.activeProject != null
+        ? ` (proyecto=${ctx.activeProject}, changes_root=${ctx.changesRoot})`
+        : '';
+    console.log(`spec:validate — OK${hint}`);
   }
 }
 

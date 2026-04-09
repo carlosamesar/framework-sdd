@@ -1,11 +1,17 @@
 # OpenSpec (Framework-SDD)
 
-Este directorio concentra **especificaciones en delta** bajo `changes/`. La estructura modular `modules/XX-module-*/changes/` descrita en `project.md` aplica cuando el monorepo incluye el árbol ERP completo; en repos mínimos basta con `openspec/changes/<slug>/`.
+## Multi-proyecto (recomendado en monorepos)
+
+Para **no mezclar** specs de distintos productos, usá **`openspec/projects/…/changes/`** espejando `develop/` y registrá cada árbol en **`config.yaml`** → `projects`. El proyecto activo es **`active_project`** o la variable **`FRAMEWORK_SDD_OPENSPEC_PROJECT`**. Guía: [**`docs/openspec-proyectos.md`**](../docs/openspec-proyectos.md) · convención de carpetas: [`openspec/projects/README.md`](projects/README.md).
+
+---
+
+Este directorio concentra **especificaciones en delta** bajo `changes/` (global o por proyecto). La estructura modular `modules/XX-module-*/changes/` descrita en `project.md` aplica cuando el monorepo incluye el árbol ERP completo; en repos mínimos basta con `openspec/changes/<slug>/` o con un único proyecto `framework` en `config.yaml`.
 
 | Archivo | Rol |
 |---------|-----|
 | `MEMORY.md` | Enlaces a memoria SDD, RAG, índice de documentación |
-| `config.yaml` | Rutas y reglas consumidas por `npm run spec:validate` |
+| `config.yaml` | Rutas, **`projects`** y `active_project` / `FRAMEWORK_SDD_OPENSPEC_PROJECT` para `spec:validate` y `spec:verify` |
 | `changes/<slug>/proposal.md` | Intención y alcance (recomendado) |
 | `changes/<slug>/design.md` | Arquitectura y decisiones |
 | `changes/<slug>/tasks.md` | Checklist con `- [ ]` / `- [x]` |

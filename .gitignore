@@ -172,6 +172,9 @@ engineering-knowledge-base/
 reports/*.json
 !reports/.gitkeep
 
+# Tokens / claves sueltas en la raíz (no commitear)
+token.txt
+
 # Secretos locales (daemon / MCP overrides)
 config/mcp.local.env
 config/engram-daemon.local.env

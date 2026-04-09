@@ -10,15 +10,17 @@
 import fs from 'fs';
 import path from 'path';
 import { getProjectRoot } from './lib/paths.mjs';
+import { resolveOpenspecContext } from './lib/openspec-config.mjs';
 
 const REPO_ROOT = getProjectRoot();
 
 function readChangesRoot() {
-  const cfg = path.join(REPO_ROOT, 'openspec', 'config.yaml');
-  if (!fs.existsSync(cfg)) return path.join('openspec', 'changes');
-  const text = fs.readFileSync(cfg, 'utf8');
-  const m = text.match(/changes_root:\s*(\S+)/);
-  return m ? m[1].replace(/['"]/g, '') : path.join('openspec', 'changes');
+  try {
+    return resolveOpenspecContext(REPO_ROOT).changesRoot;
+  } catch (e) {
+    console.error(e.message || String(e));
+    process.exit(1);
+  }
 }
 
 /**

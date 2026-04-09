@@ -1,7 +1,7 @@
 # 📋 OpenSpec Registry — Índice Global de Referencia
 
 > **Sistema de numeración**: `M.C.S` → Módulo.Change.Spec
-> **Última actualización**: 2026-04-11 — gates `framework:ci`, `framework:test` (+ `test:path-sandbox-e2e`), `react:smoke`, **`npx framework-sdd`** (v2.1); verify `archive/*` con slugs endurecidos; madurez ~4,0/5 (`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`, §1, §10, §12).
+> **Última actualización**: 2026-04-11 — gates `framework:ci`, `framework:test` (+ `test:path-sandbox-e2e`), `react:smoke`, **`npx framework-sdd`** (v2.1); **`packages/sdd-agent-orchestrator`** (LangGraph demo + diseño fábrica cero dev); change `openspec/changes/agent-factory-langgraph/`; verify `archive/*` con slugs endurecidos; madurez ~4,0/5 (`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`, §1, §10, §12).
 > **Instrucción**: Este archivo es la fuente rápida de referencia. Para encontrar una spec, busca el ID aquí y navega a la ruta indicada.
 >
 > **Memoria infinita**: Este archivo + `AGENTS.md` + `project.md` forman el estado canónico. Al cerrar un change o cambiar estado de una spec, actualiza este registry (y `project.md`) para que todos los modelos tengan el estado persistido y se evite consumo extra de tokens rediscovering.

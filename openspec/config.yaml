@@ -1,23 +1,36 @@
-# OpenSpec — configuración canónica del Framework-SDD (este repositorio)
-# Versión del esquema de layout soportado por validate-spec.mjs
+# OpenSpec — configuración canónica del Framework-SDD
+# Esquema soportado por validate-spec.mjs + verify-change.mjs (scripts/lib/openspec-config.mjs)
 
-version: 1
+version: 2
+
+# Proyecto activo cuando existen varias entradas en `projects` (sin definir: si solo hay uno, se usa ese).
+# Sobrescribible en cualquier momento con: export FRAMEWORK_SDD_OPENSPEC_PROJECT=<clave>
+active_project: framework
 
 paths:
-  # Cambios activos o históricos (delta specs). Obligatorio en monorepo mínimo.
+  # Legacy / specs del núcleo del framework (delta global).
   changes_root: openspec/changes
-  # Módulos numerados (Angular / ERP) — opcional; si no existen, el validador solo exige changes/.
   modules_root: openspec/modules
 
-# Artefactos mínimos por carpeta de change bajo changes_root
+# Mapa de proyectos — cada uno con su propio árbol de changes (sin mezclar slugs entre productos).
+# Convención recomendada: espejar la ruta bajo develop/, p. ej.
+#   develop/backend/sigat-orchestation  →  openspec/projects/develop/backend/sigat-orchestation/changes
+projects:
+  framework:
+    display_name: Framework-SDD (OpenSpec núcleo, agente, herramientas)
+    develop_mirror: .
+    changes_root: openspec/changes
+  # Ejemplo (crear el árbol y descomentar cuando exista el proyecto):
+  # sigat_orchestation:
+  #   display_name: SIGAT — orquestación backend
+  #   develop_mirror: develop/backend/sigat-orchestation
+  #   changes_root: openspec/projects/develop/backend/sigat-orchestation/changes
+
 change_requirements:
-  # Al menos uno de estos archivos en la raíz del change
   entry_any_of:
     - proposal.md
     - design.md
     - tasks.md
-  # Si existe specs/, cada *.md debe cumplir scenario_pattern (ver validate-spec.mjs)
   specs_subdir: specs
 
-# Salida estructurada para agentes (ReAct) — plantillas en openspec/templates/react-outputs/
 react_templates_root: openspec/templates/react-outputs

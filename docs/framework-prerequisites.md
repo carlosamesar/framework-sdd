@@ -37,6 +37,10 @@ Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de s
 | `validate-react-schemas --stdin-ndjson` | Valida cada línea stdin contra un esquema (tras `extract-json-block --all`) |
 | `npm run spec:verify -- <slug>` | Reporte JSON en `reports/verify-<slug>.json` |
 | `openspec/tools-manifest.yaml` | Registro de herramientas para orquestación |
+| `npm run agent:install` | Dependencias del orquestador LangGraph (`packages/sdd-agent-orchestrator`) — desarrollo |
+| `npm run agent:install:production` | Misma instalación con `npm ci --omit=dev` en el paquete; sin crear `.env` automático |
+| `npx sdd-agent pipeline` | Gates read-only vía grafo (sin `OPENAI_API_KEY`) |
+| `npx sdd-agent gd-cycle` | Ciclo `/gd:*` con LLM — solo con secretos y política de coste; ver [**orquestador-produccion.md**](orquestador-produccion.md) |
 
 ---
 
@@ -77,3 +81,5 @@ Si **no** configuras Postgres ni embeddings, puedes seguir trabajando con `proje
 ## Cursor / Claude Code / OpenCode
 
 - Comandos `/gd:*` viven en `.claude/commands/gd/`. Son instrucciones al modelo; los gates mecánicos siguen siendo `npm run spec:validate`, `npm run framework:ci`, etc.
+- **Orquestador en producción:** instalación endurecida, secretos y qué correr en CI vs jobs con LLM: [**orquestador-produccion.md**](orquestador-produccion.md).
+- **OpenSpec por producto:** `openspec/projects/` + `FRAMEWORK_SDD_OPENSPEC_PROJECT`: [**openspec-proyectos.md**](openspec-proyectos.md).
