@@ -1,0 +1,95 @@
+# Pipeline SDD máximo: catálogo bajo .claude/commands/ + los 15 modelos /gd:razonar:*
+# (orden alineado a AGENTS.md — Modelos de Razonamiento).
+#
+# Variables:
+#   SDD_PIPELINE_INCLUDE_OPTIONAL=1  → incluye gd/explore al inicio
+#   SDD_PIPELINE_SKIP_RAZONAR=1      → omite los 15 pasos tag: razonar (corridas rápidas / CI)
+#
+# Rama corta por complejidad: npx sdd-agent gd-cycle "tarea"
+
+version: 2
+description: >-
+  Flujo SDD completo + bloque de razonamiento multi-modelo antes del plan técnico,
+  luego implementación, review, seguridad, verify batch y archivo.
+
+steps:
+  - type: llm
+    command: gd/explore
+    optional: true
+    note: SDD_PIPELINE_INCLUDE_OPTIONAL=1
+
+  - type: llm
+    command: gd/specify
+
+  - type: gate
+    tool: spec_validate
+
+  - type: llm
+    command: gd/clarify
+
+  # --- Razonamiento (15) — contexto acumulado para plan/breakdown ---
+  - type: llm
+    command: razonar/primeros-principios
+    tag: razonar
+  - type: llm
+    command: razonar/5-porques
+    tag: razonar
+  - type: llm
+    command: razonar/pareto
+    tag: razonar
+  - type: llm
+    command: razonar/inversion
+    tag: razonar
+  - type: llm
+    command: razonar/segundo-orden
+    tag: razonar
+  - type: llm
+    command: razonar/pre-mortem
+    tag: razonar
+  - type: llm
+    command: razonar/minimizar-arrepentimiento
+    tag: razonar
+  - type: llm
+    command: razonar/costo-oportunidad
+    tag: razonar
+  - type: llm
+    command: razonar/circulo-competencia
+    tag: razonar
+  - type: llm
+    command: razonar/mapa-territorio
+    tag: razonar
+  - type: llm
+    command: razonar/probabilistico
+    tag: razonar
+  - type: llm
+    command: razonar/reversibilidad
+    tag: razonar
+  - type: llm
+    command: razonar/rlm-verificacion
+    tag: razonar
+  - type: llm
+    command: razonar/rlm-cadena-pensamiento
+    tag: razonar
+  - type: llm
+    command: razonar/rlm-descomposicion
+    tag: razonar
+
+  - type: llm
+    command: gd/plan
+
+  - type: llm
+    command: gd/breakdown
+
+  - type: llm
+    command: gd/implement
+
+  - type: llm
+    command: gd/review
+
+  - type: llm
+    command: gd/security-audit
+
+  - type: verify_batch
+
+  - type: llm
+    command: gd/archive

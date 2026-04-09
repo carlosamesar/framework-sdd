@@ -183,3 +183,6 @@ config/rag-daemon.local.env
 # Prueba local `npm pack` + npx framework-sdd (no commitear)
 sdd-npx-demo/
 framework-sdd-*.tgz
+
+# Cola de tareas: estado del watcher (local)
+tasks-development.watch.json

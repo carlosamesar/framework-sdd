@@ -1,5 +1,7 @@
 # OpenSpec — configuración canónica del Framework-SDD
 # Esquema soportado por validate-spec.mjs + verify-change.mjs (scripts/lib/openspec-config.mjs)
+# Actualizado por sdd-init el 2026-04-09 (modo hybrid: Engram + Filesystem)
+# Re-inicializado el 2026-04-09 — stack verificado, skill-registry actualizado, Engram sync
 
 version: 2
 
@@ -8,23 +10,14 @@ version: 2
 active_project: framework
 
 paths:
-  # Legacy / specs del núcleo del framework (delta global).
   changes_root: openspec/changes
   modules_root: openspec/modules
 
-# Mapa de proyectos — cada uno con su propio árbol de changes (sin mezclar slugs entre productos).
-# Convención recomendada: espejar la ruta bajo develop/, p. ej.
-#   develop/backend/sigat-orchestation  →  openspec/projects/develop/backend/sigat-orchestation/changes
 projects:
   framework:
-    display_name: Framework-SDD (OpenSpec núcleo, agente, herramientas)
+    display_name: "Framework-SDD (OpenSpec núcleo, agente, herramientas)"
     develop_mirror: .
     changes_root: openspec/changes
-  # Ejemplo (crear el árbol y descomentar cuando exista el proyecto):
-  # sigat_orchestation:
-  #   display_name: SIGAT — orquestación backend
-  #   develop_mirror: develop/backend/sigat-orchestation
-  #   changes_root: openspec/projects/develop/backend/sigat-orchestation/changes
 
 change_requirements:
   entry_any_of:
@@ -34,3 +27,104 @@ change_requirements:
   specs_subdir: specs
 
 react_templates_root: openspec/templates/react-outputs
+
+# ============================================================
+# SDD CONTEXT — detectado por sdd-init (2026-04-09)
+# ============================================================
+schema: spec-driven
+
+context: |
+  Tech stack: Node.js 20 ESM Lambdas + NestJS 11 microservices + Angular 19 frontend
+  Architecture: Hybrid Lambda/NestJS, multi-tenant JWT, SAGA pattern, SDD 6-phase pipeline
+  Backend: servicio-contabilidad, servicio-tesoreria, servicio-core, servicio-inventarios, servicio-saga (+ 5 more)
+  Lambdas: lib/lambda/** — ResponseBuilder, extractTenantId, pool PostgreSQL, soft-delete
+  Database: PostgreSQL + pgVector + JSONB, synchronize=false, SnakeNamingStrategy
+  Auth: Cognito us-east-1_gmre5QtIx (NestJS) / us-east-1_fQl9BKSxq (Lambdas+APIGW)
+  Testing: Jest (unit+integration) + Playwright (E2E frontend) + Newman (API contracts)
+  Infra: AWS Lambda + API Gateway + Terraform + ECS + Amplify + RabbitMQ (SAGA)
+  Location: ALL developments MUST reside under /develop
+
+rules:
+  location:
+    - "Todos los proyectos y código DEBEN residir en /develop"
+    - "Estructura: develop/backend/, develop/frontend/, develop/sdd-agent-orchestrator/"
+  certification:
+    - "Todo cierre de implementación requiere EVIDENCE.md con tests funcionales, endpoints y payloads"
+    - "Cobertura mínima: 85% en módulos de negocio (60% global, 75% en críticos frontend)"
+    - "Ejecutar migraciones, seeds y pruebas E2E antes de marcar como DONE"
+  microservices:
+    - "DEBE incluir .env.example con semillas de variables de entorno"
+    - "Usar JwtTenantGuard como APP_GUARD global en AppModule"
+    - "@TenantId() decorator — NUNCA obtener tenantId desde body/params/query"
+    - "User Pool NestJS: us-east-1_gmre5QtIx / Lambdas+APIGW: us-east-1_fQl9BKSxq"
+  lambdas:
+    - "Patrón: index.mjs + handlers/ + utils/ (copiar de fnTransaccionLineas)"
+    - "ResponseBuilder para TODAS las respuestas (success, error, validationError)"
+    - "Mapear errores PostgreSQL: 23503→404, 23505→409, 23514→400"
+    - "extractTenantId: JWT claims primero, luego body para Step Functions"
+    - "GET by id: evaluar pathParameters.id ANTES de listado/búsqueda"
+  security:
+    - "tenant_id SIEMPRE desde JWT — NUNCA desde body ni headers de usuario"
+    - "No re-decodificar JWT en controladores — usar JwtTenantGuard"
+    - "OWASP Gate: 0 vulnerabilidades antes de marcar como completo"
+  testing:
+    constraints:
+      - "TDD obligatorio: RED → GREEN → REFACTOR sin excepciones"
+      - "Tests deterministas — sin dependencia de hora, orden o datos externos"
+      - "Playwright para E2E Frontend; Newman para contratos API"
+      - "Coverage Gate: ≥85% en módulos de negocio"
+    tdd: true
+    test_command: "npm test"
+    coverage_threshold: 85
+  proposal:
+    - "Incluir plan de rollback para cambios con riesgo"
+    - "Identificar módulos afectados con ruta explícita"
+    - "Clasificar complejidad: 0/P/1/2/3/4 (Atomic/PoC/Micro/Standard/Complex/Product)"
+  specs:
+    - "Usar formato Given/When/Then (Dado/Cuando/Entonces)"
+    - "Palabras clave RFC 2119: MUST, SHALL, SHOULD, MAY"
+    - "Frontmatter obligatorio: id (M.C.S), module, change, title, status, implements"
+    - "Estados: DRAFT → IN_REVIEW → APPROVED → IMPL → DONE"
+    - "Implementar solo con spec en estado APPROVED"
+  design:
+    - "Incluir diagramas Mermaid para flujos complejos"
+    - "Documentar decisiones de arquitectura con justificación"
+    - "Referenciar patrones maduros: fnTransaccionLineas, servicio-tesoreria"
+  tasks:
+    - "Agrupar por fase: infraestructura → implementación → pruebas"
+    - "Numeración jerárquica: 1.1, 1.2, etc."
+    - "Cada tarea completable en una sesión"
+    - "Incluir criterios de aceptación verificables"
+  apply:
+    constraints:
+      - "Seguir patrones existentes (patrón espejo)"
+      - "Lambdas: copiar de fnTransaccionLineas; NestJS: copiar de servicio-tesoreria"
+      - "Migraciones SOLO con Node.js — NUNCA psql ni clientes SQL interactivos"
+    tdd: true
+    test_command: "npm test"
+  verify:
+    constraints:
+      - "Comparar implementación contra cada escenario de la spec"
+      - "Ejecutar migraciones, seeds y pruebas E2E reales"
+      - "Generar EVIDENCE.md con resultados"
+    test_command: "npm test"
+    build_command: "npm run build"
+    coverage_threshold: 85
+  archive:
+    - "Advertir antes de mergear deltas destructivos"
+    - "Actualizar project.md y registry.md al archivar"
+    - "Formato: openspec/changes/archive/YYYY-MM-DD-{change-name}/"
+
+# ============================================================
+# SDD PERSISTENCE — hybrid mode
+# ============================================================
+persistence:
+  mode: hybrid
+  engram:
+    project: framework-sdd
+    topic_prefix: sdd
+    init_topic_key: sdd-init/framework-sdd
+  filesystem:
+    changes_root: openspec/changes
+    specs_root: openspec/specs
+    archive_root: openspec/changes/archive

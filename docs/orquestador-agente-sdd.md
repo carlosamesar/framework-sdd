@@ -101,6 +101,9 @@ Detalle: [`docs/openspec-proyectos.md`](openspec-proyectos.md).
 | Tests del paquete | `npm run orchestrator:test` |
 | Pipeline read-only (CI) | `npm run orchestrator:pipeline` |
 | Ciclo **/gd:* completo** (LLM + gates + verify) | `npm run orchestrator:gd-cycle -- "tarea"` |
+| **Catálogo** de prompts `gd/*` y `gd:razonar/*` (JSON) | `npm run orchestrator:gd-catalog` o `npx sdd-agent gd-catalog` |
+| **Una fase** cualquiera del catálogo | `npx sdd-agent gd-phase razonar/pre-mortem "contexto"` |
+| **Flujo extendido** (YAML `openspec/gd-full-pipeline.yaml`, incluye 15× `/gd:razonar:*`) | `npm run orchestrator:gd-mega-flow -- "tarea"` · `SDD_PIPELINE_SKIP_RAZONAR=1` omite razonamiento |
 | Agente LLM ReAct (opcional) | `npm run orchestrator:llm` |
 
 Los scripts `orchestrator:*` usan `npm --prefix packages/sdd-agent-orchestrator`.

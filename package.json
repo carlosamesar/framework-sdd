@@ -17,6 +17,7 @@
     "scripts/**/*.sh",
     "scripts/fixtures/**",
     "openspec/tools-manifest.yaml",
+    "openspec/gd-full-pipeline.yaml",
     "openspec/templates/**",
     "packages/sdd-agent-orchestrator/package.json",
     "packages/sdd-agent-orchestrator/package-lock.json",
@@ -46,6 +47,9 @@
     "orchestrator:pipeline": "npm run graph:pipeline --prefix packages/sdd-agent-orchestrator",
     "orchestrator:llm": "npm run graph:llm --prefix packages/sdd-agent-orchestrator",
     "orchestrator:gd-cycle": "npm run graph:gd-cycle --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:gd-catalog": "npm run graph:gd-catalog --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:gd-phase": "npm run graph:gd-phase --prefix packages/sdd-agent-orchestrator",
+    "orchestrator:gd-mega-flow": "npm run graph:gd-mega-flow --prefix packages/sdd-agent-orchestrator",
     "orchestrator:audit-inventario": "npm run graph:audit-inventario --prefix packages/sdd-agent-orchestrator",
     "framework:platform-smoke": "npm run framework:test && npm run react:smoke",
     "framework:ci": "npm run spec:validate && npm run spec:validate-react && npm run spec:implements",
@@ -63,7 +67,12 @@
     "memory:daemons:start": "bash scripts/start-memory-daemons.sh",
     "memory:daemons:stop": "bash scripts/stop-memory-daemons.sh",
     "memory:daemons:status": "bash scripts/status-memory-daemons.sh",
-    "pack:check": "npm pack --dry-run 2>&1"
+    "pack:check": "npm pack --dry-run 2>&1",
+    "task-dev:status": "node scripts/update-development-task-status.mjs",
+    "task-dev:sync": "node scripts/update-development-task-status.mjs --sync",
+    "task-dev:watch": "node scripts/watch-development-tasks.mjs",
+    "task-dev:autonomous": "node scripts/run-autonomous-dev-queue.mjs",
+    "task-dev:notify": "node scripts/notify-task-email.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",
