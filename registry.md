@@ -128,12 +128,14 @@
 | ID | Change (carpeta) | Tipo | Estado | Specs | Ruta |
 |:--|-----------------|:---:|:------:|:---:|------|
 | **5.1** | `01-build-reserva-inventario` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnReservaInventario/` |
+| **5.2** | `02-liberar-reservas-expiradas` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnLiberarReservasExpiradas/` |
 
 ### Specs — Módulo 5
 
 | ID | Archivo | Componente |
 |:--|---------|-----------|
-| **5.1.1** | `archive/2026-04-11-inventory-reserva-lambda-certification/spec.md` | CRUD reservas + confirmar/cancelar + validación stock + expiración 15min |
+| **5.1.1** | `archive/2026-04-11-inventory-reserva-lambda-certification/spec.md` | fnReservaInventario CRUD + confirmar/cancelar + validación stock |
+| **5.2.1** | `archive/2026-04-11-inventory-liberar-reservas-certification/spec.md` | fnLiberarReservasExpiradas EventBridge scheduled job + bug fix |
 
 ---
 
