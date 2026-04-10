@@ -174,12 +174,16 @@ substrings.
 
 ---
 
-### Requirement: REQ-05 — globalThis for Request Timing
+### Requirement: REQ-05 — globalThis for Request Timing + SAGA Traceability (updated: saga-inventario-integration-fix, 2026-04-10)
 
 All lambdas that record invocation start time MUST use `globalThis.requestStartTime`
 instead of `global.requestStartTime`.
 
 **Affected lambdas**: fnInventario, fnMovimientoInventario, fnProducto, fnVarianteProducto.
+
+Additionally, all inventory movements created by the SAGA flow MUST have `creado_por = 'SISTEMA_SAGA'`
+in the `movimientos_inventario` table. This allows distinguishing SAGA-originated movements
+from direct movements.
 
 #### Scenario: Request start time is set via globalThis
 
@@ -187,3 +191,68 @@ instead of `global.requestStartTime`.
 - WHEN the handler entry point sets the request start time
 - THEN `globalThis.requestStartTime` is assigned `Date.now()`
 - AND `global.requestStartTime` is NOT assigned (the deprecated form is absent)
+
+#### Scenario: Movimiento creado por SAGA es trazable
+
+- GIVEN `fnActualizarInventario` completa exitosamente un movimiento
+- WHEN se consulta `movimientos_inventario` para la transacción
+- THEN el registro MUST tener `creado_por = 'SISTEMA_SAGA'`
+- AND MUST tener `evento_saga_id` referenciando el `saga_eventos.id` correspondiente
+
+---
+
+## SAGA Observability Requirements (change: saga-inventario-integration-fix)
+
+> Requirements added by change `saga-inventario-integration-fix` (2026-04-10).
+> Covers `fnActualizarInventario` and `fnSagaEventPublisher` Lambda observability.
+
+### Requirement: R-INV-01 — TIPO_MOVIMIENTO_MAP cubre todos los tipos relevantes
+
+`fnActualizarInventario` MUST mapear correctamente los tipos de transacción a tipos de movimiento de inventario. El mapa MUST incluir como mínimo:
+
+| tipo_transaccion | tipo_movimiento | efecto_cantidad |
+|------------------|-----------------|-----------------|
+| `COM` | `COMPRA` | `+` |
+| `VEN` | `VENTA` | `-` |
+| `FACT-VTA` | `FACTURA_VENTA` | `-` |
+| `FACT-COMP` | `FACTURA_COMPRA` | `+` |
+| `NC-VTA` | `NOTA_CREDITO_VENTA` | `+` (reversal) |
+| `ND-COMP` | `NOTA_DEBITO_COMPRA` | `-` (reversal) |
+
+#### Scenario: Tipo de transacción no mapeado retorna error estructurado
+
+- GIVEN `fnActualizarInventario` recibe un evento SAGA con `tipo_transaccion = 'TIPO_DESCONOCIDO'`
+- WHEN el handler intenta resolver el tipo de movimiento
+- THEN MUST retornar `{ estado: 'FALLIDO', error: 'UNMAPPED_TRANSACTION_TYPE', tipoTransaccion: 'TIPO_DESCONOCIDO' }`
+- AND MUST insertar un registro en `saga_ejecuciones` con `estado_ejecucion = 'FALLIDO'`
+- AND MUST NOT actualizar `inventario.cantidad_disponible`
+
+#### Scenario: NC-VTA aplica movimiento inverso correctamente
+
+- GIVEN una transacción `tipo_transaccion = 'NC-VTA'` con `cantidad = 5`
+- WHEN el handler procesa el evento SAGA de tipo `TRANSACCION_APROBADA`
+- THEN MUST insertar en `movimientos_inventario` con `tipo_movimiento = 'NOTA_CREDITO_VENTA'`
+- AND `inventario.cantidad_disponible` MUST incrementarse en `5`
+- AND `creado_por` MUST ser `'SISTEMA_SAGA'`
+
+---
+
+### Requirement: R-INV-02 — Logging estructurado en paths de fallo
+
+`fnActualizarInventario` y `fnSagaEventPublisher` MUST registrar errores con contexto suficiente para diagnóstico.
+
+#### Scenario: Error de BD en fnActualizarInventario registra contexto completo
+
+- GIVEN el INSERT a `movimientos_inventario` falla con error PostgreSQL
+- WHEN el handler captura la excepción
+- THEN MUST ejecutar `console.error` con un objeto que incluya: `evento_id`, `tenant_id`, `tipo_transaccion`, `pg_code`, y `message`
+- AND MUST insertar en `saga_ejecuciones` con `estado_ejecucion = 'FALLIDO'` y `datos_resultado` conteniendo el error
+- AND MUST NOT dejar el evento en estado `PROCESANDO` indefinidamente
+
+#### Scenario: fnSagaEventPublisher registra handler fallido con contexto
+
+- GIVEN `InvokeCommand` a `fnActualizarInventario` retorna un error de invocación
+- WHEN `fnSagaEventPublisher` captura el error
+- THEN MUST ejecutar `console.error` con `{ evento_id, handler_name, error_code, timestamp }`
+- AND el evento MUST ser actualizado a `estado = 'PENDIENTE'` (retry elegible) si `intentos < max_intentos`
+- AND el evento MUST ser actualizado a `estado = 'FALLIDO'` si `intentos >= max_intentos`

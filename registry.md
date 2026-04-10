@@ -129,6 +129,7 @@
 |:--|-----------------|:---:|:------:|:---:|------|
 | **5.1** | `01-build-reserva-inventario` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnReservaInventario/` |
 | **5.2** | `02-liberar-reservas-expiradas` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnLiberarReservasExpiradas/` |
+| **5.3** | `03-movimiento-inventario` | build | ✅ DONE | 1 | `lib/lambda/inventario/fnMovimientoInventario/` |
 
 ### Specs — Módulo 5
 
@@ -136,6 +137,7 @@
 |:--|---------|-----------|
 | **5.1.1** | `archive/2026-04-11-inventory-reserva-lambda-certification/spec.md` | fnReservaInventario CRUD + confirmar/cancelar + validación stock |
 | **5.2.1** | `archive/2026-04-11-inventory-liberar-reservas-certification/spec.md` | fnLiberarReservasExpiradas EventBridge scheduled job + bug fix |
+| **5.3.1** | `archive/2026-04-11-inventory-movimiento-certification/spec.md` | fnMovimientoInventario CRUD + 6 tipos + stock validation + analytics |
 
 ---
 
