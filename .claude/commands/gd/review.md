@@ -50,5 +50,23 @@ Para pasar el review, se requiere:
 - ✅ **Multi-Tenant**: Extracción de tenant desde JWT validada
 - ✅ **Mantenibilidad**: Score ≥ 70 en métricas de complejidad
 
+## Integración con Razonamiento
+
+Para módulos de alta criticidad (pagos, permisos, cálculos financieros), enriquecer el review con:
+
+```
+/gd:razonar --modelo=rlm-verificacion [módulo a revisar]
+```
+
+Reconstruye la cadena causal del comportamiento del código para detectar asunciones ocultas.
+
+Para detectar sesgos del revisor (cuando el código "parece correcto" pero algo inquieta):
+
+```
+/gd:razonar --modelo=mapa-territorio [sección de código]
+```
+
+Pregunta: "¿Qué aspectos del comportamiento real no están cubiertos por los tests?"
+
 ## Siguiente Paso
 Si el review pasa, proceder con `/gd:verify` para validación final. Si falla, abordar los issues identificados y re-ejecutar el review.

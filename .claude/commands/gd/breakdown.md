@@ -38,5 +38,21 @@ Dividir el blueprint técnico en tareas implementables con orden de ejecución y
 
 Opcional: JSON según `openspec/templates/react-outputs/breakdown.output.schema.json` (tareas con criterios de aceptación y dependencias).
 
+## Integración con Razonamiento
+
+Para priorizar las tareas del breakdown por impacto real:
+
+```
+/gd:razonar --modelo=pareto [lista de tareas del breakdown]
+```
+
+Identifica el 20% de tareas que genera el 80% del valor, y el orden óptimo de implementación.
+
+Para descomponer una tarea que aún parece grande:
+
+```
+/gd:razonar --modelo=rlm-descomposicion [tarea compleja]
+```
+
 ## Siguiente Paso
 Después del breakdown, ejecutar `/gd:implement` para comenzar la fase de desarrollo.

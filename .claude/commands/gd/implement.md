@@ -46,5 +46,21 @@ Durante la implementación, deben validarse:
 4. **Documentación**: Comentarios claros en código complejo
 5. **Commits Frequetnes**: Pequeños commits con mensajes descriptivos
 
+## Integración con Razonamiento
+
+Antes de escribir el primer test (fase RED), para tareas de alta criticidad:
+
+```
+/gd:razonar --modelo=inversion [descripción de lo que se va a implementar]
+```
+
+Pregunta: "¿Cómo garantizaría que esta implementación falle?" — los caminos al fracaso se convierten en los casos de test más importantes.
+
+Para diseño de lógica de negocio compleja:
+
+```
+/gd:razonar --modelo=rlm-cadena-pensamiento [descripción de la lógica]
+```
+
 ## Siguiente Paso
 Después de implementar, usar `/gd:review` para revisión automática de calidad.

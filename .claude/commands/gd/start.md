@@ -33,5 +33,15 @@ Iniciar una nueva tarea con detección automática de complejidad siguiendo el f
 - `/gd:iniciar`
 - `/gd:comenzar`
 
+## Integración con Razonamiento
+
+Para tareas de **Nivel 2+**, antes de proceder a `/gd:specify` se recomienda activar:
+
+```
+/gd:razonar --modelo=primeros-principios [descripción de la tarea]
+```
+
+Esto verifica que el problema está correctamente encuadrado antes de escribir la especificación. Evita especificar la solución equivocada con mucho detalle.
+
 ## Siguiente Paso
 Después de ejecutar `/gd:start`, el framework mostrará el nivel de complejidad detectado y guiará al siguiente paso del flujo SDD.

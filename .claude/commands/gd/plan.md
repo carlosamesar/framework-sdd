@@ -37,5 +37,21 @@ Crear un blueprint técnico completo con arquitectura, contratos API y esquema f
 
 Opcional: JSON según `openspec/templates/react-outputs/plan.output.schema.json` (contratos API, riesgos, regla de tenant).
 
+## Integración con Razonamiento
+
+Antes de generar el blueprint, se recomienda activar:
+
+```
+/gd:razonar --modelo=segundo-orden,reversibilidad [opciones arquitectónicas a evaluar]
+```
+
+Evalúa los efectos de segundo orden de las decisiones de arquitectura y clasifica cuáles son irreversibles (requieren más análisis) vs. reversibles (se pueden tomar rápido).
+
+Para proyectos de Nivel 3-4, también se recomienda:
+
+```
+/gd:razonar --modelo=pre-mortem [descripción del plan]
+```
+
 ## Siguiente Paso
 Después del plan, usar `/gd:breakdown` para dividir en tareas concretas.

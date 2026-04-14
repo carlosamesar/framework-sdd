@@ -1,7 +1,7 @@
 # GOODERP — Índice Maestro OpenSpec
 
 > Fuente de verdad del estado de todos los módulos y cambios activos del proyecto.
-> Última actualización: 2026-04-11
+> Última actualización: 2026-04-13
 >
 > 📋 **Para referencia rápida por ID**: ver [`registry.md`](./registry.md) — Sistema de numeración `M.C.S`
 
@@ -107,6 +107,7 @@ XX-<slug>/
 | **6.3** | `03-fix-retention-calculation` | 06-module-transactions | ⏳ REV | `06-module-transactions/changes/03-fix-retention-calculation/` |
 | **6.4** | `04-improve-transactions-ui` | 06-module-transactions | ⏳ PEND | `06-module-transactions/changes/04-improve-transactions-ui/` |
 | **6.5** | `05-improve-tercero-lookup-create-button` | 06-module-transactions | ✅ IMPL | `06-module-transactions/changes/05-improve-tercero-lookup-create-button/` |
+| **6.7** | `orquestador-consumo-documentation` | 06-module-transactions | ✅ DONE | `openspec/changes/archive/2026-04-13-orquestador-consumo-documentation/` |
 | **7.1** | `01-build-treasury` | 07-module-treasury | ✅ IMPL | `07-module-treasury/changes/01-build-treasury/` |
 | **7.2** | `02-fix-treasury-header-layout` | 07-module-treasury | ✅ IMPL | `07-module-treasury/changes/02-fix-treasury-header-layout/` |
 | **7.3** | `03-implement-bank-cash-submodules` | 07-module-treasury | ✅ IMPL | `07-module-treasury/changes/03-implement-bank-cash-submodules/` |

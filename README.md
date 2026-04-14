@@ -1,3 +1,242 @@
+
+### Consulta de sesiones previas
+
+> **Importante:** Ejecuta siempre este comando desde la raíz del proyecto (no desde subcarpetas) para evitar errores de path.
+
+```bash
+cd /ruta/a/framework-sdd
+node bin/sdd-agent.cjs sessions
+# Lista sesiones previas, fecha de inicio y agentes involucrados
+```
+
+#### Ayuda extra para sesiones
+
+- Si no ves sesiones listadas, primero ejecuta un flujo multi-agente (ejemplo: `node src/agent/demo-agents-flow-engram.cjs`).
+- El comando muestra:
+    - El nombre del archivo de sesión (UUID).
+    - Fecha/hora de inicio de la sesión.
+    - Agentes involucrados (handoff entre agentes).
+- Los archivos de sesión están en `packages/engineering-knowledge-base/AGENT-SESSIONS/`.
+- Puedes abrir cualquier archivo `.json` para ver el trace completo del reasoning multi-agente.
+- Para filtrar o analizar sesiones, usa herramientas como `jq`, VSCode, o scripts Node.js.
+
+##### Ejemplo básico: ver el contenido de una sesión
+
+```bash
+cat packages/engineering-knowledge-base/AGENT-SESSIONS/<uuid>.json | jq
+```
+Donde `<uuid>` es el nombre del archivo listado por el comando `sessions`.
+
+##### Ejemplo avanzado 1: listar todos los agentes involucrados en todas las sesiones
+
+```bash
+for f in packages/engineering-knowledge-base/AGENT-SESSIONS/*.json; do 
+    echo "$f: $(cat $f | jq -r '[.[] | select(.event=="handoff") | .to] | join(" → ")')"; 
+done
+```
+
+##### Ejemplo avanzado 2: buscar sesiones donde participó un agente específico (ej: Deployer)
+
+```bash
+for f in packages/engineering-knowledge-base/AGENT-SESSIONS/*.json; do 
+    if cat $f | jq -e '[.[] | select(.event=="handoff") | .to] | index("Deployer")' > /dev/null; then 
+        echo $f; 
+    fi; 
+done
+```
+
+##### Ejemplo avanzado 3: resumen de resultados finales de cada sesión (Node.js)
+
+```js
+// resumen-sesiones.js
+const fs = require('fs');
+const path = require('path');
+const dir = 'packages/engineering-knowledge-base/AGENT-SESSIONS';
+for (const file of fs.readdirSync(dir)) {
+    const trace = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+    const final = trace.find(e => e.event === 'result' && e.from === 'Deployer');
+    console.log(`${file}:`, final?.result?.result || JSON.stringify(final?.result));
+}
+```
+
+Ejecuta con:
+
+```bash
+node resumen-sesiones.js
+```
+
+---
+## Memoria persistente multi-agente (Engram)
+
+Cada ejecución de orquestación multi-agente (YAML o código) persiste automáticamente el reasoning y trace en `engineering-knowledge-base/AGENT-SESSIONS/`.
+
+### Ejemplo de uso
+
+```bash
+cd packages/sdd-agent-orchestrator/src/agent
+node demo-agents-flow-engram.cjs
+# Resultado: archivo de sesión en engineering-knowledge-base/AGENT-SESSIONS/<sessionId>.json
+```
+
+### Ventajas
+- Auditoría y trazabilidad total de reasoning multi-agente.
+- Recuperación y análisis de sesiones previas.
+- Sincronización automática con el repositorio de memoria Engram.
+
+---
+## Orquestación multi-agente declarativa (YAML)
+
+Framework-SDD soporta definición de flujos multi-agente (ReAct) en YAML, permitiendo reasoning, paso de contexto y ejecución de tools MCP reales de forma secuencial y trazable.
+
+### Ejemplo agents-flow.yaml
+
+```yaml
+framework: sdd-agent
+flow: "Validar y desplegar función multi-tenant"
+agents:
+    - name: DBValidator
+        instructions: "Valida el esquema multi-tenant y produce un análisis."
+        tool: gdDatabase
+    - name: Deployer
+        instructions: "Despliega la función Lambda usando el análisis del agente anterior."
+        tool: gdDeploy
+context:
+    schema:
+        tables:
+            - name: users
+                columns: [id, email]
+            - name: tenant_orders
+                columns: [id, tenant_id, amount]
+    target: lambda
+    function: myFunc
+```
+
+### Ejecución
+
+```bash
+cd packages/sdd-agent-orchestrator/src/agent
+node demo-agents-flow.cjs
+```
+
+### Resultado
+- Reasoning loop y trace de cada agente.
+- Paso automático de contexto y resultados entre agentes.
+- Ejecución de tools MCP reales (ej: /gd:database, /gd:deploy).
+
+---
+
+**Referencia:**
+- `src/agent/agents-flow.yaml`
+- `src/agent/demo-agents-flow.cjs`
+- `src/agent/parseAgentsFlow.cjs`
+# 🚀 Onboarding Rápido — Framework SDD: Nuevo CLI Global y Comandos Avanzados
+
+¡Hola equipo!
+
+Ya está disponible el **CLI global `sdd-agent`** para ejecutar y orquestar todos los comandos avanzados `/gd:*` (multi-tenant DB, despliegue AWS, pipelines YAML, etc.) de forma centralizada y automatizada.
+
+**¿Cómo empezar?**
+
+1. **Instala dependencias y da permisos:**
+    ```bash
+    npm run agent:install
+    chmod +x bin/sdd-agent.cjs
+    ```
+
+2. **Consulta la ayuda y comandos disponibles:**
+    ```bash
+    node bin/sdd-agent.cjs --help
+    ```
+
+3. **Ejecuta comandos clave:**
+    - Análisis multi-tenant de BD:
+      ```bash
+      node bin/sdd-agent.cjs database --schema schema.json
+      ```
+    - Simulación de despliegue AWS:
+      ```bash
+      node bin/sdd-agent.cjs deploy --target lambda --function myFunc
+      ```
+    - Pipelines YAML automatizados:
+      ```bash
+      node bin/sdd-agent.cjs flow ./pipelines/mi-pipeline.yaml
+      ```
+
+4. **Referencia y ejemplos:**
+    - Documentación extendida: `docs/orquestador-agente-sdd.md`
+    - Ejemplos de pipelines: `docs/EJEMPLO-USO-GAF-OPENCODE.md`
+    - Contrato y reglas: `AGENTS.md`, `COMMANDS-INDEX.md`
+
+**Recuerda:**  
+El CLI es compatible con memoria persistente (Engram), automatización avanzada y puede integrarse en CI/CD.
+
+¡Cualquier duda, revisa el README actualizado o pregunta en el canal de soporte!
+
+## Uso del CLI Global: `sdd-agent`
+
+El CLI `sdd-agent` permite ejecutar y orquestar todos los comandos avanzados `/gd:*` de forma global, integrando análisis multi-tenant, despliegue AWS y flujos YAML automatizados.
+
+### Instalación
+
+Asegúrate de tener las dependencias instaladas y los permisos de ejecución:
+
+```bash
+npm run agent:install
+chmod +x bin/sdd-agent.cjs
+```
+
+### Ejecución básica
+
+```bash
+# Mostrar ayuda y comandos disponibles
+node bin/sdd-agent.cjs --help
+```
+
+### Comandos disponibles
+
+| Comando      | Descripción                                                      | Ejemplo de uso                                                        |
+|--------------|------------------------------------------------------------------|-----------------------------------------------------------------------|
+| `database`   | Ejecuta análisis y validación multi-tenant de BD                 | `node bin/sdd-agent.cjs database --schema schema.json`                |
+| `deploy`     | Simula despliegue AWS (Lambda, ECS, etc.)                        | `node bin/sdd-agent.cjs deploy --target lambda --function myFunc`     |
+| `flow`       | Ejecuta un pipeline YAML con pasos `/gd:*`                       | `node bin/sdd-agent.cjs flow pipeline.yaml`                           |
+
+### Ejemplo de pipeline YAML (`flow`)
+
+```yaml
+steps:
+    - command: database
+        args:
+            schema: ./schemas/mi-esquema.json
+    - command: deploy
+        args:
+            target: lambda
+            function: myFunc
+            env:
+                - AWS_ACCESS_KEY_ID
+```
+
+Ejecuta el pipeline:
+
+```bash
+node bin/sdd-agent.cjs flow ./pipelines/mi-pipeline.yaml
+```
+
+### Integración en el flujo de desarrollo
+
+- Todos los comandos `/gd:*` pueden ser orquestados desde el CLI, pipelines YAML o integrados en CI/CD.
+- El CLI es compatible con memoria persistente (Engram) y automatización avanzada.
+- Consulta la ayuda integrada para ver argumentos y ejemplos:  
+    `node bin/sdd-agent.cjs --help`
+
+---
+
+**Referencia rápida:**  
+- Documentación extendida: `docs/orquestador-agente-sdd.md`
+- Ejemplos de pipelines: `docs/EJEMPLO-USO-GAF-OPENCODE.md`
+- Contrato y reglas: `AGENTS.md`, `COMMANDS-INDEX.md`
+### 7. Comandos CLI globales
+- `bin/gd-database.js --schema <archivo.json>` — Análisis multi-tenant de BD
+- `bin/gd-deploy.js --target <lambda|ecs> [--function <name>] [--service <name>] [--env <VAR1,VAR2,...>]` — Simulación de despliegue AWS
 # Framework SDD - Specification-Driven Development
 
 > **Versión**: 2.1 | **Última actualización**: 2026-04-11
@@ -6,54 +245,60 @@ Framework de desarrollo basado en especificaciones para proyectos enterprise con
 
 ---
 
-## Guía de Instalación y Uso
 
-Para poner en marcha el Framework GAF (SDD) en tu entorno local y configurarlo para OpenCode, consulta la guía detallada:
+## 🚀 Instalación y Onboarding Rápido
 
-👉 **[Guía de Instalación y Uso (GAF-OPENCODE.md)](docs/EJEMPLO-USO-GAF-OPENCODE.md)**
+Sigue estos pasos para dejar Framework-SDD 100% funcional tras clonar el repo:
 
-### Pasos Rápidos:
-1.  **Instalar Comandos:** `./scripts/gd-init.sh`
-2.  **Activar Entorno:** `source ~/.bashrc`
-3.  **Verificar:** `gd:doctor`
-4.  **Validar OpenSpec (Node 20+):** `npm install` una vez, luego `npm run spec:validate` — estructura de `openspec/changes/` y `archive/`
-5.  **Esquemas ReAct:** `npm run spec:validate-react` — JSON Schema + ejemplos en `openspec/templates/react-outputs/examples/`
-6.  **Drift `implements:`:** `npm run spec:implements` — rutas internas del repo coherentes con el frontmatter de specs
-6b. **Specs por producto (monorepo):** `openspec/projects/` + `FRAMEWORK_SDD_OPENSPEC_PROJECT` — [`docs/openspec-proyectos.md`](docs/openspec-proyectos.md)
-7.  **Smoke completo:** `npm run framework:test` — `framework:ci` + E2E `implements:` + extract JSON + **path sandbox** (`spec:verify` / validate-react / react-runner)
-8.  **ReAct runner (plan contra manifiesto):** `npm run react:smoke` — encadena `spec:validate`, `spec:validate-react`, `spec:implements`
-9.  **Reporte por change:** `npm run spec:verify -- <slug>` o `--all` (incluye `archive/<slug>`) → `reports/verify-*.json`  
-    **CI framework:** validate + ReAct + implements + E2E + `react:smoke` + `spec:verify --all` (ver `.github/workflows/sdd-framework.yml`)
+### 1. Clona el repositorio y dependencias
+- Clona este repositorio y el de memorias (`engineering-knowledge-base`) en la raíz.
 
-Prerrequisitos (RAG en repo, Engram, layout modular): [`docs/framework-prerequisites.md`](docs/framework-prerequisites.md).
+### 2. Inicializa comandos y entorno
+- Ejecuta `./scripts/gd-init.sh` para crear alias y comandos.
+- Activa los alias con `source ~/.bashrc` (o tu shell equivalente).
+- Instala dependencias con `npm install`.
+- Verifica la instalación con `gd:doctor` y `npm run spec:validate`.
 
-**Orquestador agente en producción** (CI endurecido, secretos, checklist, `npm pack`): [**`docs/orquestador-produccion.md`**](docs/orquestador-produccion.md).
+### 3. Memoria Persistente (Engram) y RAG
+- Copia y completa `config/engram-daemon.env.example` a `~/.config/framework-sdd/engram-daemon.env` (agrega tu ENGRAM_GIT_TOKEN).
+- Inicia los daemons de memoria y RAG:
+    ```bash
+    ./scripts/start-memory-daemons.sh
+    ./scripts/status-memory-daemons.sh
+    ```
+    O usa systemd para ejecución automática (ver `docs/lineamiento-memoria-automatica.md`).
+- Para RAG, configura Postgres local con Docker (`npm run rag:db:up`), copia `rag/.env.example` a `rag/.env` y ajusta variables.
 
-### Uso con `npx` (otro repo o CI)
+### 4. Orquestador y Agentes
+- Instala dependencias del orquestador con `npm run agent:install`.
+- Usa `npx sdd-agent` para pipelines, gd-cycle, auditorías, etc.
+- Consulta la guía de orquestador en `docs/orquestador-agente-sdd.md` y producción en `docs/orquestador-produccion.md`.
 
-Instala el paquete en el proyecto que tenga `openspec/` y ejecuta el bin sin copiar el monorepo completo:
+### 5. Documentación y Ayuda
+- Consulta el índice maestro en `docs/INDICE-DOCUMENTACION-FRAMEWORK.md`.
+- Para memoria y contexto, revisa `docs/lineamiento-memoria-automatica.md` y `openspec/MEMORY.md`.
+- Para ejemplos de uso y flujos, ver `docs/EJEMPLO-USO-GAF-OPENCODE.md`.
 
-```bash
-npm pack   # en el clon Framework-SDD → genera framework-sdd-2.1.0.tgz
-npm install /ruta/al/framework-sdd-2.1.0.tgz --save-dev
-# Tras publicar en el registro npm: npm install framework-sdd --save-dev
-npx framework-sdd spec:validate
-npx sdd react:smoke
-```
 
-Raíz del proyecto: por defecto es el **cwd** si existe `openspec/changes` u `openspec/config.yaml`. Si no, usa `npx framework-sdd --project-root /ruta/al/repo spec:validate` o la variable `FRAMEWORK_SDD_PROJECT_ROOT`.
+### 6. Comandos Clave
+- `/gd:start`, `/gd:specify`, `/gd:plan`, `/gd:database`, `/gd:implement`, `/gd:deploy`, `/gd:review`, `/gd:verify`, `/gd:archive` (pipeline completo y especializado).
+- `/gd:flow` para flujos YAML personalizados.
+- `/gd:guardrail`, `/gd:checkpoint`, `/gd:eval`, `/gd:webhook`, `/gd:policy`, `/gd:route`, `/gd:research`, `/memory *` para automatización avanzada.
 
-Publicación: el campo `"private": true` evita publicaciones accidentales en npm; para publicar, quitar `private` o usar un scope (`@org/framework-sdd`) y `npm publish`.
+---
 
-### Orquestación agente (LangGraph) — fábrica “cero desarrolladores”
 
-Paquete **[`packages/sdd-agent-orchestrator/`](packages/sdd-agent-orchestrator/README.md)**: grafo que encadena fases tipo `/gd:start` con los gates del framework; diseño en [`ARQUITECTURA-CERO-DEV-LANGRAPH.md`](packages/sdd-agent-orchestrator/design/ARQUITECTURA-CERO-DEV-LANGRAPH.md). Change OpenSpec: [`openspec/changes/agent-factory-langgraph/`](openspec/changes/agent-factory-langgraph/proposal.md).
+## Pipeline recomendado (alineado a gd:start)
 
-**Puesta en marcha:** dev → [`docs/orquestador-agente-sdd.md`](docs/orquestador-agente-sdd.md) (`npm run agent:install`, **`npx sdd-agent`**: `pipeline`, **`gd-cycle`**, **`audit-inventario`** — auditoría lambdas inventario × SAGA, `list-tools`, `llm`, `demo`). **Producción** → [`docs/orquestador-produccion.md`](docs/orquestador-produccion.md) (`npm run agent:install:production`, secretos, qué ejecutar en CI).
-
-### Índice de documentación
-
-Mapa único de guías, memoria, OpenSpec y RAG: **[`docs/INDICE-DOCUMENTACION-FRAMEWORK.md`](docs/INDICE-DOCUMENTACION-FRAMEWORK.md)** · memoria SDD: [`openspec/MEMORY.md`](openspec/MEMORY.md) · **madurez (~4,0/5, GAF 2+):** [`docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md`](docs/AUDITORIA-FRAMEWORK-SDD-MADUREZ-2026-04-08.md) (§1, §10, §12) · **ReAct runner:** `npm run react:smoke`.
+1. `/gd:start` — Inicia la tarea y detecta nivel.
+2. `/gd:specify` — Genera especificaciones.
+3. `/gd:plan` — Blueprint técnico.
+4. `/gd:database` — Diseño, migración y validación multi-tenant.
+5. `/gd:implement` — Desarrollo y TDD.
+6. `/gd:deploy` — Despliegue AWS (Lambda, ECS, ECR, ALB).
+7. `/gd:review` — Auditoría técnica.
+8. `/gd:verify` — Validación contra la especificación.
+9. `/gd:archive` — Archiva y sincroniza cambios.
 
 ---
 

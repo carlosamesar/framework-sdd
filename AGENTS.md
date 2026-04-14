@@ -29,6 +29,7 @@
 | **Tests** | `.agents-core/testing-rules.md` | ~2,500 | Escribir o ejecutar tests |
 | **SAGA / Orquestador** | `.agents-core/saga-pattern.md` | ~3,000 | Lambdas que participen en SAGA |
 | **Comando /gd:*** | `COMMANDS-INDEX.md` | ~2,000 | Usuario ejecuta comando SDD |
+| **Razonamiento** | `.claude/commands/gd/razonar.md` | ~1,500 | Decisiones técnicas, architectural tradeoffs, análisis pre-implementación |
 | **Snippets** | `PATTERNS-CACHE.md` | ~3,000 | Copiar patrones sin explicar |
 
 **Total base**: ~3,000 tokens  
