@@ -1,3 +1,12 @@
+### Orquestador y Enforcement Central
+
+Toda acción de agentes debe ser validada por el orquestador central (`sdd-orchestrator`), con enforcement SDD y trazabilidad. Ningún agente puede ejecutar tareas sin SDD válido.
+
+Ejemplo:
+```js
+const { orchestrateSDD } = require('packages/sdd-orchestrator');
+await orchestrateSDD({ sddPath: 'openspec/sdd.md', repo: 'framework-sdd', owner: 'carlosamesar', agentes: [...] });
+```
 ## CLAUDE.md — Ultra-Light (para Claude Sonnet)
 
 **Versión**: 3.0 | **Optimizado**: 2026-04-09 | **Tokens**: ~1,200 (vs 32,000 de AGENTS.md completo)

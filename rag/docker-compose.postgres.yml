@@ -26,7 +26,7 @@ services:
       POSTGRES_PASSWORD: ${RAG_DOCKER_PASSWORD:-rag_local_dev}
       POSTGRES_DB: ${RAG_DOCKER_DB:-framework_rag}
     ports:
-      - "${RAG_DOCKER_PORT:-5433}:5432"
+      - "${RAG_DOCKER_PORT:-55433}:5432"
     volumes:
       - framework_sdd_rag_pgdata:/var/lib/postgresql/data
     healthcheck:

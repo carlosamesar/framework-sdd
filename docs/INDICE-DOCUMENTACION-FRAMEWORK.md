@@ -1,3 +1,16 @@
+## Orquestación Multi-Agente y Enforcement SDD
+
+| Módulo | Propósito |
+|--------|-----------|
+| `packages/sdd-orchestrator/` | Orquestador central del ciclo SDD, enforcement y notificación |
+| `packages/sdd-sdd-management/` | Gestión, validación y enforcement del SDD |
+| `packages/sdd-ticket-management/` | Integración con tickets (GitHub/Jira/Trello) |
+| `packages/sdd-agent-delegation/` | Delegación y trazabilidad multi-agente |
+| `packages/sdd-messaging-tool/` | Mensajería omnicanal (email, Slack, Telegram) |
+
+**Flujo recomendado:**
+Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valida el SDD, crea tickets, delega tareas y notifica a agentes y usuario, con enforcement automático y trazabilidad.
+
 # Índice — Documentación Framework-SDD
 
 > Estado 2026-04-11: OpenSpec + CI + **react-runner** (`react:smoke`), orquestador **`sdd-agent`** (`pipeline`, `gd-cycle`), guía **producción** del agente, validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`.

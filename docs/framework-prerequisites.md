@@ -19,6 +19,7 @@ Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de s
 
 | Componente | Uso |
 |------------|-----|
+| **Memoria automática (Engram + RAG)** | Obligatorio: `./scripts/start-memory-daemons.sh` y `./scripts/status-memory-daemons.sh` |
 | `AGENTS.md` | Contrato maestro de implementación |
 | `openspec/config.yaml` + `openspec/changes/` | Delta specs |
 | `npm run spec:validate` | Estructura OpenSpec |

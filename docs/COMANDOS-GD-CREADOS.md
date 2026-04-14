@@ -1,3 +1,12 @@
+### Nuevos comandos de ejemplo (multi-agente, enforcement y orquestador)
+
+- `bin/gd-orchestrate.cjs` — Orquestador central (valida SDD, crea ticket, delega y notifica)
+- `bin/gd-delegate-multi.cjs` — Delegación multi-agente
+- `bin/gd-create-issue.cjs` — Ticket automático en GitHub
+- `bin/gd-delegate-email.cjs` — Notificación por email a agentes
+
+> Todos los comandos pueden integrarse con el orquestador y el enforcement SDD para trazabilidad y automatización total.
+
 # Comandos `/gd:*` Creados — Resumen de Implementación
 
 **Fecha**: 2026-04-09  

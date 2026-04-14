@@ -1,43 +1,47 @@
+## Orquestación Multi-Agente SDD
 
-### Consulta de sesiones previas
+El framework ahora cuenta con un orquestador central (ReAct + SDD) que coordina agentes técnicos (Dev, QA, DevOps) usando el pipeline gd:*. El enforcement automático garantiza que ningún agente puede ejecutar tareas sin un SDD válido y validado. Toda delegación, ticket y notificación queda registrada y es auditable.
 
-> **Importante:** Ejecuta siempre este comando desde la raíz del proyecto (no desde subcarpetas) para evitar errores de path.
+### Ciclo típico:
+1. El usuario ejecuta `/gd:start` o `npx sdd-agent pipeline`
+2. El orquestador valida el SDD, crea tickets, delega tareas y notifica a los agentes y al usuario
+3. El estado y trace quedan en `engineering-knowledge-base/AGENT-SESSIONS/`
+
+#### Módulos clave:
+- `packages/sdd-orchestrator/` (orquestador central)
+- `packages/sdd-sdd-management/` (gestión y enforcement SDD)
+- `packages/sdd-ticket-management/` (tickets GitHub/Jira/Trello)
+- `packages/sdd-agent-delegation/` (delegación multi-agente)
+- `packages/sdd-messaging-tool/` (mensajería omnicanal)
+
+---
+## Setup obligatorio: Memoria automática (Engram + RAG)
+
+> **Obligatorio:** Antes de cualquier flujo multi-agente, CI o desarrollo, debes tener activos los daemons de memoria automática (Engram y RAG). Sin esto, el framework no cumple el estándar de paridad ni las búsquedas semánticas.
+
+### Pasos rápidos
 
 ```bash
 cd /ruta/a/framework-sdd
-node bin/sdd-agent.cjs sessions
-# Lista sesiones previas, fecha de inicio y agentes involucrados
+./scripts/start-memory-daemons.sh
+./scripts/status-memory-daemons.sh
 ```
 
-#### Ayuda extra para sesiones
+Esto asegura:
+- Engram sincroniza memoria persistente y contexto multi-proyecto.
+- RAG indexa toda la documentación y specs en Postgres (puerto configurable, default 55433).
 
-- Si no ves sesiones listadas, primero ejecuta un flujo multi-agente (ejemplo: `node src/agent/demo-agents-flow-engram.cjs`).
-- El comando muestra:
-    - El nombre del archivo de sesión (UUID).
-    - Fecha/hora de inicio de la sesión.
-    - Agentes involucrados (handoff entre agentes).
-- Los archivos de sesión están en `packages/engineering-knowledge-base/AGENT-SESSIONS/`.
-- Puedes abrir cualquier archivo `.json` para ver el trace completo del reasoning multi-agente.
-- Para filtrar o analizar sesiones, usa herramientas como `jq`, VSCode, o scripts Node.js.
+Si usas Docker, asegúrate que el puerto no esté ocupado. Puedes cambiarlo en `rag/.env` y `rag/docker-compose.postgres.yml` (`RAG_DOCKER_PORT`).
 
-##### Ejemplo básico: ver el contenido de una sesión
+**Verifica:**
+- `engineering-knowledge-base/` debe existir y tener `.engram-sync.pid` y `.engram-sync.log` activos.
+- `rag/.rag-index-daemon.pid` y `.rag-index-daemon.log` deben estar presentes y actualizados.
 
-```bash
-cat packages/engineering-knowledge-base/AGENT-SESSIONS/<uuid>.json | jq
-```
-Donde `<uuid>` es el nombre del archivo listado por el comando `sessions`.
+**Más detalles:**
+- [docs/lineamiento-memoria-automatica.md](docs/lineamiento-memoria-automatica.md)
+- [docs/framework-prerequisites.md](docs/framework-prerequisites.md)
 
-##### Ejemplo avanzado 1: listar todos los agentes involucrados en todas las sesiones
-
-```bash
-for f in packages/engineering-knowledge-base/AGENT-SESSIONS/*.json; do 
-    echo "$f: $(cat $f | jq -r '[.[] | select(.event=="handoff") | .to] | join(" → ")')"; 
-done
-```
-
-##### Ejemplo avanzado 2: buscar sesiones donde participó un agente específico (ej: Deployer)
-
-```bash
+---
 for f in packages/engineering-knowledge-base/AGENT-SESSIONS/*.json; do 
     if cat $f | jq -e '[.[] | select(.event=="handoff") | .to] | index("Deployer")' > /dev/null; then 
         echo $f; 
@@ -509,7 +513,8 @@ cat ENGRAM.md
 | 3. Plan | `/gd:plan` | Blueprint técnico |
 | 4. Break Down | `/gd:breakdown` | Dividir en tareas |
 | 5. Implement | `/gd:implement` | TDD: test → código → refactor |
-| 6. Review | `/gd:review` | Peer review 7 dimensiones |
+| 6. Review | `/gd:review` | Peer review automático |
+| `/gd:verify` | `/gd:validar` | Validar implementación |
 
 ---
 
@@ -776,3 +781,36 @@ Password: Admin123!
 ```
 
 更多命令和详细信息，请参阅 [AGENTS.md](AGENTS.md)。
+
+---
+
+## Tools/Plugins custom: auto-registro y loader
+
+Puedes agregar tus propias herramientas (tools/plugins) para agentes creando archivos JS en `develop/tools/`.
+
+### Ejemplo de tool custom
+
+```js
+const { tool } = require('../../packages/sdd-agent-orchestrator/src/toolLoader');
+
+const suma = tool({
+  name: 'suma',
+  description: 'Suma dos números',
+  input_schema: { a: 'number', b: 'number' }
+})(function suma({ a, b }) {
+  return a + b;
+});
+
+module.exports = { registeredTools: [suma] };
+```
+
+### Loader automático
+
+El orquestador detecta y registra automáticamente todas las tools exportadas en `develop/tools/*.js` usando el loader:
+
+```js
+const { loadCustomTools } = require('../packages/sdd-agent-orchestrator/src/toolLoader');
+const tools = loadCustomTools();
+```
+
+Esto permite extender el framework sin modificar el core. Documenta tu tool con `name`, `description` e `input_schema` para máxima compatibilidad.
