@@ -143,19 +143,25 @@ XX-<slug>/
 
 ### Flujo obligatorio para COMPLEX / DESIGN
 
-```
-1. OpenCode crea:
+```text
+1. Preparar Git en el repo objetivo:
+   - checkout de la rama base correcta
+   - crear rama fix/<slug>
+
+2. Crear el change:
    modules/XX-<modulo>/changes/YY-<slug>/
      proposal.md   → qué y por qué  (Estado: EN REVISIÓN)
      design.md     → arquitectura y contratos
      tasks.md      → tareas ejecutables con criterios de aceptación
      specs/spec-<nombre>.md → Dado/Cuando/Entonces
 
-2. Miguel revisa → cambia Estado a APROBADO
+3. Miguel revisa → cambia Estado a APROBADO
 
-3. Se implementa solo con spec APROBADO
+4. Se implementa solo con spec APROBADO y sobre la rama fix/**
 
-4. Cualquier cambio de alcance → actualizar spec primero
+5. Cualquier cambio de alcance → actualizar spec primero
+
+6. El cierre exige PR hacia la rama base correspondiente
 ```
 
 ### Nomenclatura de cambios

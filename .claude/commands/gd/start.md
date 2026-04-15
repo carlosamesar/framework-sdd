@@ -91,6 +91,31 @@ Antes de proponer implementación, el comando DEBE identificar explícitamente:
 
 ---
 
+## Paso 1.5 — Preparación Git obligatoria antes de implementar
+
+Si la tarea afecta repos reales del producto, el flujo DEBE preparar primero el trabajo Git:
+
+1. identificar el repo objetivo real:
+   - frontend → `develop/frontend/gooderp-client`
+   - backend → `develop/backend/gooderp-orchestation`
+2. identificar la rama base correspondiente del equipo o del repositorio;
+3. crear una nueva rama de trabajo con naming obligatorio `fix/<slug-corto-del-cambio>`;
+4. implementar exclusivamente sobre esa rama;
+5. al cerrar el cambio, abrir PR hacia la rama base correspondiente.
+
+### Reglas severas de branching
+
+- **NUNCA** implementar directamente sobre ramas base protegidas.
+- **NUNCA** mezclar cambios productivos en la rama actual si no sigue el patrón `fix/**`.
+- Si el cambio es de frontend, la rama debe salir del baseline correspondiente del repo frontend.
+- Si el cambio es de backend, la rama debe salir del baseline correspondiente del repo backend.
+- Si el requerimiento es fullstack, se deben coordinar ramas `fix/**` por repo afectado.
+
+### Convención recomendada
+
+- frontend: `fix/<ticket-o-slug>` desde la rama base correspondiente (por ejemplo, performance)
+- backend: `fix/<ticket-o-slug>` desde la rama base correspondiente (por ejemplo, microservicios)
+
 ## Paso 2 — Detección de Complejidad
 
 Independientemente del stack, evaluar complejidad:

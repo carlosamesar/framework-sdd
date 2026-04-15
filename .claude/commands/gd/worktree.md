@@ -1,79 +1,60 @@
-# `/gd:worktree` — Organizar Trabajo Paralelo con Git Worktrees
+# /gd:worktree — Organizar Trabajo Paralelo con Ramas fix/** y PR Trazable
 
 ## Propósito
-Permitir que varias iniciativas avancen en paralelo con aislamiento limpio de ramas, cambios y validaciones. Útil cuando el equipo o los agentes manejan múltiples changes simultáneamente.
+Permitir que varias iniciativas avancen en paralelo con aislamiento limpio de ramas, cambios y validaciones. En este framework, el aislamiento Git no es opcional: cada solución debe vivir en su propia rama `fix/**` y cerrar con PR a la rama base correspondiente.
 
 ---
 
 ## Cuándo usarlo
 
-- varios features o fixes al mismo tiempo;
-- necesidad de comparar soluciones sin mezclar cambios;
-- separación estricta entre hotfix y desarrollo principal.
+- varios fixes o features al mismo tiempo;
+- necesidad de separar frontend y backend por repo;
+- hotfixes o correcciones urgentes que no deben contaminar la base principal.
 
 ---
 
-## Buenas prácticas
+## Política obligatoria de ramas
 
-- un worktree por objetivo bien definido;
-- nombrado consistente por change o ticket;
-- no mezclar experimentos y cambios listos para merge;
-- validar cada worktree de forma independiente.
+- un objetivo = una rama `fix/<slug>`;
+- cada rama nace desde la rama base correcta del repo afectado;
+- frontend y backend pueden requerir ramas separadas en repos distintos;
+- el resultado final debe terminar en PR hacia la rama origen correspondiente.
+
+### Ejemplos válidos
+
+- `fix/terceros-formulario`
+- `fix/sedes-endpoint-cors`
+- `fix/performance-grid-proveedores`
 
 ---
 
-## Salida esperada
+## Flujo recomendado
 
-```markdown
-## Worktree Plan
-- worktree: [nombre]
-- rama: [branch]
-- objetivo: [change]
-- estado: activo | review | cerrado
+```text
+1. identificar repo objetivo
+2. identificar rama base
+3. crear rama fix/<slug>
+4. abrir worktree si hace falta aislamiento físico
+5. implementar, validar y cerrar el cambio
+6. abrir PR a la rama base correspondiente
 ```
 
 ---
-
-## Inputs recomendados
-
-- feature o change que se aislará
-- rama de origen o destino
-- nivel de paralelismo requerido
-- criterio para cerrar el worktree
-
-## Output esperado
-
-- estructura clara de trabajo paralelo
-- correspondencia entre worktree y objetivo
-- riesgos de mezcla o conflicto identificados
-- recomendación de siguiente paso
-
-## Integración sugerida
-
-- usar con iniciativas paralelas o hotfixes urgentes
-- validar cada worktree por separado antes de mezclar cambios
-- documentar el propósito del árbol temporal si es compartido
 
 ## Criterios de calidad
 
-- aislamiento limpio de objetivos
-- reducción de conflicto entre tareas
-- nombrado consistente y trazable
-- continuidad clara con el pipeline SDD
+- aislamiento limpio por repo y objetivo;
+- naming consistente bajo `fix/**`;
+- trazabilidad total entre change, rama y PR;
+- continuidad clara con `/gd:start → /gd:review → /gd:close`.
 
 ## Anti-patrones a evitar
 
-- abrir worktrees sin propósito claro
-- mezclar cambios no relacionados en el mismo árbol
-- olvidar limpieza o cierre posterior
-- perder trazabilidad entre rama y change
-
-## Ejemplo de solicitud
-
-```text
-/gd:worktree preparar espacio separado para hotfix de producción
-```
+- implementar sobre ramas base o protegidas;
+- usar nombres genéricos sin trazabilidad;
+- mezclar frontend y backend no relacionados en la misma rama;
+- cerrar el trabajo sin PR listo para revisión.
 
 ## Siguiente paso
 
-Combinar con `/gd:start`, `/gd:continue` o `/gd:close` según el momento del flujo.
+Combinar con `/gd:start`, `/gd:implement`, `/gd:review` y `/gd:close` según el momento del flujo.

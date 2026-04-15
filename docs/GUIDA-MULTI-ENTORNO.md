@@ -8,7 +8,11 @@
 
 ## 🎯 Arquitectura de Optimización Multi-Entorno
 
-Cada herramienta de IA lee su propio archivo de contexto, pero **todos aplican las mismas reglas**:
+Cada herramienta de IA lee su propio archivo de contexto, pero **todos aplican las mismas reglas** y el mismo pipeline obligatorio de orquestación:
+
+```text
+/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:release → /gd:deploy → /gd:archive
+```
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -130,10 +134,13 @@ Los comentarios ayudan a Copilot a entender el patrón sin gastar tokens explica
    → Copilot lee copilot-instructions.md
 
 4. Todos comparten:
-   - Mismas 5 reglas de oro
-   - Mismos patrones (.agents-core/)
-   - Mismo PATTERNS-CACHE.md
-   - Misma memoria (Engram + RAG)
+   - mismas reglas de oro;
+   - mismo pipeline gd:* obligatorio;
+   - mismos patrones (.agents-core/);
+   - mismo PATTERNS-CACHE.md;
+   - misma memoria (Engram + RAG).
+
+Ningún entorno puede saltar `review`, `verify` o `close` en cambios productivos.
 ```
 
 ---

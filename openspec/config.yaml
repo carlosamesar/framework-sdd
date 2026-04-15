@@ -59,6 +59,8 @@ rules:
     - "/gd:review DEBE consolidar build, lint, unit, integración, consumos, seguridad y E2E antes de permitir /gd:verify"
     - "No existe PASS parcial para cambios productivos: el veredicto es PASS o FAIL"
     - "Si falla multi-tenant, CORS, cobertura, contratos API o evidencia, el change vuelve a implementación"
+    - "Toda implementación en repos Git del producto debe crear primero una rama fix/<slug> desde la base correspondiente"
+    - "Todo cambio debe cerrar con PR hacia la rama base correcta antes de release o archive"
     - "Solo con VERIFY PASS se puede ejecutar /gd:close"
     - "Solo con cierre formal, evidencia completa y CONSUMO.md vigente se puede ejecutar /gd:archive"
   microservices:
@@ -151,10 +153,9 @@ rules:
     constraints:
       - "No archivar si faltan release notes, evidencia, contrato o trazabilidad de cierre"
       - "El archivo histórico debe dejar claro qué se construyó, cómo se validó y cómo se consume"
-  archive:
-    - "Advertir antes de mergear deltas destructivos"
-    - "Actualizar project.md y registry.md al archivar"
-    - "Formato: openspec/changes/archive/YYYY-MM-DD-{change-name}/"
+      - "Advertir antes de mergear deltas destructivos"
+      - "Actualizar project.md y registry.md al archivar"
+      - "Formato: openspec/changes/archive/YYYY-MM-DD-{change-name}/"
 
 # ============================================================
 # STACK PROFILES — Contextos especializados por tecnología

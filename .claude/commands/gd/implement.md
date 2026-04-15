@@ -12,6 +12,41 @@ Implementar una tarea del breakdown siguiendo el ciclo estricto TDD. Cada tarea 
 - `tasks.md` con tareas definidas (output de `/gd:breakdown`)
 - Plan técnico con contratos API y patrones de referencia
 - Tarea específica a implementar (por ID: T01, T02, etc.)
+- Rama de trabajo Git creada bajo el patrón `fix/<slug>` desde la base correcta del repo objetivo
+- Repo objetivo identificado antes de tocar código
+
+---
+
+## Preparación Git obligatoria
+
+Antes del primer test o cambio de código, el flujo debe validar esto:
+
+```text
+1. Ir al repo correcto
+2. Cambiar a la rama base correspondiente
+3. Actualizar la base local
+4. Crear la rama fix/<slug>
+5. Implementar y commitear solo en esa rama
+6. Preparar PR hacia la rama base correspondiente
+```
+
+Ejemplo operativo:
+
+```bash
+git checkout performance
+git pull
+git checkout -b fix/ajuste-formulario-terceros
+```
+
+O en backend:
+
+```bash
+git checkout microservicios
+git pull
+git checkout -b fix/ajuste-endpoint-sedes
+```
+
+Si no existe una rama `fix/**`, la implementación no debe iniciar.
 
 ---
 
