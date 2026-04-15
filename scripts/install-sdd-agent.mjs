@@ -26,8 +26,10 @@ if (Number.isFinite(major) && major < 20) {
 }
 
 if (!fs.existsSync(path.join(PREFIX, 'package.json'))) {
-  console.error('install-sdd-agent: no existe', PREFIX);
-  process.exit(1);
+  console.log(
+    'install-sdd-agent: no existe package.json en packages/sdd-agent-orchestrator; se omite instalación del subpaquete y se usa el catálogo/local CLI del workspace.',
+  );
+  process.exit(0);
 }
 
 const hasLock = fs.existsSync(path.join(PREFIX, 'package-lock.json'));

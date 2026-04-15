@@ -43,6 +43,7 @@
     "framework:test": "npm run framework:ci && npm run test:implements-e2e && npm run test:extract-json-e2e && npm run test:path-sandbox-e2e && npm run orchestrator:test && npm run orchestrator:pipeline",
     "agent:install": "node scripts/install-sdd-agent.mjs",
     "agent:install:production": "node scripts/install-sdd-agent.mjs --production",
+    "vscode:install-commands": "node scripts/install-vscode-gd-prompts.mjs && npm run agent:install", 
     "orchestrator:test": "npm ci --prefix packages/sdd-agent-orchestrator && npm test --prefix packages/sdd-agent-orchestrator",
     "orchestrator:pipeline": "npm run graph:pipeline --prefix packages/sdd-agent-orchestrator",
     "orchestrator:llm": "npm run graph:llm --prefix packages/sdd-agent-orchestrator",

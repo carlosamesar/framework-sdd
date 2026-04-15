@@ -1,7 +1,7 @@
-# /gd:review — Peer Review Automático en 7 Dimensiones
+# /gd:review — Orquestador Central de Calidad y Ciclo de Vida
 
 ## Propósito
-Realizar una revisión automática y exhaustiva de la implementación en 7 dimensiones clave para asegurar calidad, seguridad y alineación con las especificaciones antes de pasar a verificación final.
+Realizar una revisión automática, exhaustiva y severa de la implementación, actuando como el orquestador central de calidad del ciclo SDD. Su función no es solo revisar código: también decidir si el cambio puede avanzar, debe volver a implementación o queda bloqueado por riesgos funcionales, técnicos o de seguridad.
 
 ## Alias
 - `/gd:auditar`
@@ -10,9 +10,38 @@ Realizar una revisión automática y exhaustiva de la implementación en 7 dimen
 ---
 
 ## Prerrequisitos
-- Todas las tareas del breakdown marcadas como completadas
-- Suite de tests ejecutando sin errores
+- Implementación terminada o suficientemente avanzada para evaluación real
+- Evidencia disponible: tests, cobertura, build, lint, endpoints/payloads y diffs revisables
 - Código commiteado o en staging
+
+Si falta evidencia real, el review debe fallar automáticamente.
+
+---
+
+## Rol del Orquestador Central
+
+`/gd:review` debe coordinar el cierre de calidad del cambio con esta secuencia:
+
+1. Recolectar evidencia real de compilación, lint, tests, cobertura y comportamiento funcional.
+2. Contrastar la implementación contra spec, tasks, contratos, multi-tenant y patrones maduros del repo.
+3. Clasificar hallazgos por severidad: `BLOCKER`, `CRITICAL`, `MAJOR`, `MINOR`.
+4. Emitir un veredicto binario: `PASS` o `FAIL`.
+5. Si hay `FAIL`, devolver la tarea a implementación con la lista exacta de defectos.
+6. Si hay `PASS`, habilitar inmediatamente `/gd:verify` como gate final de conformidad.
+
+---
+
+## Gates Absolutos (FAIL automático)
+
+Si cualquiera de estos puntos falla, el resultado global es `FAIL` aunque el score agregado sea alto:
+
+- errores de compilación o build roto;
+- lint con errores o warnings críticas sin resolver;
+- pruebas unitarias, integración, consumo/API contract o E2E fallando;
+- cobertura por debajo del umbral exigido por stack o criticidad;
+- `tenant_id` mal resuelto, CORS incompleto o vulnerabilidad OWASP abierta;
+- gaps P0 contra la spec o tasks incompletas;
+- evidencia ausente, inconsistente o no reproducible.
 
 ---
 
@@ -162,8 +191,8 @@ Completitud de OpenAPI, ADRs y README actualizados.
 - **[D7-01]** Endpoint `GET /api/items` no documentado en Swagger
 
 ### Decisión
-- BLOCKERs = 0 → PASS → continuar con `/gd:verify`
-- BLOCKERs > 0 → FAIL → corregir y re-ejecutar `/gd:review`
+- BLOCKERs = 0, errores = 0, warnings críticas = 0 y evidencia completa → PASS → continuar con `/gd:verify`
+- Cualquier BLOCKER, error, warning crítica o evidencia incompleta → FAIL → corregir y re-ejecutar `/gd:review`
 ```
 
 ---
@@ -181,13 +210,20 @@ Completitud de OpenAPI, ADRs y README actualizados.
 
 | Dimensión | Mínimo para PASS |
 |-----------|-----------------|
-| D1 Funcionalidad | ≥ 90% escenarios P0 cubiertos |
-| D2 Tests | Coverage ≥ 85%, todos los tests verdes |
-| D3 Rendimiento | Sin N+1 en el happy path |
-| D4 Arquitectura | Sin violaciones SOLID críticas |
-| D5 Seguridad | **0 vulnerabilidades OWASP**, tenant_id de JWT en TODOS los endpoints |
-| D6 Mantenibilidad | Score ≥ 70 |
-| D7 Documentación | Endpoints nuevos documentados en OpenAPI |
+| D1 Funcionalidad | **100%** de escenarios P0 implementados y cubiertos |
+| D2 Tests | Coverage ≥ 85% y todas las suites en verde |
+| D3 Rendimiento | Sin N+1, sin regresión evidente en happy path |
+| D4 Arquitectura | Sin violaciones críticas del patrón del repo |
+| D5 Seguridad | **0 vulnerabilidades OWASP**, tenant_id desde JWT y CORS completo |
+| D6 Mantenibilidad | Score ≥ 80 |
+| D7 Documentación | Endpoints, evidencia y cambios técnicos documentados |
+
+### Política de veredicto severo
+
+`/gd:review` no emite aprobaciones parciales para cambios productivos.
+
+- `PASS`: sin BLOCKERs, sin errores, sin gaps P0, cobertura suficiente y evidencia completa.
+- `FAIL`: cualquier defecto crítico, warning no tolerable o inconsistencia funcional.
 
 ---
 
@@ -208,5 +244,21 @@ Para detectar asunciones ocultas en el código:
 ---
 
 ## Siguiente Paso
-- Si `PASS` → usar `/gd:verify` para validación final spec vs implementación
-- Si `FAIL` → resolver BLOCKERs y re-ejecutar `/gd:review`
+- Si `PASS` → ejecutar `/gd:verify` como gate final de conformidad total
+- Si `FAIL` → resolver defectos, volver a implementación y re-ejecutar `/gd:review`
+
+## Bucle de Orquestación del Ciclo de Vida
+
+```text
+/gd:start
+   ↓
+/gd:implement
+   ↓
+/gd:review   ← gate central severo
+   ├─ FAIL → volver a /gd:implement con defectos exactos
+   └─ PASS → /gd:verify
+                ├─ FAIL → volver a /gd:implement
+                └─ PASS → /gd:archive
+```
+
+Este comando debe comportarse como el árbitro central del ciclo de vida: preciso, reproducible, estricto y orientado a cero errores.

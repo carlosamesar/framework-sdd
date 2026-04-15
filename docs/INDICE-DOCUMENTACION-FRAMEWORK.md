@@ -94,10 +94,18 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 ## Guías de uso IDE / flujo SDD
 
+### Lifecycle visual endurecido
+
+```text
+start → implement → review → verify → close → release → deploy → archive
+```
+
+Cada paso funciona como gate obligatorio. Si uno falla, el flujo no avanza.
+
 | Documento | Contenido |
 |-----------|-----------|
 | [**`GUIA-DESARROLLADORES.md`**](GUIA-DESARROLLADORES.md) | **LEER PRIMERO** — flujos completos con ejemplos reales |
-| [**`ACTUALIZACION-OPERATIVA-2026-04-15.md`**](ACTUALIZACION-OPERATIVA-2026-04-15.md) | Endurecimiento de `/gd:start`, secuencia transversal y certificación obligatoria |
+| [**`ACTUALIZACION-OPERATIVA-2026-04-15.md`**](ACTUALIZACION-OPERATIVA-2026-04-15.md) | Endurecimiento de `/gd:start`, secuencia transversal, certificación obligatoria y lifecycle severo completo |
 | [`EJEMPLO-USO-GAF-OPENCODE.md`](EJEMPLO-USO-GAF-OPENCODE.md) | Instalación GAF, comandos `/gd:*`, memoria y RAG |
 | [`framework-prerequisites.md`](framework-prerequisites.md) | Núcleo vs opcional, checklist desarrollador |
 

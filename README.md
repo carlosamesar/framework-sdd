@@ -11,6 +11,33 @@ El punto de entrada `/gd:start` quedó endurecido para reducir ambigüedad y rep
 - la secuencia obligatoria es: **BD → backend → frontend → certificación**;
 - la certificación solo es válida con **pruebas unitarias + consumos backend + integración frontend + Playwright E2E**.
 
+### Guía visual del lifecycle endurecido
+
+```text
+/gd:start
+   ↓
+/gd:implement
+   ↓
+/gd:review        → gate central severo (PASS o FAIL)
+   ↓
+/gd:verify        → conformidad total spec vs implementación
+   ↓
+/gd:close         → cierre formal con CONSUMO.md + EVIDENCE.md
+   ↓
+/gd:release       → readiness de versión, changelog y rollback
+   ↓
+/gd:deploy        → despliegue validado, healthchecks y post-checks
+   ↓
+/gd:archive       → cierre histórico auditado
+```
+
+### Gates obligatorios
+
+- **cero errores críticos**;
+- **cero blockers** de seguridad, contratos, multi-tenant o CORS;
+- **evidencia real obligatoria** antes de declarar cierre;
+- **CONSUMO.md**, **EVIDENCE.md** y **CHANGELOG** completos cuando aplique.
+
 ### Ciclo típico:
 1. El usuario ejecuta `/gd:start` o `npx sdd-agent pipeline`
 2. El orquestador valida el SDD, crea tickets, delega tareas y notifica a los agentes y al usuario

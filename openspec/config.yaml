@@ -52,6 +52,15 @@ rules:
     - "Todo cierre de implementación requiere EVIDENCE.md con tests funcionales, endpoints y payloads"
     - "Cobertura mínima: 85% en módulos de negocio (60% global, 75% en críticos frontend)"
     - "Ejecutar migraciones, seeds y pruebas E2E antes de marcar como DONE"
+    - "Política cero-error: 0 BLOCKERs, 0 errores de compilación, 0 warnings críticas"
+    - "El cierre formal del spec requiere CONSUMO.md completo con contrato, ejemplos, errores y evidencia de consumo"
+  lifecycle:
+    - "/gd:start clasifica stack y complejidad; /gd:review es el orquestador central obligatorio del cierre de calidad"
+    - "/gd:review DEBE consolidar build, lint, unit, integración, consumos, seguridad y E2E antes de permitir /gd:verify"
+    - "No existe PASS parcial para cambios productivos: el veredicto es PASS o FAIL"
+    - "Si falla multi-tenant, CORS, cobertura, contratos API o evidencia, el change vuelve a implementación"
+    - "Solo con VERIFY PASS se puede ejecutar /gd:close"
+    - "Solo con cierre formal, evidencia completa y CONSUMO.md vigente se puede ejecutar /gd:archive"
   microservices:
     - "DEBE incluir .env.example con semillas de variables de entorno"
     - "Usar JwtTenantGuard como APP_GUARD global en AppModule"
@@ -107,9 +116,41 @@ rules:
       - "Comparar implementación contra cada escenario de la spec"
       - "Ejecutar migraciones, seeds y pruebas E2E reales"
       - "Generar EVIDENCE.md con resultados"
+      - "No aprobar si existe cualquier BLOCKER, warning crítica o gap P0"
     test_command: "npm test"
     build_command: "npm run build"
     coverage_threshold: 85
+  review:
+    constraints:
+      - "Compilación y build deben cerrar sin errores"
+      - "Lint, unit, integración, consumos y E2E deben estar en verde según aplique"
+      - "Security gate: tenant_id desde JWT, CORS completo, 0 hallazgos críticos"
+      - "Si falta evidencia real o la cobertura es insuficiente, FAIL automático"
+    coverage_threshold: 85
+  close:
+    constraints:
+      - "No cerrar un spec sin certificación funcional al 100%"
+      - "CONSUMO.md debe contener contrato final, autenticación, endpoints, payloads, respuestas, errores y ejemplos"
+      - "EVIDENCE.md debe resumir pruebas, cobertura, build, lint y resultados funcionales"
+      - "Solo si todo está completo el change queda READY FOR ARCHIVE"
+  release:
+    constraints:
+      - "No aprobar una release sin review PASS, verify PASS y close READY FOR ARCHIVE"
+      - "Changelog, rollback y contratos públicos deben estar actualizados"
+      - "Si existe riesgo crítico, la release queda BLOCKED"
+  changelog:
+    constraints:
+      - "Las release notes deben reflejar cambios reales, contratos impactados y breaking changes"
+      - "No cerrar ni liberar una versión sin CHANGELOG/release notes consistentes con CONSUMO.md y EVIDENCE.md"
+  deploy:
+    constraints:
+      - "No desplegar si hay errores, blockers, healthchecks fallando o rollback ausente"
+      - "Validar IAM, variables de entorno, CORS, multi-tenant y observabilidad antes del deploy"
+      - "Solo desplegar artefactos consistentes con la documentación y el cierre aprobado"
+  archive:
+    constraints:
+      - "No archivar si faltan release notes, evidencia, contrato o trazabilidad de cierre"
+      - "El archivo histórico debe dejar claro qué se construyó, cómo se validó y cómo se consume"
   archive:
     - "Advertir antes de mergear deltas destructivos"
     - "Actualizar project.md y registry.md al archivar"

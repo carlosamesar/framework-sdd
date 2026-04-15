@@ -10,9 +10,10 @@ Validar que la implementación final coincide exactamente con la especificación
 ---
 
 ## Prerrequisitos
-- `/gd:review` pasado (veredicto PASS)
-- Todos los tests en verde
+- `/gd:review` aprobado con veredicto `PASS` estricto
+- Build, lint y todas las pruebas aplicables en verde
 - Todas las tareas del breakdown marcadas como completadas
+- Evidencia funcional y técnica disponible para trazabilidad
 
 ---
 
@@ -156,6 +157,8 @@ Para cada tabla en el DBML del plan:
 | Scope creep | 0% de implementación fuera de spec (excepto mejoras técnicas) |
 | Contratos API | 100% de endpoints del plan implementados |
 | Esquema de BD | 100% de tablas/campos del DBML presentes |
+| Calidad operativa | build + lint + unit + integración + consumos + E2E en verde |
+| Severidad | 0 BLOCKERs, 0 errores abiertos, 0 warnings críticas |
 
 ---
 
@@ -169,5 +172,5 @@ Para cada tabla en el DBML del plan:
 ---
 
 ## Siguiente Paso
-- Si `VERIFY PASS` → usar `/gd:archive` para completar el ciclo SDD
+- Si `VERIFY PASS` → usar `/gd:close` para cerrar formalmente el spec con evidencia y contrato documental
 - Si `VERIFY FAIL` → volver a `/gd:implement` para resolver gaps, luego re-ejecutar `/gd:review` y `/gd:verify`

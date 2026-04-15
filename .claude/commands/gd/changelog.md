@@ -1,17 +1,28 @@
-# /gd:changelog — Generar Changelog Automático
+# /gd:changelog — Generar Release Notes y Changelog de Cierre
 
 ## Propósito
-Generar un registro de cambios (CHANGELOG) estructurado y legible, tanto para el equipo técnico como para stakeholders no técnicos. Se basa en los changes archivados en `openspec/registry.md` y en el historial de Git.
+Generar un registro de cambios estructurado, trazable y listo para cierre o release. Este comando no solo resume cambios: también debe consolidar release notes, contratos impactados y evidencia del spec ya verificado.
 
 ---
 
 ## Cómo Funciona
 
-1. **Leer `openspec/registry.md`** para obtener todos los changes archivados
+1. **Leer `openspec/registry.md`** para obtener los changes cerrados o archivados
 2. **Leer el historial Git** (`git log --oneline`) para complementar con commits
-3. **Categorizar cambios** por tipo (Feature, Fix, Refactor, Breaking Change, Security)
-4. **Generar el CHANGELOG** en formato Keep a Changelog (keepachangelog.com)
-5. **Escribir o actualizar** `CHANGELOG.md` en la raíz del proyecto
+3. **Cruzar la información** con evidencias, contratos y documentación de cierre
+4. **Categorizar cambios** por tipo (Feature, Fix, Refactor, Breaking Change, Security)
+5. **Generar release notes** orientadas a operación, negocio y consumo técnico
+6. **Escribir o actualizar** `CHANGELOG.md` en la raíz del proyecto
+
+---
+
+## Requisitos para usarlo en cierre formal
+
+Antes de ejecutar este comando como parte del cierre o la release:
+- el change debe haber pasado `review`, `verify` y `close`;
+- la documentación contractual debe estar actualizada;
+- los breaking changes y notas de compatibilidad deben estar explícitos;
+- las notas de despliegue o rollback deben estar disponibles si aplican.
 
 ---
 
@@ -120,4 +131,7 @@ git push origin v2.1.0
 ---
 
 ## Siguiente Paso
-Después de generar el changelog, usar `/gd:release` para crear el tag y hacer el release formal.
+Después de generar el changelog:
+- usar `/gd:release` para evaluar la salida formal de la versión;
+- usar `/gd:deploy` si la release fue aprobada;
+- usar `/gd:archive` cuando el change quede completamente cerrado y auditado.

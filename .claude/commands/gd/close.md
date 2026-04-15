@@ -1,83 +1,137 @@
-# `/gd:close` — Cerrar Sesión con Resumen, Riesgos y Handover
+# /gd:close — Cerrar el Spec con Evidencia, Contrato y Certificación Total
 
 ## Propósito
-Cerrar una sesión de trabajo sin perder contexto operativo, decisiones importantes, bloqueos, próximos pasos y evidencia generada. Debe dejar la base lista para que el mismo agente o un agente distinto pueda continuar sin fricción.
+Cerrar formalmente un change o spec cuando la solución ya fue implementada, revisada, verificada y certificada al 100%. Este comando consolida la evidencia final, obliga la documentación contractual de consumo y deja el cambio listo para archivado sin ambigüedad.
+
+## Alias
+- `/gd:cerrar`
+- `/gd:finalizar-spec`
 
 ---
 
 ## Cuándo usarlo
 
-Usa este comando cuando:
-- terminas una tarea o subfase del pipeline SDD;
-- necesitas pausar por horas o hasta el día siguiente;
-- vas a transferir el trabajo a otro agente o a otro integrante del equipo;
-- acabas de completar una implementación sensible y quieres dejar trazabilidad.
+Usa este comando únicamente cuando:
+- la implementación está completa;
+- la certificación funcional está al 100%;
+- `/gd:review` devolvió `PASS`;
+- `/gd:verify` devolvió `VERIFY PASS`;
+- no existen BLOCKERs, warnings críticas ni pruebas fallando.
+
+Si falta cualquiera de esos puntos, el cierre debe ser rechazado.
 
 ---
 
-## Cómo funciona
+## Rol dentro del ciclo de vida
 
-1. Identifica el change o tarea activa.
-2. Resume qué se completó y qué quedó pendiente.
-3. Registra riesgos, decisiones y estado de validación.
-4. Consolida próximos pasos accionables en orden de prioridad.
-5. Deja un handover claro para la siguiente sesión.
+`/gd:close` es el gate documental y operativo previo al archivado.
 
----
+Flujo obligatorio:
 
-## Checklist de cierre
+```text
+/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:archive
+```
 
-- [ ] estado actual del change documentado
-- [ ] archivos principales modificados identificados
-- [ ] tests ejecutados y resultado anotado
-- [ ] bloqueos pendientes declarados
-- [ ] siguiente acción recomendada definida
-- [ ] evidencia o reportes enlazados
+Su responsabilidad es asegurar que el spec quede cerrado con trazabilidad completa, no solo con código funcionando.
 
 ---
 
-## Salida esperada
+## Prerrequisitos obligatorios
+
+- [ ] implementación funcional terminada al 100%
+- [ ] certificación funcional aprobada al 100%
+- [ ] build, lint, unit, integración, consumos y E2E en verde según aplique
+- [ ] cobertura mínima cumplida
+- [ ] `EVIDENCE.md` actualizado con resultados verificables
+- [ ] `CONSUMO.md` actualizado con contrato de uso real
+- [ ] documentación técnica asociada actualizada (OpenAPI, README, notas operativas)
+- [ ] sin gaps P0 ni deuda crítica abierta
+
+---
+
+## Qué debe hacer
+
+1. Identificar el change o spec activo.
+2. Confirmar el estado final real de implementación y certificación.
+3. Consolidar evidencias técnicas y funcionales.
+4. Validar que `CONSUMO.md` tenga contrato completo y vigente.
+5. Preparar el handoff documental para soporte, QA, frontend y futuros agentes.
+6. Marcar el change como listo para archivado.
+
+---
+
+## Contrato obligatorio en CONSUMO.md
+
+El cierre NO es válido si `CONSUMO.md` no documenta, como mínimo:
+
+- contexto del servicio o feature;
+- URL base y ambientes;
+- autenticación y reglas multi-tenant;
+- matriz de endpoints o flujos consumibles;
+- headers requeridos;
+- payloads de request;
+- respuestas esperadas;
+- códigos de error y manejo de fallos;
+- ejemplos reales de consumo;
+- dependencias, precondiciones y notas de compatibilidad;
+- evidencia de certificación funcional asociada.
+
+---
+
+## Checklist de cierre estricto
+
+- [ ] spec implementado completamente
+- [ ] tasks cerradas al 100%
+- [ ] evidencia real enlazada y consistente
+- [ ] `CONSUMO.md` completo y alineado al contrato final
+- [ ] endpoints, payloads y respuestas validados
+- [ ] riesgos residuales declarados o marcados como cero
+- [ ] siguiente estado del change = listo para `/gd:archive`
+
+---
+
+## Output esperado
 
 ```markdown
-## Cierre de sesión
-**Estado general**: en progreso | listo para review | bloqueado
+## Cierre Formal del Spec
+**Estado**: READY FOR ARCHIVE | REJECTED
+**Certificación funcional**: 100%
+**Review**: PASS
+**Verify**: VERIFY PASS
 
-### Completado
-- [lista breve de entregables]
+### Evidencia consolidada
+- Build: OK
+- Lint: OK
+- Unit tests: OK
+- Backend/consumos: OK
+- Integración: OK
+- Playwright E2E: OK
 
-### Pendiente
-- [lista breve de pendientes]
+### Documentación obligatoria
+- EVIDENCE.md: completo
+- CONSUMO.md: completo
+- OpenAPI/README: actualizados
 
-### Riesgos / bloqueos
-- [riesgo 1]
-- [riesgo 2]
-
-### Próximo paso recomendado
-- ejecutar /gd:[comando-siguiente]
+### Veredicto
+- Si todo está completo → ejecutar /gd:archive
+- Si falta contrato o evidencia → REJECTED y volver a completar documentación
 ```
 
 ---
 
-## Reglas de calidad
+## Política de severidad
 
-- no cerrar una sesión sin próximos pasos claros;
-- no omitir fallos de pruebas o restricciones conocidas;
-- si hay deuda técnica, debe quedar visible;
-- si el cambio está listo, debe indicarse el criterio objetivo de “listo”.
+- no cerrar con certificación parcial;
+- no cerrar con evidencia incompleta;
+- no cerrar con contratos desactualizados;
+- no cerrar si el comportamiento real no coincide con lo documentado.
 
----
-
-## Integración con el flujo SDD
-
-Comúnmente se usa después de:
-- `/gd:implement`
-- `/gd:review`
-- `/gd:verify`
-- `/gd:release`
+El estándar es: cierre formal, auditable y reproducible.
 
 ---
 
 ## Siguiente paso
 
-Si otra persona retomará el trabajo, complementar con `/gd:traspasar`.
-Si la sesión seguirá luego, usar `/gd:continue` al reabrir el contexto.
+- Si el resultado es `READY FOR ARCHIVE` y el cambio requiere salida controlada → ejecutar `/gd:release`
+- Si el resultado es `READY FOR ARCHIVE` y no requiere despliegue/versionado → ejecutar `/gd:archive`
+- Si el resultado es `REJECTED` → corregir implementación, evidencia o documentación y re-ejecutar `/gd:close`

@@ -1,4 +1,4 @@
-# /gd:start — Iniciar Tarea con Detección Automática de Stack y Complejidad
+# /gd:start — Iniciar Tarea con Orquestación Estricta de Stack, Flujo y Calidad
 
 ## Alias
 - `/gd:iniciar`
@@ -118,14 +118,39 @@ Esto verifica que el problema esté correctamente encuadrado antes de escribir l
 
 ---
 
-## Paso 4 — Inicio de Flujo
+## Paso 4 — Inicio de Flujo Orquestado
 
-| Nivel | Flujo |
-|-------|-------|
-| 0-1 | `/gd:implement` directo (con contexto de stack inyectado) |
-| 2+ | `/gd:specify` → `/gd:clarify` → `/gd:plan` → `/gd:breakdown` → `/gd:implement` → `/gd:review` |
+| Nivel | Flujo obligatorio |
+|-------|-------------------|
+| 0-1 | `/gd:implement` directo (TDD) → `/gd:review` estricto → `/gd:verify` → `/gd:close` |
+| 2+ | `/gd:specify` → `/gd:clarify` → `/gd:plan` → `/gd:breakdown` → `/gd:implement` → `/gd:review` → `/gd:verify` → `/gd:close` → `/gd:release` → `/gd:deploy` → `/gd:archive` |
 
 En todos los casos, el contexto del stack (patrones, estructuras, convenciones) se inyecta en cada fase del flujo.
+
+### /gd:review como orquestador central del ciclo de vida
+
+Desde este punto, `/gd:start` NO solo inicia una tarea: también debe conducirla hasta un veredicto operativo con evidencia real.
+
+Flujo de control obligatorio:
+1. `/gd:implement` produce solución + evidencia técnica real.
+2. `/gd:review` consolida calidad, seguridad, arquitectura, cobertura, contratos y readiness de despliegue.
+3. Si `/gd:review` emite `FAIL`, el flujo vuelve a implementación con defectos puntuales y severidad explícita.
+4. Solo con `PASS` estricto se habilita `/gd:verify`.
+5. Solo con `VERIFY PASS` se habilita `/gd:close`.
+6. Solo con cierre documental completo se habilita `/gd:release`.
+7. Solo con release aprobada y deploy validado se permite `/gd:archive`.
+
+No existe "casi listo", "pass parcial" ni "warning tolerable" en cambios críticos o transversales.
+
+### Gate cero-error obligatorio
+
+Antes de considerar una tarea como lista, el flujo debe demostrar:
+- build exitoso, sin errores de compilación;
+- lint limpio o sin hallazgos críticos;
+- pruebas unitarias, backend/consumo, integración y E2E en verde según aplique;
+- cobertura mínima exigida por stack y criticidad;
+- cero BLOCKERs de seguridad, multi-tenant, contratos API o CORS;
+- evidencia funcional y técnica suficiente para auditoría.
 
 ### Secuencia obligatoria para requerimientos transversales
 
@@ -167,7 +192,7 @@ Eso se debe reinterpretar como:
 
 ## Salida Esperada al Ejecutar
 
-```
+```text
 🎯 Stack detectado: [frontend|backend|fullstack]
 📊 Nivel de complejidad: [0|P|1|2|3|4] — [Atomic|PoC|Micro|Standard|Complex|Product]
 📋 Fases: [lista de fases]
@@ -176,7 +201,11 @@ Eso se debe reinterpretar como:
 📍 Ubicación exacta sugerida: [ruta real dentro del proyecto]
 🪞 Patrón espejo: [archivo o módulo existente]
 🌐 Endpoint base: [si aplica para Lambda/API Gateway]
-� Secuencia: [BD → backend → frontend → certificación]🧪 Pruebas obligatorias: [unitarias → backend/consumos → integración frontend → Playwright E2E]�🚦 Modo: strict
+🧭 Orquestador central: /gd:review
+🔁 Secuencia: [BD → backend → frontend → review estricto → verify → close → release → deploy → archive]
+🧪 Pruebas obligatorias: [unitarias → backend/consumos → integración frontend → Playwright E2E]
+🧾 Cierre documental: [CONSUMO.md + EVIDENCE.md + contrato final]
+🚦 Política: strict + zero-error + evidence-first
 
 → Iniciando con /gd:[primera-fase]...
 ```

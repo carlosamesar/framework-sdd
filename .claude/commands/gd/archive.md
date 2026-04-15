@@ -12,22 +12,26 @@ Finalizar el ciclo SDD sincronizando las especificaciones delta con las specs pr
 
 - [ ] `/gd:review` pasado con veredicto `PASS`
 - [ ] `/gd:verify` pasado con veredicto `VERIFY PASS`
+- [ ] `/gd:close` pasado con veredicto `READY FOR ARCHIVE`
+- [ ] `/gd:release` aprobado si el change genera versión o salida operativa
+- [ ] `/gd:deploy` validado si el change requiere despliegue real
 - [ ] Suite de tests completa en verde (`npm test`)
 - [ ] Código commiteado a la rama de trabajo
-- [ ] Documentación actualizada (OpenAPI, README si aplica)
+- [ ] Documentación actualizada (OpenAPI, README, `CONSUMO.md`, `EVIDENCE.md` y CHANGELOG si aplica)
 
 ---
 
 ## Cómo Funciona
 
 1. **Validar prerrequisitos** — no archivar si hay gates pendientes
-2. **Copiar delta specs** de `openspec/changes/[slug]/specs/` a `openspec/specs/`
-3. **Actualizar `project.md`** con el resumen del cambio completado
-4. **Agregar entrada a `registry.md`** con número secuencial y metadata
-5. **Crear carpeta de archivo** en `openspec/changes/archive/[fecha]-[slug]/`
-6. **Mover artefactos** de trabajo a la carpeta de archivo
-7. **Guardar evidencia en Engram** (`mem_session_summary`)
-8. **Emitir resumen** de qué se archivó y dónde queda
+2. **Confirmar cierre formal** — `CONSUMO.md`, `EVIDENCE.md` y documentación final deben estar completos
+3. **Copiar delta specs** de `openspec/changes/[slug]/specs/` a `openspec/specs/`
+4. **Actualizar `project.md`** con el resumen del cambio completado
+5. **Agregar entrada a `registry.md`** con número secuencial y metadata
+6. **Crear carpeta de archivo** en `openspec/changes/archive/[fecha]-[slug]/`
+7. **Mover artefactos** de trabajo a la carpeta de archivo
+8. **Guardar evidencia en Engram** (`mem_session_summary`)
+9. **Emitir resumen** de qué se archivó y dónde queda
 
 ---
 
@@ -123,16 +127,21 @@ mem_session_summary — incluir:
   - tasks.md
   - design.md (si existe)
   - proposal.md (si existe)
+  - EVIDENCE.md
+  - referencias de contrato/consumo y release notes
 
 ### Registry actualizado
 - Entrada agregada en `openspec/registry.md` como C-[NNN]
 
-### Evidencia
-- Tests: [N] tests pasando, coverage [X]%
+### Evidencia de cierre
 - Review: PASS
 - Verify: PASS
+- Close: READY FOR ARCHIVE
+- Release: APPROVED (si aplica)
+- Deploy: APPROVED/VALIDATED (si aplica)
+- CHANGELOG: actualizado
 
-El ciclo SDD está completo. El siguiente cambio puede iniciar con `/gd:start`.
+El ciclo SDD está completo y auditado. El siguiente cambio puede iniciar con `/gd:start`.
 ```
 
 ---

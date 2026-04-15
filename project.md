@@ -3,7 +3,7 @@
 > Fuente de verdad del estado de todos los módulos y cambios activos del proyecto.
 > Última actualización: 2026-04-15
 >
-> ✅ Estado 2026-04-15: documentación sincronizada con el endurecimiento de `/gd:start`, rutas estrictas por stack, secuencia transversal **BD → backend → frontend → certificación** y certificación obligatoria con unitarias, consumos backend, integración y Playwright E2E.
+> ✅ Estado 2026-04-15: documentación sincronizada con el endurecimiento de `/gd:start`, rutas estrictas por stack, secuencia transversal **BD → backend → frontend → certificación** y certificación obligatoria con unitarias, consumos backend, integración y Playwright E2E. Fix error 500 en `fnSede` y `fnBodega` (columna `g.id_pais` inexistente en `geo_unidad`) — ambas lambdas desplegadas y verificadas.
 >
 > 📋 **Para referencia rápida por ID**: ver [`registry.md`](./registry.md) — Sistema de numeración `M.C.S`
 
@@ -125,6 +125,7 @@ XX-<slug>/
 |--------|--------|:------:|------|
 | `parqueaderos-service-certification` | parqueaderos | ✅ DONE | `openspec/changes/archive/2026-04-10-parqueaderos-service-certification/` |
 | `parqueaderos-cerrar-caja-fix` | parqueaderos | ✅ DONE | `openspec/changes/archive/2026-04-14-parqueaderos-cerrar-caja-fix/` |
+| `gooderp-core-lambdas-id-pais-fix` | core (fnSede, fnBodega) | ✅ DONE | `openspec/changes/archive/2026-04-15-gooderp-core-lambdas-id-pais-fix/` |
 
 ---
 

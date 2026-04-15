@@ -1,37 +1,41 @@
-# `/gd:release` — Preparar, Validar y Publicar una Release
+# /gd:release — Gate de Release Estricto y Publicación con Madurez Alta
 
 ## Propósito
-Coordinar el cierre técnico y operativo de una versión para salida a producción o entorno controlado. Este comando verifica si el sistema está realmente listo para liberarse con riesgo aceptable.
+Coordinar el cierre técnico y operativo de una versión para salida a producción o entorno controlado, con criterios severos de readiness. Este comando debe decidir si una release es verdaderamente liberable o si debe bloquearse sin excepciones.
 
 ---
 
 ## Cuándo usarlo
 
 Úsalo cuando:
-- un change ya pasó implementación y review;
+- un change ya pasó implementación, review, verify y close;
 - se necesita preparar una versión candidata;
-- hay que consolidar changelog, verificación y checklist de despliegue.
+- hay que consolidar changelog, evidencia, contratos y checklist de despliegue.
 
 ---
 
-## Flujo recomendado
+## Flujo obligatorio
 
-1. confirmar que `/gd:verify` terminó en PASS;
-2. revisar riesgos abiertos y deuda técnica tolerable;
-3. validar versión, rama objetivo y artefactos;
-4. ejecutar gate pre-release;
-5. documentar contenido de la versión y rollback.
+1. confirmar que `/gd:review` terminó en `PASS`;
+2. confirmar que `/gd:verify` terminó en `VERIFY PASS`;
+3. confirmar que `/gd:close` dejó el change en `READY FOR ARCHIVE`;
+4. validar versión, rama objetivo, artefactos, changelog y rollback;
+5. ejecutar gate pre-release severo;
+6. si todo pasa, habilitar `/gd:deploy`.
 
 ---
 
 ## Checklist pre-release
 
-- [ ] tests críticos en verde
+- [ ] build y tests críticos en verde
+- [ ] review PASS
 - [ ] verify PASS
+- [ ] close READY FOR ARCHIVE
 - [ ] changelog actualizado
 - [ ] artefactos o imágenes generadas
 - [ ] rollback definido
 - [ ] riesgos conocidos documentados
+- [ ] contratos públicos actualizados y consistentes con CONSUMO.md/OpenAPI
 
 ---
 
@@ -40,17 +44,20 @@ Coordinar el cierre técnico y operativo de una versión para salida a producci�
 ```markdown
 ## Release Readiness
 **Versión**: vX.Y.Z
-**Estado**: ready | blocked | conditional
+**Estado**: RELEASE APPROVED | BLOCKED
 
-### Incluye
-- [feature 1]
-- [feature 2]
+### Evidencia
+- Review: PASS
+- Verify: PASS
+- Close: READY FOR ARCHIVE
+- Changelog: actualizado
+- Rollback: definido
 
 ### Bloqueos
 - [bloqueo si existe]
 
 ### Recomendación
-- desplegar ahora
+- continuar con /gd:deploy
 - corregir antes de release
 ```
 
@@ -59,10 +66,11 @@ Coordinar el cierre técnico y operativo de una versión para salida a producci�
 ## Criterios de bloqueo
 
 No se debe liberar si:
-- hay fallos en tests críticos;
+- hay fallos en build, tests críticos o verificación final;
 - existe riesgo de seguridad bloqueante;
 - no hay rollback mínimo;
-- los contratos públicos cambiaron sin documentación.
+- los contratos públicos cambiaron sin documentación;
+- el close documental no está completo.
 
 ---
 
@@ -71,10 +79,14 @@ No se debe liberar si:
 Normalmente se usa después de:
 - `/gd:review`
 - `/gd:verify`
+- `/gd:close`
 - `/gd:changelog`
+
+Y antes de:
+- `/gd:deploy`
 
 ---
 
 ## Siguiente paso
 
-Si la release está lista, continuar con el procedimiento de despliegue del proyecto. Si no, volver a `/gd:implement` o `/gd:review` según el tipo de bloqueo.
+Si la release está lista, continuar con `/gd:deploy`. Si no, volver a `/gd:implement`, `/gd:review` o `/gd:close` según el bloqueo detectado.
