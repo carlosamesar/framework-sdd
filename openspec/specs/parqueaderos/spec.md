@@ -150,6 +150,49 @@ Entonces recibe 200 con mensaje "Mensualidad renovada exitosamente"
 
 ---
 
+### Requirement: Cerrar Caja — Fixes (parqueaderos-cerrar-caja-fix, 2026-04-14)
+
+**SHALL** permitir que cualquier usuario del tenant con rol adecuado cierre una caja abierta, sin restricción de operador.
+**SHALL** llamar `POST /caja/cerrar` con body `{ idCajaTurno }` (no path param).
+**SHALL** cargar el parqueadero real del tenant en el componente "Control de caja" (no hardcodeado).
+
+**Scenarios:**
+
+```gherkin
+Dado que hay una caja abierta para el parqueadero del tenant
+Y el usuario autenticado está en la pantalla de "Control de caja"
+Cuando el usuario presiona "Cerrar caja"
+Entonces el sistema llama POST /caja/cerrar con { idCajaTurno: "<id>" }
+Y el backend actualiza el estado de la caja a "CERRADA"
+Y el frontend recarga el historial
+Y el botón "Cerrar caja" desaparece y aparece "Abrir caja"
+
+Dado que hay una caja abierta creada por el operador A
+Y el administrador B está autenticado
+Cuando el administrador B presiona "Cerrar caja"
+Entonces el sistema permite el cierre (no rechaza por diferencia de operador)
+Y la caja queda en estado "CERRADA"
+
+Dado que el tenant tiene al menos un parqueadero configurado
+Cuando el componente "Control de caja" se inicializa
+Entonces el sistema carga el primer parqueadero disponible del tenant
+Y usa ese idParqueadero para cargar el historial y operar la caja
+
+Dado que hay una caja abierta
+Cuando el usuario presiona "Cerrar caja"
+Y el backend retorna un error (4xx o 5xx)
+Entonces se muestra una notificación de error con el mensaje del backend
+Y el estado de la UI no cambia
+```
+
+**Contrato API actualizado** — `POST /caja/cerrar`:
+- Request body: `{ "idCajaTurno": "<uuid>" }` (no path param)
+- Response 200: `{ exito: true, mensaje: "Caja cerrada exitosamente", idCajaTurno, estado: "CERRADA", montoTotal }`
+- Response 404: `{ message: "Caja no encontrada" }`
+- Response 400: `{ message: "La caja ya se encuentra cerrada" }`
+
+---
+
 ### Requirement: Multi-tenant
 
 **MUST** extraer `tenant_id` exclusivamente del JWT claim `custom:tenant_id`.

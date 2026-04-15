@@ -469,3 +469,44 @@ FIN ALGORITMO
 ---
 
 **Estado Final**: ✅ **TODOS LOS COMANDOS `/gd:*` IMPLEMENTADOS Y LISTOS PARA USAR**
+
+---
+
+## v2.0 — Enriquecimiento PraisonAI (2026-04-10)
+
+**Change**: `praisonai-don-carlo-enrichment`  
+**Total de comandos**: **109** (101 base + 8 nuevos)  
+**Middleware**: 6 módulos nuevos en `packages/sdd-agent-orchestrator/src/middleware/`
+
+### 8 Nuevos Comandos — Autonomía y Resiliencia
+
+| Comando | Patrón PraisonAI | Descripción |
+|---------|-----------------|-------------|
+| `/gd:flow` | AgentFlow | Pipeline YAML declarativo con steps secuenciales y paralelos |
+| `/gd:guardrail` | Guardrails I/O | Validación de output por fase (pass/fail + soft/strict mode) |
+| `/gd:eval` | Evaluation Framework | Score 0-100 en accuracy/performance/reliability |
+| `/gd:checkpoint` | Shadow Git Checkpoints | Snapshots git antes de fases destructivas + rollback |
+| `/gd:doom-shield` | Doom-Loop Detection | Diagnosticar y salir de ciclos repetitivos del agente |
+| `/gd:research` | DeepResearchAgent | Investigación autónoma multi-step con síntesis estructurada |
+| `/gd:route` | Intelligent Routing | Recomendar el comando más apropiado para una tarea |
+| `/gd:policy` | Policy Engine | Reglas declarativas de comportamiento por proyecto (YAML) |
+
+### Middleware del Orquestador (opt-in via `SDD_FEATURES`)
+
+| Módulo | Variable | Descripción |
+|--------|----------|-------------|
+| `middleware/hooks.mjs` | `SDD_FEATURES=hooks` | Lifecycle callbacks: on_phase_start/complete/error |
+| `middleware/doom-loop.mjs` | `SDD_FEATURES=doom-loop` | Circuit breaker configurable (SDD_MAX_ITERATIONS) |
+| `middleware/guardrails.mjs` | `SDD_FEATURES=guardrails` | Validación I/O automática con defaultGuardrails por fase |
+| `middleware/shadow-checkpoint.mjs` | `SDD_FEATURES=shadow-checkpoint` | git stash automático antes de plan/implement |
+| `middleware/context-compaction.mjs` | `SDD_FEATURES=context-compaction` | Truncado de phaseOutputs cuando supera SDD_MAX_CONTEXT_CHARS |
+| `middleware/model-router.mjs` | `SDD_FEATURES=model-router` | Mapeo fase→modelo via SDD_PHASE_MODEL_MAP (JSON) |
+
+### Tests Nuevos
+
+- `middleware/hooks.test.mjs` — 9 tests (withHooks, maybeWithHooks, isHooksEnabled)
+- `middleware/doom-loop.test.mjs` — 14 tests (circuit breaker a 10/5/1 iteraciones)
+- `middleware/guardrails.test.mjs` — 18 tests (soft/strict, defaultGuardrails, GuardrailError)
+- `middleware/shadow-checkpoint.test.mjs` — 6 tests (graceful fallback sin git)
+
+**Total tests**: 57/57 en verde (incluyendo los 12 pre-existentes del orquestador)

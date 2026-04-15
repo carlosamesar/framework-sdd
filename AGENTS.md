@@ -89,6 +89,7 @@ Specify → Clarify → Plan → Break Down → Implement → Review → Verify 
 ### Lambdas
 - **Madura**: `lib/lambda/transacciones/fnTransaccionLineas/`
 - **Docs**: `lib/lambda/INICIO-RAPIDO.md`
+- **HTTP + CORS**: Toda intervención en una Lambda expuesta por API Gateway debe implementar **GET, POST, PUT, DELETE y OPTIONS** con CORS coherente en código y en API Gateway — ver `.agents-core/lambdas-pattern.md` § “Lineamiento HTTP y CORS”.
 
 ### NestJS
 - **Maduro**: `servicio-tesoreria/src/`
