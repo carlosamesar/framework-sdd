@@ -1,0 +1,42 @@
+name: '🤖 SDD Agent: GitHub Issue Hook'
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  run-sdd-agent:
+    if: contains(github.event.issue.labels.*.name, 'sdd-auto')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm install
+        working-directory: packages/sdd-agent-orchestrator
+
+      - name: 🛡️ SDD Issue Runner (Mitigations P0-P1)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_ISSUE_TITLE: ${{ github.event.issue.title }}
+          GITHUB_ISSUE_BODY: ${{ github.event.issue.body }}
+          GITHUB_ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          # El runner binario maneja las 4 capas de mitigación internamente
+          node bin/sdd-issue-runner.mjs

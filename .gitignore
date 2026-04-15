@@ -145,6 +145,10 @@ vite.config.ts.timestamp-*
 !/develop/.gitkeep
 engineering-knowledge-base/
 
+# SDD Infrastructure
+!/.github/
+!/bin/
+
 # Root Restrictions: Ignore all files in root except README.md and .gitignore
 /*
 !/README.md

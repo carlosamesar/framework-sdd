@@ -1,0 +1,51 @@
+name: '🚀 SDD: New Feature'
+description: 'Propose a new feature to be implemented by the SDD Agent'
+title: '[FEAT]: '
+labels: ['sdd-auto', 'enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎯 Overview
+        Briefly describe what this feature is about.
+  - type: textarea
+    id: description
+    attributes:
+      label: '📝 Detailed Description'
+      description: 'Explain what needs to be built and why.'
+      placeholder: 'I want to add a new endpoint to...'
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: '✅ Acceptance Criteria'
+      description: 'What must be true for this to be considered done?'
+      placeholder: |
+        - The user can...
+        - The API returns...
+        - Test coverage > 85%
+    validations:
+      required: true
+  - type: dropdown
+    id: stack
+    attributes:
+      label: '🏗️ Affected Stack'
+      options:
+        - 'backend'
+        - 'frontend'
+        - 'fullstack'
+        - 'infrastructure'
+    validations:
+      required: true
+  - type: input
+    id: technical-context
+    attributes:
+      label: '🔗 Technical Context / Files'
+      description: 'Mention specific files or modules if you know them.'
+      placeholder: 'lib/lambda/users/...'
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        *Note: This issue will be automatically picked up by the SDD Agent because it has the `sdd-auto` label.*

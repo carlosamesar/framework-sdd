@@ -1,0 +1,41 @@
+# SDD Agent Issue Configuration
+# Mitigación de Riesgos - Vector 1: Activación y Presupuesto
+
+# Usuarios autorizados para disparar el agente (GitHub usernames)
+allowed_authors:
+  - 'carlosamesar'
+  - 'cto-grupo4d'
+  - 'opencode-bot'
+
+# Etiquetas que disparan la ejecución automática
+trigger_labels:
+  - 'sdd-auto'
+
+# Configuración de modelos por fase (Vector 2: Costo de Tokens)
+# Mapeo usado por packages/sdd-agent-orchestrator/src/middleware/model-router.mjs
+phase_model_map:
+  specify: 'gpt-4o-mini'
+  clarify: 'gpt-4o-mini'
+  plan: 'gpt-4o'
+  implement: 'gpt-4o'
+  verify: 'gpt-4o-mini'
+
+# Límites de presupuesto mensual (Vector 2: Budget)
+budget:
+  max_monthly_tokens: 5000000
+  max_monthly_usd: 50.0
+  currency: 'USD'
+
+# Configuración de Pull Requests
+pr_config:
+  draft: true
+  auto_assign: true
+  target_branch: 'main'
+
+# Validaciones pre-LLM (Vector 3: Calidad de Input)
+input_validation:
+  min_body_length: 100
+  required_sections:
+    - 'Detailed Description'
+    - 'Acceptance Criteria'
+    - 'Affected Stack'

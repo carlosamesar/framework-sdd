@@ -1,0 +1,36 @@
+name: '🚀 SDD Deploy: Staging & Prod'
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  deploy-staging:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to Staging (Automatic)
+        run: |
+          echo "Deploying to STAGING environment..."
+          # Aquí iría el comando real de deploy (SST, CDK, etc.)
+          # sst deploy --stage staging
+          echo "✅ Staging deploy complete."
+
+  deploy-production:
+    if: github.event.pull_request.merged == true
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production # Esto activa la aprobación manual en GitHub Actions
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to Production (Manual Approval Required)
+        run: |
+          echo "Deploying to PRODUCTION environment..."
+          # sst deploy --stage prod
+          echo "✅ Production deploy complete."
