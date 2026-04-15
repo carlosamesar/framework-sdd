@@ -3,7 +3,7 @@
 ## Propósito
 Generar tests unitarios automáticamente desde las tareas del breakdown y ejecutarlos siguiendo el ciclo TDD (RED → GREEN → REFACTOR). Es el companion de `/gd:implement` — siempre se usan juntos.
 
-**Nota**: Para el ciclo TDD completo con plantillas detalladas, ver `/gd:implement` (Level 4, 65+ líneas).
+**Nota**: Para el ciclo TDD completo con plantillas detalladas, ver `/gd:implement` (Level 4, 65+ líneas). Si necesitas UI E2E con Playwright, ese flujo vive en `/gd:e2e`; no hay un comando separado `/gd:playwright`.
 
 ---
 
@@ -167,8 +167,7 @@ npm run test:cov
 | Comando | Cuándo usar |
 |---------|------------|
 | `/gd:test-unit` | Tests de unidades aisladas — siempre con `/gd:implement` |
-| `/gd:e2e` | Tests de flujo completo API + BD + UI |
-| `/gd:playwright` | Tests de UI con Playwright |
+| `/gd:e2e` | Tests de flujo completo API + BD + UI (incluye Playwright) |
 | `/gd:gate tdd` | Verificar que la suite pasa el gate TDD completo |
 
 ---

@@ -19,7 +19,7 @@ Diagnosticar y reparar problemas del framework, entorno o configuración. Ejecut
 
 ### 1. Entorno de Desarrollo
 ```bash
-node --version          # debe ser >= 18
+node --version          # debe ser >= 20
 npm --version
 ls node_modules/        # debe existir
 test -f .env && echo "OK" || echo "MISSING .env"
@@ -27,7 +27,7 @@ aws sts get-caller-identity   # AWS CLI configurado
 ```
 
 **Chequeos**:
-- [ ] Node.js >= 18 instalado
+- [ ] Node.js >= 20 instalado
 - [ ] `node_modules/` presente (ejecutar `npm install` si falta)
 - [ ] `.env` existe con las variables requeridas
 - [ ] AWS CLI configurado
@@ -63,7 +63,7 @@ ls .claude/commands/gd/ | wc -l   # debe ser >= 80
 **Chequeos**:
 - [ ] `.claude/commands/gd/` existe con >= 80 archivos
 - [ ] Pipeline core presente: specify, clarify, plan, breakdown, implement, review, verify, archive
-- [ ] Comandos PraisonAI presentes: flow, guardrail, eval, checkpoint, doom-shield, research, route, policy
+- [ ] Comandos PraisonAI presentes: flow, guardrail, eval, checkpoint, research, route, policy
 - [ ] Sin comandos con contenido vacío (stubs de 0 líneas)
 
 ---
