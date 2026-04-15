@@ -57,3 +57,34 @@ Flujo general:
 	- Solapamiento
 	- Recurso no disponible
 	- Auditoría
+
+# Backlog de remediación — GitHub Issues
+
+Se incorpora un frente de trabajo priorizado para madurar la automatización basada en GitHub Issues dentro del framework SDD.
+
+## Objetivo operativo
+
+- recuperar la integración real con GitHub;
+- activar el flujo por eventos nativos;
+- asegurar idempotencia, pruebas y trazabilidad.
+
+## Change activo
+
+- Proposal: openspec/changes/github-issues-remediation/proposal.md
+- Design: openspec/changes/github-issues-remediation/design.md
+- Tasks: openspec/changes/github-issues-remediation/tasks.md
+
+## Prioridades
+
+### P0
+- corregir autenticación, permisos y repositorio destino;
+- crear workflow nativo para eventos de issues;
+- validar entorno y modo dry-run.
+
+### P1
+- persistencia de estado e idempotencia;
+- pruebas smoke y regresión;
+- seguridad y configuración externalizada.
+
+### P2
+- observabilidad, auditoría y simplificación operativa.

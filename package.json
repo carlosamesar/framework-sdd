@@ -53,6 +53,12 @@
     "orchestrator:audit-inventario": "npm run graph:audit-inventario --prefix packages/sdd-agent-orchestrator",
     "framework:platform-smoke": "npm run framework:test && npm run react:smoke",
     "framework:ci": "npm run spec:validate && npm run spec:validate-react && npm run spec:implements",
+    "issue:smoke": "node scripts/test-github-issues-remediation.mjs",
+    "issue:config-smoke": "node scripts/test-github-issues-config.mjs",
+    "issue:evidence-smoke": "node scripts/test-github-issues-evidence.mjs",
+    "issue:retry-smoke": "node scripts/test-github-retry-policy.mjs",
+    "issue:dry-run": "node bin/sdd-issue-runner.cjs",
+    "issue:doctor": "node bin/gd-github-doctor.cjs",
     "react:run": "node scripts/react-runner.mjs",
     "react:list-tools": "node scripts/react-runner.mjs --list-tools",
     "react:smoke": "node scripts/react-runner.mjs --plan scripts/fixtures/react-plan-smoke.json",
@@ -72,7 +78,8 @@
     "task-dev:sync": "node scripts/update-development-task-status.mjs --sync",
     "task-dev:watch": "node scripts/watch-development-tasks.mjs",
     "task-dev:autonomous": "node scripts/run-autonomous-dev-queue.mjs",
-    "task-dev:notify": "node scripts/notify-task-email.mjs"
+    "task-dev:notify": "node scripts/notify-task-email.mjs",
+    "test:jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js test-certification/certification.test.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",
@@ -90,8 +97,25 @@
     "node": ">=20"
   },
   "devDependencies": {
+<<<<<<< Updated upstream
     "@aws-sdk/client-cognito-identity-provider": "^3.1029.0",
     "dotenv": "^17.4.1",
     "pg": "^8.20.0"
+=======
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "babel-jest": "^30.3.0",
+    "jest": "^30.3.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js",
+      "**/test-certification/*.mjs"
+    ]
+>>>>>>> Stashed changes
   }
 }
