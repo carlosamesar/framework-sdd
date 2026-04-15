@@ -444,6 +444,24 @@ FIN ALGORITMO
 /gd:prd Sistema de gestión de inventarios multi-almacén con reservas automáticas
 ```
 
+### Ejemplo 7: Feature Backend con stack explícito
+```bash
+/gd:start --stack=backend "crear lambda fnProveedor con CRUD completo"
+# → Carga start-backend.md, detecta tipo Lambda, inyecta templates reales
+```
+
+### Ejemplo 8: Feature Frontend con stack explícito
+```bash
+/gd:start --stack=frontend "pantalla de gestión de proveedores con tabla y filtros"
+# → Carga start-frontend.md, genera spec Gherkin UI, templates Smart/Dumb/Facade
+```
+
+### Ejemplo 9: Detección automática sin flag
+```bash
+/gd:start "agregar endpoint de búsqueda de proveedores en servicio-tesoreria"
+# → Detecta "endpoint", "servicio" → activa backend automáticamente
+```
+
 ---
 
 ## 📈 Métricas del Framework
@@ -510,3 +528,96 @@ FIN ALGORITMO
 - `middleware/shadow-checkpoint.test.mjs` — 6 tests (graceful fallback sin git)
 
 **Total tests**: 57/57 en verde (incluyendo los 12 pre-existentes del orquestador)
+
+---
+
+## v3.0 — Comandos Especializados por Stack (Level 5) (2026-04-15)
+
+**Change**: `start-specialized-stack-commands`  
+**Total de comandos**: **111** (109 base + 2 nuevos Level 5)  
+**Stack cubierto**: Angular 19 (frontend) + AWS Lambda ESM / NestJS (backend)
+
+### Motivación
+
+Los comandos anteriores eran genéricos. Un desarrollador que va a crear una Lambda necesita el template real de `fnTipoDescuento`, no instrucciones abstractas. Los comandos Level 5 inyectan **patrones copiados directamente del codebase real**.
+
+### 2 Nuevos Comandos — Contexto de Stack Real
+
+| Comando | Nivel | Descripción |
+|---------|-------|-------------|
+| `/gd:start-frontend` | Level 5 | Feature Angular 19 con Smart/Dumb + Facades + Signals + Playwright |
+| `/gd:start-backend` | Level 5 | Lambda Node.js ESM o NestJS con multi-tenant JWT + TDD + CORS completo |
+
+### `/gd:start-frontend` — Qué incluye
+
+- **Arquitectura obligatoria**: patrón Smart/Dumb con Facades
+- **Templates reales** copiados de `src/app/features/parqueaderos/`
+  - Facade con `signal()`, `computed()`, `firstValueFrom()`
+  - Smart component con `inject()`, `OnPush`, `ngOnInit`
+  - Dumb component con `@Input/@Output`, nueva sintaxis `@if/@for`
+- **Spec Gherkin para UI**: escenarios de carga, creación, error
+- **Tests Playwright** con `data-testid`, `storageState` auth, `page.route()` mocking
+- **Quality gates**: lint → unit (≥75%) → build → E2E
+
+**Cuándo se activa:**
+```bash
+/gd:start --stack=frontend "descripción"
+/gd:start-frontend "descripción"        # directo
+# Automático con keywords: componente, angular, ui, pantalla, template, scss
+```
+
+### `/gd:start-backend` — Qué incluye
+
+- **Detección tipo**: Lambda nueva / Lambda existente / NestJS nuevo / NestJS existente
+- **Templates reales** copiados de `fnTipoDescuento` y `servicio-tesoreria`
+  - `index.mjs` con router + OPTIONS primero + multi-tenant
+  - `responseBuilder.mjs` con CORS headers completos
+  - `sanitization.mjs` con `extractTenantId` (JWT, 2 prioridades)
+  - `handlers/create.mjs` con validación + auditoría + errores PG
+  - `lambda.config.json` canónico
+  - Test Jest con `mockEvent()` helper
+- **NestJS**: controller con `@TenantId()`, service con QueryRunner, JwtTenantGuard
+- **CORS completo**: código Lambda + script boto3 para API Gateway (GET/POST/PUT/DELETE/PATCH/OPTIONS)
+- **Quality gates**: TDD → coverage ≥85% → multi-tenant test → CORS verify
+
+**Cuándo se activa:**
+```bash
+/gd:start --stack=backend "descripción"
+/gd:start-backend "descripción"         # directo
+# Automático con keywords: lambda, nestjs, endpoint, api, handler, crud, tenant, jwt
+```
+
+### Integración con `/gd:start`
+
+```
+/gd:start "descripción"
+    │
+    ├── Detecta stack (keywords o --stack=)
+    │       ├── frontend → delega a /gd:start-frontend
+    │       ├── backend  → delega a /gd:start-backend
+    │       └── fullstack → backend primero, luego frontend
+    │
+    └── Detecta complejidad (0/P/1/2/3/4)
+            └── Activa fases SDD correspondientes con contexto de stack inyectado
+```
+
+### Referencias Canónicas del Codebase
+
+| Propósito | Archivo |
+|-----------|---------|
+| Lambda CRUD completo | `develop/backend/gooderp-orchestation/lib/lambda/transacciones/fnTipoDescuento/` |
+| NestJS controller patrón | `develop/backend/gooderp-orchestation/servicio-tesoreria/src/tesoreria/controllers/caja.controller.ts` |
+| NestJS service QueryRunner | `develop/backend/gooderp-orchestation/servicio-tesoreria/src/tesoreria/services/caja.service.ts` |
+| JwtTenantGuard | `develop/backend/gooderp-orchestation/servicio-tesoreria/src/common/guards/jwt-tenant.guard.ts` |
+| Angular Smart component | `develop/frontend/gooderp-client/src/app/features/parqueaderos/components/smart/dashboard-operacion/` |
+| Angular Facade | `develop/frontend/gooderp-client/src/app/features/parqueaderos/services/facades/dashboard-facade.service.ts` |
+| Playwright E2E | `develop/frontend/gooderp-client/e2e/tests/` |
+
+### Estado del Framework v3.0
+
+| Métrica | v1.0 | v2.0 | v3.0 | Mejora total |
+|---------|------|------|------|--------------|
+| Comandos implementados | 88/88 | 109/109 | 111/111 | +26% |
+| Comandos Level 5 (stack real) | 0 | 0 | 2/2 | ✅ nuevo |
+| Cobertura de AGENTS.md | 100% | 100% | 100% | = |
+| Templates reales en comandos | 0 | 0 | 2 stacks | ✅ nuevo |

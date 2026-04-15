@@ -116,6 +116,159 @@ rules:
     - "Formato: openspec/changes/archive/YYYY-MM-DD-{change-name}/"
 
 # ============================================================
+# STACK PROFILES — Contextos especializados por tecnología
+# Usados por /gd:start --stack=frontend|backend|fullstack
+# y por auto-detección de keywords en el prompt
+# ============================================================
+stacks:
+  frontend:
+    display_name: "Angular 19 — Frontend GoodERP"
+    detect_keywords:
+      - "componente"
+      - "angular"
+      - "frontend"
+      - "ui"
+      - "pantalla"
+      - "vista"
+      - "template"
+      - "html"
+      - "scss"
+      - "feature"
+      - "módulo angular"
+      - "playwright"
+      - "e2e ui"
+    project_path: "develop/frontend/gooderp-client"
+    src_root: "develop/frontend/gooderp-client/src/app"
+    e2e_root: "develop/frontend/gooderp-client/e2e"
+    pattern: "features"
+    reference_module: "develop/frontend/gooderp-client/src/app/features/parqueaderos"
+    structure:
+      feature: |
+        src/app/features/<nombre-feature>/
+        ├── components/
+        │   ├── smart/          ← con lógica: inject facades, señales, async
+        │   └── dumb/           ← solo @Input/@Output, ChangeDetectionStrategy.OnPush
+        ├── models/
+        │   ├── dtos/           ← interfaces de request/response API
+        │   └── enums/          ← enums del dominio
+        └── services/
+            ├── api/            ← servicios HTTP (inject HttpClient)
+            └── facades/        ← orchestran signals + llamadas API
+    conventions:
+      - "Standalone components (no NgModules)"
+      - "Angular signals: signal(), computed(), effect() — NO BehaviorSubject"
+      - "Facades exponen readonly signals; privados con _prefijo"
+      - "Smart components usan inject(FacadeService); dumb solo @Input/@Output"
+      - "ChangeDetectionStrategy.OnPush en todos los componentes"
+      - "firstValueFrom() para convertir Observable a Promise en facades"
+      - "data-testid en elementos interactivos (obligatorio para Playwright)"
+    test_commands:
+      unit: "ng test --coverage --watch=false"
+      e2e: "npx playwright test"
+      lint: "ng lint"
+      build: "ng build"
+    coverage_threshold: 75
+    e2e_config: "develop/frontend/gooderp-client/playwright.config.ts"
+    e2e_base_url: "http://localhost:5200"
+    e2e_auth_setup: "e2e/setup/auth.setup.ts"
+    e2e_fixtures: "e2e/fixtures/e2e.ts"
+    gherkin_style: |
+      Given el usuario ve la pantalla de <módulo>
+      When hace clic en <elemento>
+      Then el componente muestra <resultado>
+      And el servicio llama a <endpoint> con <payload>
+
+  backend:
+    display_name: "Lambda Node.js 20 ESM + NestJS 11 — Backend GoodERP"
+    detect_keywords:
+      - "lambda"
+      - "handler"
+      - "endpoint"
+      - "api"
+      - "backend"
+      - "nestjs"
+      - "microservicio"
+      - "crud"
+      - "bd"
+      - "base de datos"
+      - "postgresql"
+      - "migración"
+      - "tenant"
+      - "jwt"
+    project_path: "develop/backend/gooderp-orchestation"
+    lambda_root: "develop/backend/gooderp-orchestation/lib/lambda"
+    nestjs_root: "develop/backend/gooderp-orchestation"
+    reference_lambda: "develop/backend/gooderp-orchestation/lib/lambda/transacciones/fnTipoDescuento"
+    reference_nestjs: "develop/backend/gooderp-orchestation/servicio-tesoreria"
+    lambda_structure: |
+      lib/lambda/<dominio>/fn<NombreCamelCase>/
+      ├── index.mjs                ← router HTTP: OPTIONS → extractTenantId → routing
+      ├── lambda.config.json       ← nombre AWS, memoria, timeout, runtime
+      ├── package.json
+      ├── handlers/
+      │   ├── create.mjs           ← POST
+      │   ├── list.mjs             ← GET (listado + búsqueda)
+      │   ├── getById.mjs          ← GET /:id  (evaluar ANTES que list)
+      │   ├── update.mjs           ← PUT /:id
+      │   └── delete.mjs           ← DELETE /:id (soft delete)
+      └── utils/
+          ├── database.mjs         ← pool PostgreSQL singleton
+          ├── responseBuilder.mjs  ← ResponseBuilder con CORS headers
+          └── sanitization.mjs     ← extractTenantId + extractUserId + sanitizeEvent
+    nestjs_structure: |
+      servicio-<nombre>/src/
+      ├── app.module.ts            ← APP_GUARD(JwtTenantGuard), APP_INTERCEPTOR, APP_FILTER
+      ├── common/
+      │   ├── guards/jwt-tenant.guard.ts
+      │   └── decorators/tenant-id.decorator.ts
+      └── <modulo>/
+          ├── controllers/<recurso>.controller.ts   ← @TenantId() en cada endpoint
+          ├── services/<recurso>.service.ts         ← lógica con QueryRunner
+          ├── entities/<recurso>.entidad.ts         ← TypeORM + SnakeNamingStrategy
+          └── dtos/                                 ← class-validator + @nestjs/swagger
+    conventions:
+      - "tenant_id SIEMPRE desde JWT — NUNCA desde body/params/headers de usuario"
+      - "extractTenantId() para Lambdas; @TenantId() para NestJS"
+      - "ResponseBuilder para TODAS las respuestas en Lambdas"
+      - "GET by id: evaluar pathParameters.id ANTES de listado"
+      - "Soft delete: eliminado_por + eliminado_en (NUNCA DELETE físico en tablas de negocio)"
+      - "Errores PG: 23503→404, 23505→409, 23514→400"
+      - "lambda.config.json OBLIGATORIO con nombre, runtime, memoria, timeout"
+      - "CORS headers en TODAS las respuestas (responseBuilder incluye Access-Control-Allow-*)"
+      - "OPTIONS preflight: SIEMPRE primero en index.mjs antes de cualquier validación"
+    test_commands:
+      lambda: "npm test"
+      nestjs: "npm run test"
+      coverage: "npm run test:cov"
+      e2e_api: "npm run test:e2e"
+    coverage_threshold: 85
+    cognito_pools:
+      lambda: "us-east-1_fQl9BKSxq"
+      nestjs: "us-east-1_gmre5QtIx"
+    gherkin_style: |
+      Given el tenant <id> tiene los datos en BD
+      When se hace <METHOD> /api/<recurso> con payload <payload>
+      Then la respuesta tiene statusCode <code>
+      And el body contiene <campo> con valor <valor>
+      And la tabla <tabla> tiene el registro con tenant_id = <tenant>
+
+  fullstack:
+    display_name: "Full-Stack — Angular + Lambda/NestJS"
+    detect_keywords:
+      - "fullstack"
+      - "full stack"
+      - "feature completa"
+      - "end to end"
+      - "integración frontend backend"
+    inherits:
+      - frontend
+      - backend
+    phases:
+      - "Backend primero: spec API → lambda/nestjs → tests"
+      - "Frontend segundo: facade → smart component → dumb components"
+      - "E2E al final: playwright tests del flujo completo"
+
+# ============================================================
 # SDD PERSISTENCE — hybrid mode
 # ============================================================
 persistence:

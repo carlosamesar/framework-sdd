@@ -117,6 +117,13 @@ XX-<slug>/
 > Los cambios completados se archivan aquí como historial.
 > Los cambios en progreso o pendientes se listan aquí hasta su cierre.
 
+### Cambios Framework-SDD (openspec/changes/archive)
+
+| Change | Módulo | Estado | Ruta |
+|--------|--------|:------:|------|
+| `parqueaderos-service-certification` | parqueaderos | ✅ DONE | `openspec/changes/archive/2026-04-10-parqueaderos-service-certification/` |
+| `parqueaderos-cerrar-caja-fix` | parqueaderos | ✅ DONE | `openspec/changes/archive/2026-04-14-parqueaderos-cerrar-caja-fix/` |
+
 ---
 
 ## Protocolo de cambios

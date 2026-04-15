@@ -1,60 +1,168 @@
 # /gd:archive — Sincronizar Delta Specs a Specs Principales y Archivar Cambio
 
 ## Propósito
-Finalizar el ciclo SDD sincronizando las especificaciones delta (de cambios) con las especificaciones principales y archivando el cambio completado.
+Finalizar el ciclo SDD sincronizando las especificaciones delta con las specs principales y archivando el cambio completado. Produce un registro histórico inmutable del trabajo realizado.
+
+## Alias
+- `/gd:archivar`
+
+---
+
+## Prerrequisitos (todos obligatorios)
+
+- [ ] `/gd:review` pasado con veredicto `PASS`
+- [ ] `/gd:verify` pasado con veredicto `VERIFY PASS`
+- [ ] Suite de tests completa en verde (`npm test`)
+- [ ] Código commiteado a la rama de trabajo
+- [ ] Documentación actualizada (OpenAPI, README si aplica)
+
+---
 
 ## Cómo Funciona
 
-1. **Sincronización de Specs**: Copia los archivos de especificación delta a las specs principales del proyecto
-2. **Actualización de Documentación**: Actualiza archivos de referencia como project.md y registry.md
-3. **Archivado del Cambio**: Mueve los archivos de trabajo a un archivo histórico para referencia futura
-4. **Limpieza**: Opcionalmente limpia archivos temporales de desarrollo
+1. **Validar prerrequisitos** — no archivar si hay gates pendientes
+2. **Copiar delta specs** de `openspec/changes/[slug]/specs/` a `openspec/specs/`
+3. **Actualizar `project.md`** con el resumen del cambio completado
+4. **Agregar entrada a `registry.md`** con número secuencial y metadata
+5. **Crear carpeta de archivo** en `openspec/changes/archive/[fecha]-[slug]/`
+6. **Mover artefactos** de trabajo a la carpeta de archivo
+7. **Guardar evidencia en Engram** (`mem_session_summary`)
+8. **Emitir resumen** de qué se archivó y dónde queda
 
-## Proceso de Archivado
+---
+
+## Proceso Paso a Paso
+
+### Paso 1: Verificar prerrequisitos
+
+```bash
+# Tests pasando
+npm test
+
+# Verificar que no hay cambios sin commitear
+git status
+```
+
+Si algo falla → resolver antes de continuar.
+
+### Paso 2: Sincronizar delta specs a specs principales
+
+```bash
+# Copiar specs del change a specs principales del proyecto
+cp openspec/changes/[slug]/specs/*.md openspec/specs/
+
+# O para proyectos con specs por módulo:
+cp openspec/changes/[slug]/specs/[modulo].spec.md openspec/specs/modules/[modulo]/
+```
+
+### Paso 3: Actualizar registry.md
+
+Agregar entrada con el siguiente número secuencial:
+
+```markdown
+## C-[NNN] [Nombre del Change]
+
+- **Slug**: [slug-del-change]
+- **Fecha**: [YYYY-MM-DD]
+- **Nivel**: [0-4]
+- **Estado**: ARCHIVED
+- **Resumen**: [1-2 oraciones describiendo qué se implementó]
+- **Archivos clave**: [lista de archivos principales creados/modificados]
+- **Tests**: [N tests agregados, coverage X%]
+- **Archive**: `openspec/changes/archive/[fecha]-[slug]/`
+```
+
+### Paso 4: Mover artefactos a archivo
+
+```bash
+mkdir -p openspec/changes/archive/[YYYY-MM-DD]-[slug]
+mv openspec/changes/[slug]/ openspec/changes/archive/[YYYY-MM-DD]-[slug]/
+```
+
+### Paso 5: Actualizar project.md
+
+Agregar al historial de cambios:
+
+```markdown
+## Historial de Cambios
+
+### [YYYY-MM-DD] [Nombre del Change] (C-[NNN])
+- [Qué se implementó — punto 1]
+- [Qué se implementó — punto 2]
+- **Impacto**: [módulos afectados]
+```
+
+### Paso 6: Guardar en Engram
 
 ```
-Input: Delta specs (en specs/delta/), Work files, Implementation
-Process:
-  1. Validar que el cambio pasó review y verify
-  2. Copiar delta specs a main specs directory
-  3. Actualizar project.md con información del cambio completado
-  4. Añadir entrada a registry.md con número secuencial y metadata
-  5. Mover work files a carpeta de archivo con timestamp
-  6. Generar resumen de cambios para documentación
-Output: Cambio archivado y specs principales actualizadas
+mem_session_summary — incluir:
+- Qué se construyó
+- Decisiones de arquitectura tomadas
+- Archivos principales modificados
+- Problemas encontrados y cómo se resolvieron
 ```
 
-## Salida del Comando
+---
 
-- **Specs Actualizadas**: Confirmación de specs principales sincronizadas
-- **Registry Actualizado**: Nueva entrada en registry.md con ID secuencial
-- **Archivo Creado**: Carpeta en engineering-knowledge-base/ con el cambio archivado
-- **Resumen**: Qué se archivó y dónde se encuentra
+## Output del Comando
+
+```markdown
+## Cambio Archivado: [nombre del change]
+
+**ID**: C-[NNN]
+**Fecha**: [YYYY-MM-DD]
+**Slug**: [slug]
+**Nivel**: [0-4]
+
+### Specs sincronizadas
+- [N] archivos copiados a `openspec/specs/`
+
+### Artefactos archivados
+- `openspec/changes/archive/[fecha]-[slug]/`
+  - specs/ ([N] archivos)
+  - tasks.md
+  - design.md (si existe)
+  - proposal.md (si existe)
+
+### Registry actualizado
+- Entrada agregada en `openspec/registry.md` como C-[NNN]
+
+### Evidencia
+- Tests: [N] tests pasando, coverage [X]%
+- Review: PASS
+- Verify: PASS
+
+El ciclo SDD está completo. El siguiente cambio puede iniciar con `/gd:start`.
+```
+
+---
 
 ## Uso
 
 ```
 /gd:archive
+/gd:archive [slug]   # archivar un change específico por slug
 ```
 
-## Alias
-- `/gd:archivar`
+---
 
-## Requisitos Previos
+## Estructura del Directorio de Archivo
 
-Antes de ejecutar archive, deben cumplirse:
-- ✅ **Review Aprobado**: /gd:review debe haber pasado
-- ✅ **Verify Aprobado**: /gd:verify debe haber pasado
-- ✅ **Tests Pasando**: Suite completa de tests debe estar en verde
-- ✅ **Documentación Actualizada**: OpenAPI, ADRs y README reflejan el cambio
+```
+openspec/changes/archive/
+└── [YYYY-MM-DD]-[slug]/
+    ├── specs/
+    │   └── [feature].spec.md
+    ├── tasks.md          # tasks completadas con evidencia
+    ├── design.md         # plan técnico (si existía)
+    ├── proposal.md       # propuesta inicial (si existía)
+    ├── EVIDENCE.md       # resumen de evidencia de tests y gates
+    └── ARCHIVED.md       # metadata de archivo con fechas y links
+```
 
-## Criterios de Archivado
-
-El cambio se considera listo para archivar cuando:
-- ✅ Toda la funcionalidad especificada está implementada y testeada
-- ✅ No hay issues críticos de calidad o seguridad pendientes
-- ✅ La documentación refleja correctamente el estado final
-- ✅ Se ha obtenido aprobación explícita para archivar (si aplica)
+---
 
 ## Siguiente Paso
-Después de archivar, el ciclo SDD está completo. El próximo cambio puede comenzar con `/gd:start` nuevamente.
+Ciclo SDD completado. El próximo cambio puede comenzar con `/gd:start`.
+
+Para ver el historial de cambios archivados: revisar `openspec/registry.md`.

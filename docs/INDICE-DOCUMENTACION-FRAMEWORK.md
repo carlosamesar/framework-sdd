@@ -13,7 +13,7 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 # Índice — Documentación Framework-SDD
 
-> Estado 2026-04-11: OpenSpec + CI + **react-runner** (`react:smoke`), orquestador **`sdd-agent`** (`pipeline`, `gd-cycle`), guía **producción** del agente, validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`.
+> Estado 2026-04-15: OpenSpec + CI + **react-runner** (`react:smoke`), orquestador **`sdd-agent`** (`pipeline`, `gd-cycle`), guía **producción** del agente, validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`. Comandos **Level 5** para stacks Angular 19 y Lambda/NestJS.
 
 ---
 
@@ -28,6 +28,26 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 ---
 
+## Comandos `/gd:*` — Referencia Completa
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`COMMANDS-INDEX.md`](../COMMANDS-INDEX.md) | **Índice ultra-light** de 111 comandos con descripción y cuándo usar (leer primero) |
+| [`docs/COMANDOS-GD-CREADOS.md`](COMANDOS-GD-CREADOS.md) | Historial de implementación v1.0→v3.0 con ejemplos por versión |
+| [**`docs/GUIA-DESARROLLADORES.md`**](GUIA-DESARROLLADORES.md) | **Guía práctica**: flujos completos con ejemplos reales por caso de uso |
+
+### Comandos Clave — Acceso Directo
+
+| Comando | Archivo | Descripción |
+|---------|---------|-------------|
+| `/gd:start` | [`.claude/commands/gd/start.md`](../.claude/commands/gd/start.md) | Punto de entrada — detección automática de stack y complejidad |
+| `/gd:start-frontend` | [`.claude/commands/gd/start-frontend.md`](../.claude/commands/gd/start-frontend.md) | **Level 5** — Angular 19 Smart/Dumb + Facades + Playwright |
+| `/gd:start-backend` | [`.claude/commands/gd/start-backend.md`](../.claude/commands/gd/start-backend.md) | **Level 5** — Lambda ESM / NestJS + multi-tenant + CORS |
+| `/gd:rapido` | [`.claude/commands/gd/rapido.md`](../.claude/commands/gd/rapido.md) | Tarea pequeña sin fases (1-3 archivos) |
+| `/gd:completo` | [`.claude/commands/gd/completo.md`](../.claude/commands/gd/completo.md) | Proyecto complejo con pseudocódigo y constitución |
+
+---
+
 ## OpenSpec, CI y agentes (ReAct)
 
 | Documento / ruta | Contenido |
@@ -35,7 +55,7 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 | [`openspec/README.md`](../openspec/README.md) | Layout `changes/`, `specs/`, `config.yaml`, validación |
 | [**`docs/openspec-proyectos.md`**](openspec-proyectos.md) | **Multi-proyecto:** `openspec/projects/` espejando `develop/`, `FRAMEWORK_SDD_OPENSPEC_PROJECT`, `active_project` |
 | [`openspec/specs/saga/admin-unified-orchestrator-transaction-types.md`](../openspec/specs/saga/admin-unified-orchestrator-transaction-types.md) | Spec **APPROVED** — SAGA admin (Lambda orquestador) |
-| [`openspec/config.yaml`](../openspec/config.yaml) | Rutas OpenSpec |
+| [`openspec/config.yaml`](../openspec/config.yaml) | Rutas OpenSpec + sección `stacks:` para frontend/backend |
 | [`openspec/tools-manifest.yaml`](../openspec/tools-manifest.yaml) | Herramientas para orquestación (`spec_validate`, `rag_query`, `memory_daemons_start`, …) |
 | [**`docs/orquestador-agente-sdd.md`**](orquestador-agente-sdd.md) | **Instalación y uso del agente (dev):** `npm run agent:install`, `npx sdd-agent`, `pipeline`, **`gd-cycle`**, LLM, variables |
 | [**`docs/orquestador-produccion.md`**](orquestador-produccion.md) | **Producción:** `agent:install:production`, secretos, CI vs LLM, checklist, `npm pack`, hardening |
@@ -76,9 +96,9 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 | Documento | Contenido |
 |-----------|-----------|
+| [**`GUIA-DESARROLLADORES.md`**](GUIA-DESARROLLADORES.md) | **LEER PRIMERO** — flujos completos con ejemplos reales |
 | [`EJEMPLO-USO-GAF-OPENCODE.md`](EJEMPLO-USO-GAF-OPENCODE.md) | Instalación GAF, comandos `/gd:*`, memoria y RAG |
 | [`framework-prerequisites.md`](framework-prerequisites.md) | Núcleo vs opcional, checklist desarrollador |
-| [`sigat-workspace.md`](sigat-workspace.md) | Dominio SIGAT (si aplica al clon) |
 
 ---
 
