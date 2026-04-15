@@ -2,7 +2,7 @@ name: '🤖 SDD Agent: GitHub Issue Hook'
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, labeled]
 
 jobs:
   run-sdd-agent:
