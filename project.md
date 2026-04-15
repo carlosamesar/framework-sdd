@@ -1,7 +1,9 @@
 # GOODERP — Índice Maestro OpenSpec
 
 > Fuente de verdad del estado de todos los módulos y cambios activos del proyecto.
-> Última actualización: 2026-04-13
+> Última actualización: 2026-04-15
+>
+> ✅ Estado 2026-04-15: documentación sincronizada con el endurecimiento de `/gd:start`, rutas estrictas por stack, secuencia transversal **BD → backend → frontend → certificación** y certificación obligatoria con unitarias, consumos backend, integración y Playwright E2E.
 >
 > 📋 **Para referencia rápida por ID**: ver [`registry.md`](./registry.md) — Sistema de numeración `M.C.S`
 

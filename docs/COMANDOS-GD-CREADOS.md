@@ -541,12 +541,21 @@ FIN ALGORITMO
 
 Los comandos anteriores eran genéricos. Un desarrollador que va a crear una Lambda necesita el template real de `fnTipoDescuento`, no instrucciones abstractas. Los comandos Level 5 inyectan **patrones copiados directamente del codebase real**.
 
+### Endurecimiento operativo 2026-04-15
+
+Sobre la base de estos comandos, se añadieron reglas severas para eliminar ambigüedad:
+- frontend usa la estructura real de `gooderp-client` y exige ruta exacta + patrón espejo;
+- backend usa la estructura real de `gooderp-orchestation` y resuelve errores de endpoints API Gateway directamente hacia `lib/lambda/**`;
+- un prompt con **BD + lambda/backend + frontend** se reclasifica como **fullstack transversal**;
+- el orden obligatorio es **BD → backend → frontend → certificación**;
+- la certificación exige **unitarias + consumos backend + integración frontend + Playwright E2E**.
+
 ### 2 Nuevos Comandos — Contexto de Stack Real
 
 | Comando | Nivel | Descripción |
 |---------|-------|-------------|
-| `/gd:start-frontend` | Level 5 | Feature Angular 19 con Smart/Dumb + Facades + Signals + Playwright |
-| `/gd:start-backend` | Level 5 | Lambda Node.js ESM o NestJS con multi-tenant JWT + TDD + CORS completo |
+| `/gd:start-frontend` | Level 5 | GoodERP Client real con ruta exacta, patrón espejo, integración y Playwright |
+| `/gd:start-backend` | Level 5 | GoodERP Orchestation real con routing por endpoint, CORS, AWS y certificación |
 
 ### `/gd:start-frontend` — Qué incluye
 
@@ -595,7 +604,7 @@ Los comandos anteriores eran genéricos. Un desarrollador que va a crear una Lam
     ├── Detecta stack (keywords o --stack=)
     │       ├── frontend → delega a /gd:start-frontend
     │       ├── backend  → delega a /gd:start-backend
-    │       └── fullstack → backend primero, luego frontend
+    │       └── fullstack → BD → backend → frontend → certificación
     │
     └── Detecta complejidad (0/P/1/2/3/4)
             └── Activa fases SDD correspondientes con contexto de stack inyectado

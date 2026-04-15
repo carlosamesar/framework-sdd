@@ -2,6 +2,15 @@
 
 El framework ahora cuenta con un orquestador central (ReAct + SDD) que coordina agentes técnicos (Dev, QA, DevOps) usando el pipeline gd:*. El enforcement automático garantiza que ningún agente puede ejecutar tareas sin un SDD válido y validado. Toda delegación, ticket y notificación queda registrada y es auditable.
 
+### Actualización operativa 2026-04-15
+
+El punto de entrada `/gd:start` quedó endurecido para reducir ambigüedad y reprocesos:
+- **frontend** usa la estructura real de `develop/frontend/gooderp-client` y exige ruta exacta + patrón espejo;
+- **backend** usa la estructura real de `develop/backend/gooderp-orchestation`, con salto directo a `lib/lambda/**` cuando el prompt menciona endpoints de API Gateway;
+- los requerimientos que mezclan **BD + backend + frontend** se reclasifican automáticamente como **fullstack transversal**;
+- la secuencia obligatoria es: **BD → backend → frontend → certificación**;
+- la certificación solo es válida con **pruebas unitarias + consumos backend + integración frontend + Playwright E2E**.
+
 ### Ciclo típico:
 1. El usuario ejecuta `/gd:start` o `npx sdd-agent pipeline`
 2. El orquestador valida el SDD, crea tickets, delega tareas y notifica a los agentes y al usuario

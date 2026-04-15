@@ -13,7 +13,7 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 # Índice — Documentación Framework-SDD
 
-> Estado 2026-04-15: OpenSpec + CI + **react-runner** (`react:smoke`), orquestador **`sdd-agent`** (`pipeline`, `gd-cycle`), guía **producción** del agente, validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`. Comandos **Level 5** para stacks Angular 19 y Lambda/NestJS.
+> Estado 2026-04-15: OpenSpec + CI + **react-runner** (`react:smoke`), orquestador **`sdd-agent`** (`pipeline`, `gd-cycle`), guía **producción** del agente, validación ReAct por **stdin**, `spec:verify` con `archive/*`, RAG con `rag:test`. Comandos **Level 5** para stacks Angular 19 y Lambda/NestJS, con **modo estricto por stack**, **resolución directa por endpoint API Gateway**, **flujo transversal BD → backend → frontend → certificación** y **pruebas obligatorias** para certificar.
 
 ---
 
@@ -40,9 +40,9 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 
 | Comando | Archivo | Descripción |
 |---------|---------|-------------|
-| `/gd:start` | [`.claude/commands/gd/start.md`](../.claude/commands/gd/start.md) | Punto de entrada — detección automática de stack y complejidad |
-| `/gd:start-frontend` | [`.claude/commands/gd/start-frontend.md`](../.claude/commands/gd/start-frontend.md) | **Level 5** — Angular 19 Smart/Dumb + Facades + Playwright |
-| `/gd:start-backend` | [`.claude/commands/gd/start-backend.md`](../.claude/commands/gd/start-backend.md) | **Level 5** — Lambda ESM / NestJS + multi-tenant + CORS |
+| `/gd:start` | [`.claude/commands/gd/start.md`](../.claude/commands/gd/start.md) | Punto de entrada — detección automática, modo estricto por stack y secuencia transversal obligatoria |
+| `/gd:start-frontend` | [`.claude/commands/gd/start-frontend.md`](../.claude/commands/gd/start-frontend.md) | **Level 5** — GoodERP Client real, ruta exacta, patrón espejo, integración + Playwright |
+| `/gd:start-backend` | [`.claude/commands/gd/start-backend.md`](../.claude/commands/gd/start-backend.md) | **Level 5** — GoodERP Orchestation real, Lambda/NestJS, CORS, AWS, endpoint routing y certificación |
 | `/gd:rapido` | [`.claude/commands/gd/rapido.md`](../.claude/commands/gd/rapido.md) | Tarea pequeña sin fases (1-3 archivos) |
 | `/gd:completo` | [`.claude/commands/gd/completo.md`](../.claude/commands/gd/completo.md) | Proyecto complejo con pseudocódigo y constitución |
 
@@ -97,6 +97,7 @@ Todos los comandos gd:* pueden ser orquestados y auditados. El orquestador valid
 | Documento | Contenido |
 |-----------|-----------|
 | [**`GUIA-DESARROLLADORES.md`**](GUIA-DESARROLLADORES.md) | **LEER PRIMERO** — flujos completos con ejemplos reales |
+| [**`ACTUALIZACION-OPERATIVA-2026-04-15.md`**](ACTUALIZACION-OPERATIVA-2026-04-15.md) | Endurecimiento de `/gd:start`, secuencia transversal y certificación obligatoria |
 | [`EJEMPLO-USO-GAF-OPENCODE.md`](EJEMPLO-USO-GAF-OPENCODE.md) | Instalación GAF, comandos `/gd:*`, memoria y RAG |
 | [`framework-prerequisites.md`](framework-prerequisites.md) | Núcleo vs opcional, checklist desarrollador |
 

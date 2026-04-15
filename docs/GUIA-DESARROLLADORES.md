@@ -119,6 +119,28 @@ Escenario: Crear proveedor
 
 ## 2. Cambio Pequeño
 
+### Cambio transversal estricto
+
+Si una solicitud menciona simultáneamente:
+- base de datos o tabla;
+- Lambda, endpoint o servicio backend;
+- formulario, pantalla o componente frontend;
+
+el framework ya no debe tratarla como un cambio aislado aunque venga con un stack explícito de frontend o backend.
+
+**Orden obligatorio:**
+1. BD
+2. backend / consumos
+3. frontend / integración
+4. certificación completa
+
+**Certificación obligatoria del flujo:**
+- unit tests;
+- pruebas de consumos backend;
+- integración frontend;
+- Playwright E2E.
+
+
 **Situación**: Necesitas agregar un campo, corregir un bug simple, o cambiar un mensaje de error.
 
 ```bash
@@ -534,7 +556,10 @@ Acciones recomendadas:
 
 | Gate | Criterio |
 |------|---------|
-| Tests | 100% passing |
+| Unit tests | 100% passing |
+| Backend / consumos | Endpoints o Lambdas verificados funcionalmente |
+| Frontend integration | Flujo integrado sin regresiones |
+| Playwright E2E | Obligatorio para el flujo impactado |
 | Coverage | ≥ 85% (backend) / ≥ 75% (frontend) |
 | Lint | 0 errores |
 | Build | 0 errores TypeScript |
@@ -552,6 +577,7 @@ Acciones recomendadas:
 | Empezar feature | `/gd:start "descripción"` |
 | Feature Angular | `/gd:start --stack=frontend "..."` o `/gd:start-frontend "..."` |
 | Feature Lambda/NestJS | `/gd:start --stack=backend "..."` o `/gd:start-backend "..."` |
+| Cambio transversal BD + backend + frontend | `/gd:start "..."` → secuencia obligatoria BD → backend → frontend → certificación |
 | Cambio pequeño (1-3 archivos) | `/gd:rapido "descripción"` |
 | Proyecto grande (1-2 semanas) | `/gd:completo "descripción"` |
 | Validar SPEC antes de planificar | `/gd:validar-spec <path>` |
