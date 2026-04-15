@@ -84,6 +84,8 @@ Antes de implementar, el pedido DEBE clasificarse en una sola vía principal:
 - Si el cambio requiere migración SQL, esta debe ejecutarse con **Node.js** usando la configuración del archivo `.env` ya mapeado dentro de la solución.
 - No usar como vía principal ejecuciones manuales ad hoc fuera del repositorio para aplicar cambios de esquema.
 - Considerar desde el inicio si el cambio requiere despliegue AWS, validación sobre API Gateway y certificación funcional.
+- Para Lambdas, el flujo estándar de deploy debe quedar mapeado a GitHub Actions con ZIP usando `.github/workflows/deploy-post-merge.yml`, `scripts/package-lambda-zip.mjs` y `aws lambda update-function-code`.
+- Desde `/gd:start-backend` se debe dejar identificado el par **ruta local de la lambda / nombre de función AWS** para que el workflow sea ejecutable sin ambigüedad.
 
 ## Resolución directa por URL o endpoint
 
