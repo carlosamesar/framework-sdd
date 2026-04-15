@@ -29,6 +29,14 @@
 ### Paso a paso
 
 ```bash
+# 0. Preparar Git: crear una rama de trabajo fix/** desde la base correcta
+# frontend: desde performance (o rama base equivalente)
+# backend: desde microservicios (o rama base equivalente)
+# ejemplo:
+# git checkout microservicios
+# git pull
+# git checkout -b fix/gestion-proveedores
+
 # 1. Arranca. El framework detecta el stack y la complejidad.
 /gd:start "crear módulo de gestión de proveedores con CRUD y multi-tenant"
 ```
@@ -108,7 +116,13 @@ Escenario: Crear proveedor
 ```
 
 ```bash
-# 8. Archivar
+# 8. Cerrar y preparar PR
+/gd:close
+/gd:release
+
+# Abrir PR desde fix/gestion-proveedores hacia la rama base correspondiente
+
+# 9. Archivar
 /gd:archive
 
 # Sincroniza spec final, actualiza project.md y registry.md

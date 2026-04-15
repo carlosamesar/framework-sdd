@@ -6,13 +6,23 @@
 
 ---
 
-### 5 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
+### 6 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
 
 1. **Multi-tenant**: `tenantId` SIEMPRE desde JWT (`custom:tenant_id`), **NUNCA** de body/params/query
 2. **TDD obligatorio**: RED → GREEN → REFACTOR, coverage ≥ 85%
 3. **Copiar patrones maduros**: `fnTransaccionLineas` (Lambda), `servicio-tesoreria` (NestJS)
 4. **ResponseBuilder**: todas las lambdas usan `utils/responseBuilder.mjs` — NO devolver respuestas crudas
 5. **Memory first**: consultar `project.md`/`registry.md` o `npm run rag:query` antes de responder
+6. **Orquestación gd obligatoria**: seguir estrictamente `/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:release → /gd:deploy → /gd:archive`
+
+---
+
+### Orquestación obligatoria del ciclo de vida
+
+- todo requerimiento debe aterrizarse primero con `/gd:start`;
+- `/gd:review` es el orquestador central y no se omite;
+- no hay PASS parcial, cierre provisional ni certificación incompleta;
+- el cierre formal exige `CONSUMO.md`, `EVIDENCE.md` y contratos actualizados.
 
 ---
 

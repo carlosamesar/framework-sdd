@@ -31,6 +31,7 @@ Coordinar el cierre técnico y operativo de una versión para salida a producci�
 - [ ] review PASS
 - [ ] verify PASS
 - [ ] close READY FOR ARCHIVE
+- [ ] PR creado desde la rama `fix/**` hacia la rama base correcta
 - [ ] changelog actualizado
 - [ ] artefactos o imágenes generadas
 - [ ] rollback definido

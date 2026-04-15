@@ -11,13 +11,24 @@ await orchestrateSDD({ sddPath: 'openspec/sdd.md', repo: 'framework-sdd', owner:
 
 **Versión**: 3.0 | **Optimizado**: 2026-04-09 | **Tokens**: ~1,200 (vs 32,000 de AGENTS.md completo)
 
-### 5 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
+### 6 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
 
 1. **Multi-tenant**: `tenantId` SIEMPRE desde JWT (`custom:tenant_id`), **NUNCA** de body/params/query
 2. **TDD obligatorio**: RED → GREEN → REFACTOR, coverage ≥ 85% en módulos de negocio
 3. **Copiar patrones maduros**: `fnTransaccionLineas` (Lambda), `servicio-tesoreria` (NestJS) — **NO inventar**
 4. **ResponseBuilder**: todas las lambdas usan `utils/responseBuilder.mjs` — **NO devolver respuestas crudas**
 5. **Memory first**: consultar `project.md`/`registry.md` o `npm run rag:query` antes de responder
+6. **Orquestación gd obligatoria**: seguir estrictamente `/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:release → /gd:deploy → /gd:archive`, sin saltos ni cierres parciales
+
+---
+
+### Orquestación obligatoria del ciclo de vida
+
+- `/gd:review` es el gate central de calidad y decide PASS o FAIL.
+- `/gd:verify` no se ejecuta sin review PASS.
+- `/gd:close` exige `CONSUMO.md` + `EVIDENCE.md` completos.
+- `/gd:release`, `/gd:deploy` y `/gd:archive` requieren trazabilidad y cero BLOCKERs.
+- Si el usuario pide “implementar” sin contexto, reconducir primero por `/gd:start`.
 
 ---
 

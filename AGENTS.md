@@ -22,7 +22,7 @@ await orchestrateSDD({
 
 ---
 
-## 5 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
+## 6 Reglas de Hierro (OBLIGATORIAS, sin excepciones)
 
 | # | Regla | Aplicación |
 |---|-------|------------|
@@ -31,6 +31,7 @@ await orchestrateSDD({
 | **III** | **Copiar patrones maduros** | `fnTransaccionLineas` (Lambda), `servicio-tesoreria` (NestJS) |
 | **IV** | **Desarrollo bajo `/develop`** | Todo código dentro de `develop/` |
 | **V** | **Evidencia antes que afirmaciones** | Tests pasando > "Creo que funciona" |
+| **VI** | **Rama fix + PR obligatorio** | Implementar en `fix/**` y cerrar con PR a la rama base correcta |
 
 ---
 
@@ -66,11 +67,19 @@ await orchestrateSDD({
 
 ---
 
-## Flujo SDD (6 Fases)
+## Flujo SDD (ciclo estricto)
 
+```text
+/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:release → /gd:deploy → /gd:archive
 ```
-Specify → Clarify → Plan → Break Down → Implement → Review → Verify → Archive
-```
+
+### Gate Git obligatorio
+
+Antes de implementar en repos del producto:
+- identificar la rama base correcta del repo;
+- crear una rama `fix/<slug-del-cambio>`;
+- desarrollar y validar exclusivamente en esa rama;
+- abrir PR a la rama base correspondiente antes de release o archive.
 
 | Nivel | Complejidad | Fases |
 |-------|-------------|-------|

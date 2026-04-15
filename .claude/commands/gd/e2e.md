@@ -3,7 +3,7 @@
 ## Propósito
 Generar y ejecutar tests End-to-End desde los escenarios Gherkin de la especificación. Los tests E2E validan flujos completos de negocio (UI + Backend + BD) simulando el comportamiento real del usuario.
 
-**Nota**: Para tests E2E con Playwright en detalle, ver `/gd:playwright` (Level 4, 283 líneas con patterns completos).
+**Nota**: No existe un comando separado `/gd:playwright` en el catálogo actual. Los flujos E2E de UI con Playwright se documentan y ejecutan directamente desde `/gd:e2e`, usando la sección "UI E2E (Playwright)" más abajo.
 
 ---
 
@@ -72,7 +72,7 @@ describe('POST /api/caja/cerrar — E2E', () => {
 ```
 
 ### UI E2E (Playwright)
-Para flujos que requieren interacción con la UI. Ver `/gd:playwright` para el pattern completo.
+Para flujos que requieren interacción con la UI. Usar `npx playwright test` con el patrón mostrado abajo.
 
 ```typescript
 // e2e/parqueaderos/cerrar-caja.spec.ts
@@ -148,7 +148,6 @@ e2e/
 |---------|------------|
 | `/gd:test-unit` | Tests de unidades aisladas (servicios, handlers) |
 | `/gd:e2e` | Tests de flujos completos (API + BD + UI) |
-| `/gd:playwright` | Tests de UI con Playwright — patrones detallados |
 
 ---
 

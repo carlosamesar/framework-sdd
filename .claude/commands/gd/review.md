@@ -42,6 +42,7 @@ Si cualquiera de estos puntos falla, el resultado global es `FAIL` aunque el sco
 - `tenant_id` mal resuelto, CORS incompleto o vulnerabilidad OWASP abierta;
 - gaps P0 contra la spec o tasks incompletas;
 - evidencia ausente, inconsistente o no reproducible.
+- implementación hecha fuera de una rama `fix/**` o PR ausente hacia la rama base correcta.
 
 ---
 

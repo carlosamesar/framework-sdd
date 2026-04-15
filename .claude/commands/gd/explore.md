@@ -47,4 +47,4 @@ El comando proporciona:
 - Referencias a documentación existente
 
 ## Siguiente Paso
-Después de explorar, usar los hallazgos para informar la especificación con `/gd:specify` o proponer cambios con `/gd:propose`.
+Después de explorar, usar los hallazgos para informar la especificación con `/gd:specify` o planificar los cambios con `/gd:plan`. No usar `/gd:propose`, porque no forma parte del catálogo actual.
