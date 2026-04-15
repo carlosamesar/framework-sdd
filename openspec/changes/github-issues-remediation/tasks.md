@@ -30,11 +30,11 @@
 - [x] Generar evidencia de ejecución en reportes o knowledge base
 - [ ] Medir duración, éxito, fallo y reintentos
 - [x] Unificar implementaciones duplicadas del runner de issues
-- [ ] Documentar operación, soporte y rollback
+- [x] Documentar operación, soporte y rollback
 
 ## Verificación de cierre
 
-- [ ] Flujo end-to-end ejecutado con evidencia verificable
+- [x] Flujo end-to-end ejecutado con evidencia verificable
 - [ ] Cero duplicados tras reinicio del proceso
 - [ ] Cobertura del flujo crítico aceptable en CI
 - [x] Documentación operativa publicada

@@ -11,6 +11,20 @@ allowed_authors:
 trigger_labels:
   - 'sdd-auto'
 
+trigger_commands:
+  - '/gd:start'
+  - 'orquestación'
+  - 'sdd:auto'
+
+required_sections:
+  - '## Contexto'
+  - '## Objetivo'
+  - '## Alcance'
+  - '## Criterios QA'
+
+local_fallback_on_auth_failure: true
+local_store_path: 'data/local-issues.json'
+
 # Configuración de modelos por fase (Vector 2: Costo de Tokens)
 # Mapeo usado por packages/sdd-agent-orchestrator/src/middleware/model-router.mjs
 phase_model_map:

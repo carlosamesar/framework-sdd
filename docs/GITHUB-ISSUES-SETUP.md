@@ -71,8 +71,23 @@ Si se necesita un PAT dedicado, basta con cambiar el mapeo de variables del work
 
 ---
 
-## 5. Señales de éxito
+## 5. Modo alterno ya operativo
 
-- el doctor responde `ok: true`;
-- el orquestador puede listar o crear issues;
+Si GitHub sigue devolviendo 404 o problemas de permisos, el framework ahora puede seguir trabajando con un store local en:
+
+- [data/local-issues.json](data/local-issues.json)
+
+Comandos útiles:
+
+```powershell
+npm run issue:doctor
+npm run issue:local-smoke
+node bin/gd-create-issue.cjs
+node bin/sdd-issue-runner.cjs
+```
+
+## 6. Señales de éxito
+
+- el doctor responde con acceso remoto válido o con fallback local habilitado;
+- el orquestador puede listar o crear issues remotos o locales;
 - los issues con label `sdd-auto` o trigger `/gd:start` ejecutan el flujo.
