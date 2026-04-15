@@ -61,6 +61,7 @@
     "issue:local-smoke": "node scripts/test-github-local-fallback.mjs",
     "issue:dry-run": "node bin/sdd-issue-runner.cjs",
     "issue:doctor": "node bin/gd-github-doctor.cjs",
+    "deploy:lambda:zip": "node scripts/package-lambda-zip.mjs",
     "react:run": "node scripts/react-runner.mjs",
     "react:list-tools": "node scripts/react-runner.mjs --list-tools",
     "react:smoke": "node scripts/react-runner.mjs --plan scripts/fixtures/react-plan-smoke.json",

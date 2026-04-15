@@ -1,36 +1,163 @@
-name: '🚀 SDD Deploy: Staging & Prod'
+name: '🚀 AWS Lambda ZIP Deploy'
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'develop/backend/gooderp-orchestation/lib/lambda/**'
+      - '.github/workflows/deploy-post-merge.yml'
+      - 'scripts/package-lambda-zip.mjs'
+      - 'bin/gd-deploy.js'
+  workflow_dispatch:
+    inputs:
+      lambda_path:
+        description: 'Ruta relativa de la lambda dentro del repo'
+        required: true
+        type: string
+      function_name:
+        description: 'Nombre de la función Lambda en AWS'
+        required: true
+        type: string
+      aws_region:
+        description: 'Región AWS'
+        required: false
+        default: 'us-east-1'
+        type: string
+      target_environment:
+        description: 'Ambiente objetivo'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: aws-lambda-zip-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy-staging:
-    if: github.event.pull_request.merged == true
+  detect-targets:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has_changes: ${{ steps.detect.outputs.has_changes }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 🔎 Detect Lambda targets
+        id: detect
+        shell: bash
+        env:
+          INPUT_LAMBDA_PATH: ${{ inputs.lambda_path }}
+          INPUT_FUNCTION_NAME: ${{ inputs.function_name }}
+          INPUT_AWS_REGION: ${{ inputs.aws_region }}
+          INPUT_ENVIRONMENT: ${{ inputs.target_environment }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MATRIX=$(node -e "const payload=[{lambda_path: process.env.INPUT_LAMBDA_PATH, function_name: process.env.INPUT_FUNCTION_NAME, aws_region: process.env.INPUT_AWS_REGION || 'us-east-1', environment: process.env.INPUT_ENVIRONMENT || 'staging'}]; process.stdout.write(JSON.stringify(payload));")
+            echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only HEAD^ HEAD -- 'develop/backend/gooderp-orchestation/lib/lambda/**' || true)
+          else
+            CHANGED=$(git ls-files 'develop/backend/gooderp-orchestation/lib/lambda/**' || true)
+          fi
+
+          MATRIX=$(CHANGED="$CHANGED" node -e "const changed=(process.env.CHANGED || '').split(/\\r?\\n/).filter(Boolean); const seen=new Map(); for (const file of changed) { const parts=file.split('/'); const idx=parts.indexOf('lambda'); if (idx === -1 || parts.length < idx + 3) continue; const lambdaPath=parts.slice(0, idx + 3).join('/'); const functionName=parts[idx + 2]; seen.set(lambdaPath, { lambda_path: lambdaPath, function_name: functionName, aws_region: 'us-east-1', environment: 'staging' }); } process.stdout.write(JSON.stringify([...seen.values()]));")
+
+          if [ "$MATRIX" = "[]" ] || [ -z "$MATRIX" ]; then
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy-lambdas:
+    needs: detect-targets
+    if: needs.detect-targets.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect-targets.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🚀 Deploy to Staging (Automatic)
-        run: |
-          echo "Deploying to STAGING environment..."
-          # Aquí iría el comando real de deploy (SST, CDK, etc.)
-          # sst deploy --stage staging
-          echo "✅ Staging deploy complete."
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-  deploy-production:
-    if: github.event.pull_request.merged == true
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production # Esto activa la aprobación manual en GitHub Actions
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+      - name: 📦 Install dependencies
+        run: npm ci
 
-      - name: 🚀 Deploy to Production (Manual Approval Required)
+      - name: 🏗️ Run root build if present
+        shell: bash
         run: |
-          echo "Deploying to PRODUCTION environment..."
-          # sst deploy --stage prod
-          echo "✅ Production deploy complete."
+          if node -e "const pkg=require('./package.json'); process.exit(pkg.scripts && pkg.scripts.build ? 0 : 1)"; then
+            npm run build
+          else
+            echo "No root build script defined. Continuing..."
+          fi
+
+      - name: 🗜️ Package Lambda ZIP
+        run: npm run deploy:lambda:zip -- --lambda-path "${{ matrix.lambda_path }}" --output "${{ runner.temp }}/deploy.zip"
+
+      - name: 🔐 Configure AWS credentials with OIDC
+        if: env.AWS_LAMBDA_DEPLOY_ROLE_ARN != ''
+        env:
+          AWS_LAMBDA_DEPLOY_ROLE_ARN: ${{ secrets.AWS_LAMBDA_DEPLOY_ROLE_ARN }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_LAMBDA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ matrix.aws_region }}
+
+      - name: 🔐 Configure AWS credentials with access keys
+        if: env.AWS_LAMBDA_DEPLOY_ROLE_ARN == ''
+        env:
+          AWS_LAMBDA_DEPLOY_ROLE_ARN: ${{ secrets.AWS_LAMBDA_DEPLOY_ROLE_ARN }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ matrix.aws_region }}
+
+      - name: 🚀 Deploy Lambda with AWS CLI
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ matrix.function_name }}" \
+            --zip-file "fileb://${{ runner.temp }}/deploy.zip" \
+            --region "${{ matrix.aws_region }}"
+          aws lambda wait function-updated \
+            --function-name "${{ matrix.function_name }}" \
+            --region "${{ matrix.aws_region }}"
+
+      - name: 📎 Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.function_name }}-deploy-zip"
+          path: "${{ runner.temp }}/deploy.zip"
+          if-no-files-found: error
+
+      - name: 🧾 Deployment summary
+        run: |
+          echo "Lambda desplegada: ${{ matrix.function_name }}"
+          echo "Ruta: ${{ matrix.lambda_path }}"
+          echo "Ambiente: ${{ matrix.environment }}"
+          echo "Región: ${{ matrix.aws_region }}"

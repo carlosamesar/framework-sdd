@@ -89,7 +89,11 @@ Antes de proponer implementación, el comando DEBE identificar explícitamente:
 - Si el requerimiento pide CRUD y faltan métodos, se deben completar según el patrón real.
 - Para Lambdas, usar `ResponseBuilder`, `extractTenantId`, `handlers/`, `utils/` y `lambda.config.json`.
 - Para servicios NestJS, usar guard global `JwtTenantGuard`, decorador `@TenantId()`, módulos y capas ya existentes.
+- Si el trabajo incluye migraciones SQL, se deben ejecutar con **Node.js** y con las credenciales/conexión obtenidas del archivo `.env` ya mapeado en la solución.
+- No se debe proponer como camino principal correr SQL manual fuera del proyecto sin trazabilidad.
 - Toda salida debe considerar despliegue a AWS y certificación funcional cuando el cambio lo requiera.
+- Si el cambio impacta una Lambda, el camino de despliegue por defecto debe ser GitHub Actions con ZIP en `.github/workflows/deploy-post-merge.yml` (Node 20 → `npm ci` → build opcional → ZIP → autenticación AWS → `aws lambda update-function-code`).
+- `/gd:start` debe identificar también la **ruta de la lambda** y el **nombre de función AWS** esperados por ese workflow antes de cerrar el plan.
 - Si el pedido no indica dominio o recurso suficiente, **NO implementar todavía**: primero devolver ubicación sugerida y aclaración mínima.
 
 ---
