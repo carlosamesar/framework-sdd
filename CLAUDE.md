@@ -1,22 +1,22 @@
 # CLAUDE.md — Ultra-Light
 
-Usar contexto mínimo y enforcement estricto.
+Contexto mínimo. Evidencia máxima.
 
-## Carga recomendada
+## Carga
 1. este archivo
 2. `AGENTS.md`
-3. un solo módulo de `.agents-core/` según la tarea
-4. `COMMANDS-INDEX.md` solo si el usuario llama un comando `gd:*`
-5. `PATTERNS-CACHE.md` para copiar patrones repetidos
+3. un módulo de `.agents-core/`
+4. `COMMANDS-INDEX.md` solo si hay `gd:*`
+5. `PATTERNS-CACHE.md` para snippets
 
-## Reglas duras
-- iniciar con `/gd:start` si falta contexto;
-- TDD obligatorio;
-- `tenantId` solo desde JWT;
-- reutilizar patrones maduros;
-- lambdas con ResponseBuilder y cobertura GET/POST/PUT/DELETE/OPTIONS + CORS;
-- no declarar éxito sin evidencia.
+## Reglas
+- `/gd:start` si falta contexto
+- TDD: RED → GREEN → REFACTOR
+- `tenantId` solo desde JWT
+- copiar patrones maduros del repo
+- Lambdas: ResponseBuilder + GET/POST/PUT/DELETE/OPTIONS + CORS
+- no declarar éxito sin verificación
 
 ## Cierre
-`/gd:review`, `/gd:verify` y `/gd:close` no se omiten.
-Si una duda es específica, usar RAG antes de cargar documentación extensa.
+No omitir `/gd:review`, `/gd:verify` y `/gd:close`.
+Usar RAG antes de abrir documentación extensa.
