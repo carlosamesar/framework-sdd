@@ -49,6 +49,7 @@ Antes de proponer implementación, el comando DEBE identificar explícitamente:
 3. **archivos candidatos** que sí se tocarán;
 4. **archivos o capas que NO se tocarán**;
 5. si el cambio pertenece a `modules/`, `features/`, `shared/`, `core/` o `component/`.
+6. si el pedido vino como URL o path funcional, **resolver primero las rutas Angular** en `src/app/app.routes.ts` y sus children para descubrir el recurso real antes de buscar por nombre literal.
 
 ### Reglas no negociables para frontend
 
@@ -59,6 +60,8 @@ Antes de proponer implementación, el comando DEBE identificar explícitamente:
 - `core/` es solo para servicios globales, interceptors, api/config y modelos transversales.
 - `features/` se usa para verticales modernas aisladas como `parqueaderos`, siguiendo `smart/`, `dumb/`, `models/` y `services/`.
 - `component/` y algunas áreas como `logistica/` son legado: solo se modifican si la ruta actual ya vive allí.
+- Si el usuario da una ruta tipo pantalla o URL, primero hay que seguir el árbol de routing y redirects; la ruta visible puede estar asociada a otro recurso o módulo con nombre distinto.
+- Ejemplo: no buscar literalmente `contact/all/new`; primero resolver si cae en un patrón canónico como `contacts/:contact/new` y recién ahí ubicar el componente real.
 - Si el pedido no indica módulo o ruta suficiente, **NO implementar todavía**: primero devolver ubicación sugerida y aclaración mínima.
 
 ### Modo estricto obligatorio si `--stack=backend`
