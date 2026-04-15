@@ -21,17 +21,22 @@ Sin estos daemons: la **SQLite** y **MCP `mem_*`** siguen funcionando al momento
 
 ## Puesta en marcha rápida (desarrollo)
 
+### Recomendado en Windows y Linux
+
 ```bash
 cd /ruta/al/Framework-SDD
-./scripts/start-memory-daemons.sh
-./scripts/status-memory-daemons.sh
+npm run memory:daemons:start
+npm run memory:daemons:status
+npm run memory:daemons:health
 ```
 
 Detener:
 
 ```bash
-./scripts/stop-memory-daemons.sh
+npm run memory:daemons:stop
 ```
+
+Los scripts Bash siguen disponibles como alternativa manual en Linux.
 
 ## Systemd (usuario) — recomendado
 

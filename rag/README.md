@@ -54,6 +54,8 @@ Desde la raíz del monorepo: `npm run rag:migrate`, `npm run rag:index`, `npm ru
 
 En entornos de desarrollo el framework exige el **daemon de reindexado**: `../scripts/rag-index-daemon.sh` (intervalo `RAG_INDEX_INTERVAL`, default 3600 s). Configuración: `../config/rag-daemon.env.example` → `~/.config/framework-sdd/rag-daemon.env`.
 
+Si PostgreSQL no está disponible, el indexador ahora conserva un **fallback local** en `rag/.rag-local-index.json` para que las consultas sigan devolviendo contexto útil mientras se recupera la BD.
+
 ```bash
 # Desde la raíz del framework
 ./scripts/rag-index-daemon.sh start

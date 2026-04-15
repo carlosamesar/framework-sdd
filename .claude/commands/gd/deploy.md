@@ -46,6 +46,8 @@ Para Lambdas Node.js, el flujo estándar queda integrado así:
 
 El workflow canónico del repo es `.github/workflows/deploy-post-merge.yml`.
 
+Si las credenciales ya existen en un `.env` local, se deben reflejar también como GitHub Secrets o Environment Secrets para que `workflow_dispatch` y los pushes del repo puedan desplegar realmente desde GitHub.
+
 ---
 
 ## Quality Gates de Deploy
