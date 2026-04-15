@@ -11,7 +11,7 @@ Qué es **obligatorio** en este repo frente a qué es **opcional** pero recomend
 
 ## Lineamiento: memoria automática (obligatorio si usas Engram + RAG)
 
-Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de sync Engram y reindex RAG (o systemd equivalente). Ver **[`lineamiento-memoria-automatica.md`](lineamiento-memoria-automatica.md)** y `./scripts/start-memory-daemons.sh` o `npm run memory:daemons:start`.
+Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de sync Engram y reindex RAG (o systemd equivalente). Ver **[`lineamiento-memoria-automatica.md`](lineamiento-memoria-automatica.md)** y usar preferentemente `npm run memory:daemons:start`.
 
 ---
 
@@ -19,7 +19,7 @@ Si trabajas con **Engram** y **RAG**, debes dejar en marcha los **daemons** de s
 
 | Componente | Uso |
 |------------|-----|
-| **Memoria automática (Engram + RAG)** | Obligatorio: `./scripts/start-memory-daemons.sh` y `./scripts/status-memory-daemons.sh` |
+| **Memoria automática (Engram + RAG)** | Obligatorio: `npm run memory:daemons:start` y `npm run memory:daemons:status` |
 | `AGENTS.md` | Contrato maestro de implementación |
 | `openspec/config.yaml` + `openspec/changes/` | Delta specs |
 | `npm run spec:validate` | Estructura OpenSpec |

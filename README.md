@@ -59,9 +59,11 @@ El punto de entrada `/gd:start` quedó endurecido para reducir ambigüedad y rep
 
 ```bash
 cd /ruta/a/framework-sdd
-./scripts/start-memory-daemons.sh
-./scripts/status-memory-daemons.sh
+npm run memory:daemons:start
+npm run memory:daemons:status
 ```
+
+> Compatible con Windows y Linux. Los scripts Bash quedan como alternativa manual en Linux.
 
 Esto asegura:
 - Engram sincroniza memoria persistente y contexto multi-proyecto.
@@ -300,13 +302,14 @@ Sigue estos pasos para dejar Framework-SDD 100% funcional tras clonar el repo:
 - Verifica la instalación con `gd:doctor` y `npm run spec:validate`.
 
 ### 3. Memoria Persistente (Engram) y RAG
-- Copia y completa `config/engram-daemon.env.example` a `~/.config/framework-sdd/engram-daemon.env` (agrega tu ENGRAM_GIT_TOKEN).
+- Copia y completa `config/engram-daemon.env.example` a `~/.config/framework-sdd/engram-daemon.env` o su equivalente en tu perfil local.
 - Inicia los daemons de memoria y RAG:
     ```bash
-    ./scripts/start-memory-daemons.sh
-    ./scripts/status-memory-daemons.sh
+    npm run memory:daemons:start
+    npm run memory:daemons:status
+    npm run memory:daemons:health
     ```
-    O usa systemd para ejecución automática (ver `docs/lineamiento-memoria-automatica.md`).
+    O usa systemd para ejecución automática en Linux (ver `docs/lineamiento-memoria-automatica.md`).
 - Para RAG, configura Postgres local con Docker (`npm run rag:db:up`), copia `rag/.env.example` a `rag/.env` y ajusta variables.
 
 ### 4. Orquestador y Agentes
