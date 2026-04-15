@@ -4,6 +4,7 @@ import path from 'path';
 import { getPool, FRAME_ROOT_RESOLVED } from './db.mjs';
 import { embedText, vectorLiteral } from './embed.mjs';
 import { chunkMarkdown } from './chunk.mjs';
+import { saveLocalIndex } from './local-fallback.mjs';
 
 const ROOT = FRAME_ROOT_RESOLVED;
 const IGNORE_DIR = new Set([
@@ -53,39 +54,58 @@ function collectFiles() {
 }
 
 async function main() {
-  const pool = getPool();
   const files = collectFiles();
   console.error('RAG index: archivos MD:', files.length);
 
-  const client = await pool.connect();
-  try {
-    for (const abs of files) {
-      const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
-      const raw = fs.readFileSync(abs, 'utf8');
-      if (raw.length > 800_000) {
-        console.error('Omitido (muy grande):', rel);
-        continue;
-      }
-      const parts = chunkMarkdown(raw);
-      await client.query('DELETE FROM rag.document_chunks WHERE source_path = $1', [rel]);
-      let idx = 0;
-      for (const content of parts) {
-        const vec = await embedText(content);
-        const lit = vectorLiteral(vec);
-        await client.query(
-          `INSERT INTO rag.document_chunks (source_path, chunk_index, content, embedding)
-           VALUES ($1, $2, $3, $4::vector)`,
-          [rel, idx, content, lit],
-        );
-        idx += 1;
-        process.stderr.write('.');
-      }
-      process.stderr.write(` ${rel} (${parts.length})\n`);
+  const localChunks = [];
+  for (const abs of files) {
+    const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+    const raw = fs.readFileSync(abs, 'utf8');
+    if (raw.length > 800_000) {
+      console.error('Omitido (muy grande):', rel);
+      continue;
     }
-    console.error('RAG index OK');
-  } finally {
-    client.release();
-    await pool.end();
+    const parts = chunkMarkdown(raw);
+    parts.forEach((content, index) => localChunks.push({ path: rel, index, content }));
+  }
+
+  saveLocalIndex(localChunks);
+  console.error('RAG local fallback index OK:', localChunks.length, 'chunks');
+
+  try {
+    const pool = getPool();
+    const client = await pool.connect();
+    try {
+      for (const abs of files) {
+        const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+        const raw = fs.readFileSync(abs, 'utf8');
+        if (raw.length > 800_000) continue;
+        const parts = chunkMarkdown(raw);
+        await client.query('DELETE FROM rag.document_chunks WHERE source_path = $1', [rel]);
+        let idx = 0;
+        for (const content of parts) {
+          const vec = await embedText(content);
+          const lit = vectorLiteral(vec);
+          await client.query(
+            `INSERT INTO rag.document_chunks (source_path, chunk_index, content, embedding)
+             VALUES ($1, $2, $3, $4::vector)`,
+            [rel, idx, content, lit],
+          );
+          idx += 1;
+          process.stderr.write('.');
+        }
+        process.stderr.write(` ${rel} (${parts.length})\n`);
+      }
+      console.error('RAG index OK');
+    } finally {
+      client.release();
+      await pool.end();
+    }
+  } catch (e) {
+    console.error('RAG DB unavailable; local fallback preserved.');
+    if (process.env.RAG_REQUIRE_DB === '1') {
+      throw e;
+    }
   }
 }
 
