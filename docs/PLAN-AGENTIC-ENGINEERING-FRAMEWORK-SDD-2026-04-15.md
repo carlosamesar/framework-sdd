@@ -135,7 +135,8 @@ npm run orchestrator:gd-catalog
 
 - catálogo gd uniforme;
 - menor variabilidad entre comandos;
-- flujo de ejecución más predecible.
+- flujo de ejecución más predecible;
+- outputs estructurados y auditables para doctor, gate, status, audit-trail y threshold.
 
 ### Criterio de terminado
 
