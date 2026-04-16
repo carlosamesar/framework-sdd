@@ -4,7 +4,7 @@ import path from 'path';
 
 const ROOT = process.cwd();
 const BASELINE_TOKENS = 74600;
-const TARGET_SAVINGS = 95;
+const TARGET_SAVINGS = 98;
 const STRICT = process.argv.includes('--strict');
 
 const rel = (...parts) => path.join(ROOT, ...parts);
