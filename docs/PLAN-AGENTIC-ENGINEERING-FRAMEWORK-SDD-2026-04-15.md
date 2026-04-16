@@ -9,9 +9,9 @@
 
 ### Estado verificado
 
-- **Madurez global del framework:** aproximadamente **4.0 / 5**
-- **Madurez del catálogo gd:*:** **4.01 / 5**
-- **Nivel operativo real:** **alto**, pero todavía **no plenamente agentic**
+- **Madurez global del framework:** aproximadamente **4.5 / 5**
+- **Madurez del catálogo gd:*:** **4.4+ / 5**
+- **Nivel operativo real:** **alto**, con base agentic ya verificable y gobernable
 
 ### Interpretación ejecutiva
 
@@ -52,12 +52,12 @@ Se considerará alcanzado el objetivo cuando el framework pueda:
 
 | Dimensión | Hoy | Meta 30 días |
 |---|---:|---:|
-| Pipeline y comandos gd | 4.0 | 4.5 |
-| Verificación y evidencia | 4.1 | 4.8 |
-| Runtime agentic | 4.3 | 4.7 |
-| Memoria y RAG | 3.2 | 4.3 |
-| Observabilidad y gobierno | 3.5 | 4.5 |
-| **Promedio global** | **4.0** | **4.6+** |
+| Pipeline y comandos gd | 4.4 | 4.7 |
+| Verificación y evidencia | 4.8 | 4.9 |
+| Runtime agentic | 4.6 | 4.8 |
+| Memoria y RAG | 4.1 | 4.4 |
+| Observabilidad y gobierno | 4.3 | 4.6 |
+| **Promedio global** | **4.5** | **4.6+** |
 
 ---
 
@@ -256,10 +256,10 @@ npm run issue:config-smoke
 
 ## P0 — esta semana
 
-- endurecer verify-before-close en el flujo completo;
-- subir comandos críticos a nivel maduro homogéneo;
-- consolidar evidencia automática de ejecución;
-- correr baseline y publicar resultados.
+- [x] endurecer verify-before-close en el flujo completo;
+- [x] subir comandos críticos a nivel maduro homogéneo;
+- [x] consolidar evidencia automática de ejecución;
+- [x] correr baseline y publicar resultados.
 
 ## P1 — siguiente semana
 
@@ -289,13 +289,13 @@ Ejecutar en este orden:
 
 ## 6. Checklist ejecutivo
 
-- [ ] baseline del framework ejecutado
-- [ ] smoke ReAct verificado
-- [ ] tokens dentro de presupuesto
-- [ ] memoria y RAG saludables
+- [x] baseline del framework ejecutado
+- [x] smoke ReAct verificado
+- [x] tokens dentro de presupuesto
+- [x] memoria y RAG saludables
 - [x] review y verify obligatorios
-- [ ] comandos críticos endurecidos
-- [ ] evidencia por fase disponible
+- [x] comandos críticos endurecidos
+- [x] evidencia por fase disponible
 - [ ] piloto real ejecutado
 
 ---
