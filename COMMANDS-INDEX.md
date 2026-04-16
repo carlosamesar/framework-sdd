@@ -2,8 +2,16 @@
 
 Usar solo el comando solicitado.
 
+## Stacks y Proyectos Soportados
+| --stack | --project | Ruta |
+|---------|---------|------|
+| frontend | sigat | /develop/frontend/sigat-client |
+| frontend | gooderp | /develop/frontend/gooderp-client |
+| backend | sigat | /develop/backend/sigat-orchestation |
+| backend | gooderp | /develop/backend/gooderp-orchestation |
+
 ## Pipeline
-- /gd:start
+- /gd:start [--stack=<stack>] [--project=<project>] "descripción"
 - /gd:implement
 - /gd:review
 - /gd:verify
