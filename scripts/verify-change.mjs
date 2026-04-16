@@ -46,7 +46,31 @@ function validateSlugForChangesRoot(changesAbs, slug) {
   if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) {
     return { ok: false, error: 'slug fuera de changes_root' };
   }
-  return { ok: true, resolved };
+  return { ok: true, resolved, normalized: norm };
+}
+
+function resolveExistingChangeDir(changesAbs, slug) {
+  const validated = validateSlugForChangesRoot(changesAbs, slug);
+  if (!validated.ok) return validated;
+  if (fs.existsSync(validated.resolved)) return validated;
+
+  const normalized = validated.normalized;
+  const matches = [];
+  for (const rel of listAllChangeSlugs(changesAbs)) {
+    const base = rel.split('/').pop() || rel;
+    const withoutDate = base.replace(/^\d{4}-\d{2}-\d{2}-/, '');
+    if (rel === normalized || base === normalized || withoutDate === normalized) {
+      matches.push(path.join(changesAbs, ...rel.split('/')));
+    }
+  }
+
+  if (matches.length === 1) {
+    return { ok: true, resolved: matches[0], normalized };
+  }
+  if (matches.length > 1) {
+    return { ok: false, error: `slug ambiguo: ${slug}` };
+  }
+  return { ok: false, error: `Change no encontrado: ${slug}` };
 }
 
 function parseTasks(tasksMd) {
@@ -81,14 +105,15 @@ function listSpecFiles(specsDir) {
 function verifyChange(slug) {
   const changesRel = readChangesRoot();
   const changesAbs = path.join(REPO_ROOT, changesRel);
-  const v = validateSlugForChangesRoot(changesAbs, slug);
+  const v = resolveExistingChangeDir(changesAbs, slug);
   if (!v.ok) {
-    return { error: `Change no válido: ${v.error}`, path: null };
+    const isInvalid = /slug vacío|ruta absoluta|segmento de slug|fuera de changes_root/i.test(v.error);
+    return {
+      error: isInvalid ? `Change no válido: ${v.error}` : v.error,
+      path: null,
+    };
   }
   const changeDir = v.resolved;
-  if (!fs.existsSync(changeDir)) {
-    return { error: `Change no encontrado: ${slug}`, path: changeDir };
-  }
 
   const tasksPath = path.join(changeDir, 'tasks.md');
   const tasks = parseTasks(tasksPath);

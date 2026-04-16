@@ -1,7 +1,4 @@
 // sdd-agent-orchestrator/src/__tests__/database-deploy.test.js
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
 const { analyzeDatabase } = require('../database.cjs');
 const { simulateDeploy } = require('../deploy.cjs');
 

@@ -11,6 +11,7 @@ import { resolveOpenspecContext } from './lib/openspec-config.mjs';
 const REPO_ROOT = getProjectRoot();
 
 const ENTRY_FILES = ['proposal.md', 'design.md', 'tasks.md'];
+const ARCHIVE_ENTRY_FILES = [...ENTRY_FILES, 'CIERRE-SPEC.md', 'EVIDENCE.md'];
 
 function isDir(p) {
   try {
@@ -43,7 +44,7 @@ function specHasScenarios(content) {
   const boldGherkin =
     /\*\*(?:GIVEN|WHEN|THEN|Dado|Cuando|Entonces)\*\*/i.test(c) ||
     (/\*\*Dado\*\*/i.test(c) && /\*\*Cuando\*\*/i.test(c) && /\*\*Entonces\*\*/i.test(c));
-  const lineGherkin = /^(GIVEN|WHEN|THEN)\s+/im.test(c);
+  const lineGherkin = /^(GIVEN|WHEN|THEN|Dado|Cuando|Entonces)\s+/im.test(c);
   const listGherkin = /(^|\n)\s*-\s+(GIVEN|WHEN|THEN|Dado|Cuando|Entonces)\b/i.test(c);
   const scenarioBlocks = /(?:^|\n)#{3,4}\s+(?:Scenario|Escenario|\d+|R\d+)/i.test(c);
   const tableMust =
@@ -120,9 +121,11 @@ function main() {
 
   for (const changeDir of changeDirs) {
     const slug = path.relative(changesAbs, changeDir);
-    const hasEntry = ENTRY_FILES.some((f) => fs.existsSync(path.join(changeDir, f)));
+    const isArchiveChange = slug === 'archive' || slug.startsWith(`archive${path.sep}`);
+    const allowedEntryFiles = isArchiveChange ? ARCHIVE_ENTRY_FILES : ENTRY_FILES;
+    const hasEntry = allowedEntryFiles.some((f) => fs.existsSync(path.join(changeDir, f)));
     if (!hasEntry) {
-      errors.push(`[${slug}] falta al menos uno de: ${ENTRY_FILES.join(', ')}`);
+      errors.push(`[${slug}] falta al menos uno de: ${allowedEntryFiles.join(', ')}`);
       continue;
     }
 
