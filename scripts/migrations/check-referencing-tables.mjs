@@ -1,3 +1,4 @@
+import '../lib/load-framework-env.mjs';
 import pg from 'pg';
 
 const dbConfig = {

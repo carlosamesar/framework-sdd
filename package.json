@@ -32,6 +32,15 @@
     "openspec/projects/README.md"
   ],
   "scripts": {
+    "build": "npm run framework:ci",
+    "start": "npm run build",
+    "db:check": "node scripts/check-tables.mjs",
+    "db:migrate:agendamiento": "node scripts/migrate-agendamiento-ddl.mjs",
+    "lambda:agendamiento:env": "node scripts/sync-agendamiento-lambda-env.mjs",
+    "lambda:deploy:agendamiento": "node scripts/deploy-agendamiento-lambda.mjs",
+    "apigateway:agendamiento:cognito": "node scripts/apigateway-agendamiento-cognito.mjs",
+    "apigateway:agendamiento:list": "node scripts/apigateway-agendamiento-cognito.mjs --list",
+    "apigateway:wire:agendamiento": "node scripts/apigateway-wire-fn-agendamiento.mjs",
     "spec:validate": "node scripts/validate-spec.mjs",
     "spec:validate-react": "node scripts/validate-react-schemas.mjs",
     "spec:verify": "node scripts/verify-change.mjs",

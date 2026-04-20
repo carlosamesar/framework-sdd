@@ -16,6 +16,7 @@
  * - DB_SSL: Enable SSL (true/false, default: false)
  */
 
+import { applyDatabaseEnvAliases } from '../../scripts/lib/load-framework-env.mjs';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { readFileSync } from 'fs';
@@ -24,11 +25,9 @@ import { config } from 'dotenv';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Try to load .env from multiple locations
 const envPaths = [
-  join(__dirname, '..', '.env'),              // root/.env
-  join(__dirname, '..', 'rag', '.env'),       // rag/.env
-  resolve(process.cwd(), '.env'),             // cwd/.env
+  join(__dirname, '..', '.env'),
+  resolve(process.cwd(), '.env'),
 ];
 
 for (const envPath of envPaths) {
@@ -38,10 +37,11 @@ for (const envPath of envPaths) {
       console.log(`✅ Loaded .env from: ${envPath}`);
       break;
     }
-  } catch (e) {
-    // Continue to next path
+  } catch {
+    /* siguiente */
   }
 }
+applyDatabaseEnvAliases();
 
 // Validate environment variables
 const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
