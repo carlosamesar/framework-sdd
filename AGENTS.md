@@ -1,66 +1,36 @@
-# AGENTS.md — Ultra-Light
+# AGENTS.md
 
-SDD estricto con contexto mínimo.
+Documento maestro del framework. No debe cargarse completo por defecto.
 
-## Reglas
-1. TDD.
-2. `tenantId` solo desde JWT.
-3. Copiar patrones maduros.
-4. Lambdas con ResponseBuilder + métodos completos + CORS.
-5. No cerrar sin evidencia.
-6. Trabajar en `fix/*` + PR.
+## Objetivo
 
-## Flujo
-`/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:release → /gd:deploy → /gd:archive`
+Centralizar reglas compartidas para Claude, Copilot, OpenCode y Qwen sin inflar el contexto base.
 
-## Carga
-- base: este archivo + archivo del agente
-- un módulo de `.agents-core/`
-- `COMMANDS-INDEX.md` solo si hay `gd:*`
-- `PATTERNS-CACHE.md` para snippets
-- RAG solo para dudas puntuales
+## Reglas compartidas
 
-## Stacks y Proyectos Soportados
+1. `tenantId` siempre desde JWT `custom:tenant_id`.
+2. TDD obligatorio: RED -> GREEN -> REFACTOR.
+3. Reutilizar patrones maduros antes de inventar estructuras nuevas.
+4. En lambdas, usar `ResponseBuilder` y manejo consistente de errores.
+5. Consultar memoria, RAG o docs antes de asumir historial.
 
-### Command Format
-```
-/gd:start --stack=<stack> --project=<project> "descripción"
-```
+## Politica de carga
 
-### Stacks Disponibles
-| Stack | Descripción |
-|------|------------|
-| `frontend` | Proyectos Angular/React |
-| `backend` | Proyectos NestJS/Lambda |
+- Archivo base por herramienta: `CLAUDE.md`, `.github/copilot-instructions.md`, `OPENCODE.md`, `QWEN.md`.
+- Catalogo de comandos: `COMMANDS-INDEX.md`.
+- Catalogo de patrones: `PATTERNS-CACHE.md`.
+- Modulos on-demand: `.agents-core/*.md`.
+- Estrategia de ahorro: `docs/TOKEN-OPTIMIZATION-STRATEGY.md`.
 
-### Proyectos por Stack
+## Cuando cargar modulos
 
-#### Frontend
-| Project | Ruta | Descripción |
-|---------|------|------------|
-| `sigat` | /develop/frontend/sigat-client | SIGAT Client (Angular 21) |
-| `gooderp` | /develop/frontend/gooderp-client | GoodERP Client |
+- Auth o multitenancy: `.agents-core/multi-tenant.md`
+- Lambda o API Gateway: `.agents-core/lambdas-pattern.md`
+- NestJS: `.agents-core/nestjs-pattern.md`
+- Tests o gates: `.agents-core/testing-rules.md`
+- SAGA: `.agents-core/saga-pattern.md`
+- Frontend Angular (formularios, shell, facade): skill `gd-frontend` via `/gd:frontend`, estricto con anclas `/treasury/inflows/new` y `/purchases/orders/new`
 
-#### Backend
-| Project | Ruta | Descripción |
-|---------|------|------------|
-| `sigat` | /develop/backend/sigat-orchestation | SIGAT Orchestration (NestJS) |
-| `gooderp` | /develop/backend/gooderp-orchestation | GoodERP Orchestation |
+## Regla operativa
 
-### Ejemplos de Uso
-```bash
-# Frontend SIGAT
-/gd:start --stack=frontend --project=sigat "integrar con backend"
-
-/gd:start --stack=frontend --project=gooderp "agregar componente tabla"
-
-/gd:start --stack=backend --project=sigat "crear endpoint auth"
-
-/gd:start --stack=backend --project=gooderp "crear lambda fnCategoria"
-```
-
-### shortcuts
-- `--stack=f` = `--stack=frontend`
-- `--stack=b` = `--stack=backend`
-- `-s <stack>` = `--stack=<stack>`
-- `-p <project>` = `--project=<project>`
+Mantener el contexto base pequeno. Cargar un solo modulo adicional por tarea, salvo que la tarea mezcle dominios.

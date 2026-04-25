@@ -1,177 +1,167 @@
-# /gd:plan — Generar Blueprint Técnico
+# /gd:plan — Plan Técnico de Implementación (Nivel 2+)
 
-## Propósito
-Crear un blueprint técnico completo con arquitectura, contratos API, esquema de BD y decisiones de diseño, basado en la especificación clarificada. Produce un documento ejecutable que guía toda la implementación.
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:plan` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
 
 ## Alias
-- `/gd:tech-plan`
-- `/gd:diseñar`
-- `/gd:planificar-tecnico`
+- `/gd:planificar`
+- `/gd:technical-plan`
 
 ---
 
-## Prerrequisitos
-- Spec en estado `CLARIFIED` o `APPROVED` (output de `/gd:clarify` sin BLOCKERs)
-- Change activo en `openspec/changes/[slug]/`
+## Propósito
+
+Diseñar el plan técnico de implementación **basado en la SPEC verificada**. Define la arquitectura del cambio, los archivos afectados, las decisiones técnicas y el orden de ejecución — sin escribir código todavía.
+
+Produce el documento `PLAN.md` del cambio, que guía a `/gd:breakdown` y `/gd:implement`.
 
 ---
 
-## Cómo Funciona
+## Parámetros
 
-1. **Leer spec clarificada** y extraer requerimientos técnicos
-2. **Identificar el stack** (Lambda, NestJS, o ambos) y los patrones maduros de referencia
-3. **Diseñar contratos API** con request/response schemas completos
-4. **Diseñar el esquema de BD** en DBML con multi-tenant explícito
-5. **Identificar riesgos** y decisiones de arquitectura (ADRs si Nivel ≥ 2)
-6. **Integrar razonamiento** para decisiones irreversibles (ver abajo)
+```
+/gd:plan --change=<slug>
+/gd:plan --change=<slug> --project=<proyecto>
+```
 
 ---
 
-## Plantilla de Output Obligatoria
+## Inputs requeridos
+
+- `SPEC.md` completo y verificado (output de `/gd:specify` + `/gd:clarify`)
+- Stack y proyecto heredados de `/gd:start`
+- Nivel de complejidad (2, 3 o 4)
+
+Si la SPEC no está completa, **no continuar**: volver a `/gd:specify` o `/gd:clarify`.
+
+---
+
+## Proceso
+
+### 1. Identificar el patrón espejo
+
+Buscar en el proyecto real el componente, lambda, servicio o módulo más cercano al cambio propuesto. El patrón espejo define:
+- Estructura de carpetas a seguir
+- Convenciones de naming
+- Patrones de código reutilizables (guards, decoradores, facades, etc.)
+
+Documentar explícitamente:
+- **Patrón espejo elegido**: ruta real + justificación
+- **Diferencias respecto al nuevo cambio**: qué se adapta vs. qué se copia
+
+### 2. Mapear archivos afectados
+
+Listar todos los archivos que se van a:
+- **Crear** (nuevos)
+- **Modificar** (existentes)
+- **Eliminar** (si aplica)
+
+Para cada archivo: ruta completa + propósito del cambio.
+
+### 3. Definir decisiones técnicas
+
+Para cada decisión no trivial, documentar:
+
+```
+DEC-01: [Decisión]
+  Opción elegida: [A]
+  Alternativa descartada: [B]
+  Razón: [por qué A es mejor para este caso]
+```
+
+Ejemplos de decisiones típicas:
+- ¿Signal o BehaviorSubject?
+- ¿Lambda nueva o extender existente?
+- ¿Migración de BD o compatible sin migración?
+- ¿PUT o PATCH para actualización parcial?
+
+### 4. Definir orden de implementación
+
+Secuencia estricta para cambios multi-capa:
+
+```
+1. BD (migraciones o schema si aplica)
+2. Backend (lambda / servicio NestJS)
+3. Frontend (componente / feature)
+4. Tests (unitarios, integración, E2E)
+5. Evidencia (CONSUMO.md, EVIDENCE.md)
+```
+
+Si el cambio es de una sola capa, declararlo y ordenar igualmente las tareas en esa capa.
+
+### 5. Identificar riesgos
+
+Señalar qué puede salir mal:
+- Dependencias de terceros (APIs externas, servicios AWS)
+- Compatibilidad con datos existentes
+- Impacto en otros módulos o tenants
+- Necesidad de rollback
+
+---
+
+## Salida Esperada
+
+Archivo `PLAN.md` creado en:
+```
+openspec/changes/<change-slug>/PLAN.md
+```
+
+Si el directorio no existe, se habrá creado en `/gd:specify`. Verificar su existencia antes de escribir.
+
+Estructura del archivo:
 
 ```markdown
-# PLAN TÉCNICO: [Nombre del cambio]
+# PLAN — <change-slug>
 
-## Metadata
-- **Change**: [slug]
-- **Stack**: Lambda | NestJS | Fullstack
-- **Nivel**: [0-4]
-- **Referencia**: [patrón maduro de referencia]
+## Stack / Proyecto
+- Stack: [frontend|backend|fullstack]
+- Proyecto: [ruta real]
+- Nivel: [2|3|4]
 
-## Arquitectura
+## Patrón espejo
+- Ruta: [ruta del patrón en el repo]
+- Adaptar: [qué se modifica respecto al patrón]
 
-### Componentes Involucrados
-```
-[Diagrama ASCII de componentes y flujo de datos]
+## Archivos afectados
+| Archivo | Acción | Propósito |
+|---------|--------|-----------|
+| path/to/file.ts | CREAR | ... |
+| path/to/other.ts | MODIFICAR | ... |
 
-API Gateway → Lambda fnXxx → DynamoDB / RDS
-                ↓
-            EventBridge → Lambda fnYyy (async)
-```
+## Decisiones técnicas
+- DEC-01: ...
+- DEC-02: ...
 
-### Patrón de Referencia
-- **Lambda**: `lib/lambda/transacciones/fnTransaccionLineas/` — estructura y manejo de errores
-- **NestJS**: `servicio-tesoreria/src/` — módulos, DTOs, guards
-- **Multi-tenant**: Siempre desde JWT — `const tenantId = event.requestContext.authorizer.claims['custom:tenant_id']`
+## Orden de implementación
+1. ...
+2. ...
 
-## Contratos API
+## Riesgos
+- [Riesgo 1] → Mitigación: [...]
+- [Riesgo 2] → Mitigación: [...]
 
-### [MÉTODO] /api/[recurso]
-
-**Request**
-```json
-{
-  "campo1": "string — descripción y validaciones",
-  "campo2": "number — rango válido"
-}
-```
-
-**Response 200**
-```json
-{
-  "id": "uuid",
-  "campo1": "string",
-  "createdAt": "ISO8601"
-}
-```
-
-**Errores**
-| Status | Código | Mensaje | Cuándo |
-|--------|--------|---------|--------|
-| 400 | VALIDATION_ERROR | [mensaje] | Input inválido |
-| 401 | UNAUTHORIZED | Token inválido o expirado | Sin JWT o JWT inválido |
-| 403 | FORBIDDEN | Sin permisos para este recurso | Rol insuficiente |
-| 404 | NOT_FOUND | [recurso] no encontrado | ID no existe en el tenant |
-| 500 | INTERNAL_ERROR | Error interno | Fallo no controlado |
-
-## Esquema de Base de Datos
-
-```dbml
-Table [nombre_tabla] {
-  id          uuid       [pk, default: `uuid_generate_v4()`]
-  tenant_id   uuid       [not null, ref: > tenants.id, note: 'NUNCA de body — siempre de JWT']
-  [campo]     [tipo]     [not null | null, note: 'descripción']
-  created_at  timestamp  [not null, default: `now()`]
-  updated_at  timestamp  [not null, default: `now()`]
-
-  indexes {
-    (tenant_id, [campo_busqueda]) [name: 'idx_[tabla]_tenant_[campo]']
-  }
-}
-```
-
-**Migraciones requeridas**: [lista de ALTER TABLE o CREATE TABLE]
-
-## Decisiones de Arquitectura
-
-### ADR-001: [Decisión tomada]
-- **Contexto**: [por qué es necesario decidir]
-- **Opciones**: A) [opción A] | B) [opción B]
-- **Decisión**: [opción elegida]
-- **Consecuencias**: [trade-offs aceptados]
-
-## Riesgos Técnicos
-
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|--------|-------------|---------|-----------|
-| [riesgo 1] | Alta/Media/Baja | Alto/Medio/Bajo | [cómo mitigar] |
-
-## Checklist de Plan
-
-- [ ] Todos los endpoints del spec tienen contrato completo (request + response + errores)
-- [ ] tenant_id extraído de JWT en todos los endpoints/lambdas
-- [ ] Esquema DBML completo con índices para queries principales
-- [ ] Decisiones irreversibles documentadas como ADR
-- [ ] Stack identificado y patrón de referencia seleccionado
+## Change slug confirmado
+`<change-slug>` — propagar a todos los comandos siguientes
 ```
 
 ---
 
-## Uso
+## Gate de Salida
 
-```
-/gd:plan
-/gd:plan [slug]   # para un change específico
-```
-
----
-
-## Integración con Razonamiento
-
-Antes de tomar decisiones arquitectónicas irreversibles (cambios de esquema, elección de patrón):
-
-```
-/gd:razonar --modelo=reversibilidad [opciones arquitectónicas a evaluar]
-```
-
-Para proyectos Nivel 3-4, análisis de efectos de segundo orden:
-
-```
-/gd:razonar --modelo=segundo-orden [descripción del plan]
-```
-
-Para pre-mortem antes de una migración de datos:
-
-```
-/gd:razonar --modelo=pre-mortem [descripción de la migración]
-```
+- [ ] Patrón espejo identificado con ruta real
+- [ ] Todos los archivos afectados mapeados
+- [ ] Decisiones técnicas documentadas
+- [ ] Orden de implementación definido
+- [ ] Riesgos listados con mitigación
 
 ---
 
-## Reglas Críticas
+## Siguiente paso
 
-1. **Multi-tenant obligatorio**: Todo endpoint que toque datos de negocio debe extraer `tenant_id` del JWT — nunca del body, nunca de params
-2. **Contratos primero**: Los contratos API son el contrato con el frontend — no se cambian sin coordinar
-3. **Índices explícitos**: Todo DBML debe incluir los índices necesarios para las queries del spec
-4. **Referencia a patrón maduro**: Siempre identificar el archivo de referencia en el repo
-
----
-
-## Salida Estructurada (agentes ReAct)
-
-Emitir JSON al final según `openspec/templates/react-outputs/plan.output.schema.json` (contratos API, riesgos, regla de tenant).
-
----
-
-## Siguiente Paso
-Después del plan técnico, usar `/gd:breakdown` para dividir en tareas implementables.
+```
+/gd:breakdown --change=<change-slug>
+```

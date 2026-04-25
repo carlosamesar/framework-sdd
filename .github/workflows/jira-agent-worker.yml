@@ -1,0 +1,207 @@
+name: Jira Agent Worker
+
+on:
+  repository_dispatch:
+    types: [jira-agent-task]
+  workflow_dispatch:
+    inputs:
+      issue_key:
+        description: "Jira issue key (e.g. SIGAT-123)"
+        required: true
+        type: string
+      project_root:
+        description: "Optional project root path for FRAMEWORK_SDD_PROJECT_ROOT"
+        required: false
+        type: string
+      complexity:
+        description: "Complexity level (2,3,4)"
+        required: false
+        default: "2"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: jira-agent-${{ github.event.client_payload.issue_key || inputs.issue_key }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "packages/sdd-agent-orchestrator/package-lock.json"
+
+      - name: Resolve input values
+        id: input
+        shell: bash
+        run: |
+          set -euo pipefail
+          ISSUE_KEY="${{ github.event.client_payload.issue_key || inputs.issue_key }}"
+          COMPLEXITY="${{ github.event.client_payload.complexity || inputs.complexity }}"
+          PROJECT_ROOT="${{ github.event.client_payload.project_root || inputs.project_root }}"
+
+          if [[ -z "${ISSUE_KEY}" ]]; then
+            echo "issue_key is required"
+            exit 1
+          fi
+
+          echo "issue_key=${ISSUE_KEY}" >> "$GITHUB_OUTPUT"
+          echo "complexity=${COMPLEXITY:-2}" >> "$GITHUB_OUTPUT"
+          echo "project_root=${PROJECT_ROOT}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Jira issue context
+        id: jira
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_ISSUE_KEY: ${{ steps.input.outputs.issue_key }}
+        run: node scripts/jira/fetch-jira-issue.mjs
+
+      - name: Build task prompt
+        id: prompt
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/gd_task_prompt.txt <<EOF
+          Stack: ${{ steps.jira.outputs.stack }}.
+          Proyecto: ${{ github.event.repository.name }}.
+          Ticket Jira: ${{ steps.jira.outputs.issue_key }}.
+          Complejidad: ${{ steps.input.outputs.complexity }}.
+          Objetivo: resolver completamente la tarea descrita, aplicar TDD cuando corresponda y entregar salida accionable.
+          Resumen Jira: ${{ steps.jira.outputs.summary }}.
+          Descripcion Jira: ${{ steps.jira.outputs.description }}
+          EOF
+
+      - name: Install orchestrator dependencies
+        run: npm ci --prefix packages/sdd-agent-orchestrator
+
+      - name: Run gd-cycle
+        id: cycle
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          LLM_PROVIDER: openrouter
+          SDD_SKIP_HUMAN_GATE: "1"
+          SDD_GD_CYCLE_FULL_JSON: "1"
+          FRAMEWORK_SDD_PROJECT_ROOT: ${{ steps.input.outputs.project_root }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports/agent-runs
+          PROMPT="$(cat /tmp/gd_task_prompt.txt)"
+          node packages/sdd-agent-orchestrator/src/run-gd-cycle.mjs "$PROMPT" | tee "reports/agent-runs/${{ steps.jira.outputs.issue_key }}.json"
+
+      - name: Create branch and commit report
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="${{ steps.jira.outputs.branch_name }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add reports/agent-runs/${{ steps.jira.outputs.issue_key }}.json
+          if git diff --cached --quiet; then
+            echo "No report changes to commit"
+            echo "skip_pr=1" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore(agent): run ${{ steps.jira.outputs.issue_key }} via gd-cycle"
+            git push --set-upstream origin "$BRANCH"
+            echo "skip_pr=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.commit.outputs.skip_pr == '0'
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const head = `${owner}:${'${{ steps.jira.outputs.branch_name }}'}`;
+            const base = context.payload.repository.default_branch;
+            const title = `[AGENT] ${{ steps.jira.outputs.issue_key }} - ${{ steps.jira.outputs.summary }}`;
+            const body = [
+              `Ejecucion automatica de agente para \`${{ steps.jira.outputs.issue_key }}\`.`,
+              '',
+              `- Stack inferido: \`${{ steps.jira.outputs.stack }}\``,
+              `- Complejidad: \`${{ steps.input.outputs.complexity }}\``,
+              `- Workflow: \`${{ github.workflow }}\``,
+              `- Run: \`${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\``,
+              '',
+              'Archivo generado:',
+              `- \`reports/agent-runs/${{ steps.jira.outputs.issue_key }}.json\``,
+            ].join('\n');
+
+            const existing = await github.rest.pulls.list({ owner, repo, state: 'open', head, base });
+            if (existing.data.length > 0) {
+              core.setOutput('pull_request_url', existing.data[0].html_url);
+              return;
+            }
+
+            const created = await github.rest.pulls.create({ owner, repo, title, head, base, body });
+            core.setOutput('pull_request_url', created.data.html_url);
+
+      - name: Comment on Jira issue with result
+        if: always()
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          ISSUE_KEY: ${{ steps.jira.outputs.issue_key }}
+          PR_URL: ${{ steps.pr.outputs.pull_request_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH=$(printf "%s:%s" "$JIRA_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          STATUS="COMPLETED"
+          BODY="Workflow: $RUN_URL"
+
+          if [[ -n "${PR_URL:-}" ]]; then
+            BODY="$BODY\nPR: $PR_URL"
+          fi
+
+          JSON_PAYLOAD=$(cat <<EOF
+          {
+            "body": {
+              "type": "doc",
+              "version": 1,
+              "content": [
+                {
+                  "type": "paragraph",
+                  "content": [
+                    {"type": "text", "text": "[Agent Worker] ${STATUS} - ${BODY}"}
+                  ]
+                }
+              ]
+            }
+          }
+          EOF
+          )
+
+          curl -sS -X POST \
+            -H "Authorization: Basic $AUTH" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            --data "$JSON_PAYLOAD" \
+            "$JIRA_BASE_URL/rest/api/3/issue/$ISSUE_KEY/comment" > /tmp/jira-comment-response.json
+
+      - name: Upload execution artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jira-agent-${{ steps.jira.outputs.issue_key }}
+          path: reports/agent-runs/${{ steps.jira.outputs.issue_key }}.json
+          if-no-files-found: ignore

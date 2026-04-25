@@ -1,5 +1,18 @@
 # /gd:review — Orquestador Central de Calidad y Ciclo de Vida
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:review` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
+> **🛑 ZERO TRUST V9 — REGLAS HEREDADAS ACTIVAS**
+> 1. Exige la salida real de consola de `npm run lint` y `tsc --noEmit`. No aceptes resúmenes ni capturas parciales.
+> 2. **Definición de reintento:** un reintento = un ciclo completo de correcciones seguido de una nueva ejecución de `npm run lint && tsc --noEmit`. No es un fix individual — es la ejecución completa del comando.
+> 3. Máximo **3 reintentos** (3 ejecuciones del comando tras correcciones). Al 3er fallo consecutivo, **ABORTA** y exige revisión manual. No hay 4to intento.
+> 4. Si detectas que las pruebas no fueron escritas por el LLM siguiendo TDD, **bloquea el review** hasta corregirlo.
+
 ## Propósito
 Realizar una revisión automática, exhaustiva y severa de la implementación, actuando como el orquestador central de calidad del ciclo SDD. Su función no es solo revisar código: también decidir si el cambio puede avanzar, debe volver a implementación o queda bloqueado por riesgos funcionales, técnicos o de seguridad.
 
@@ -11,10 +24,33 @@ Realizar una revisión automática, exhaustiva y severa de la implementación, a
 
 ## Prerrequisitos
 - Implementación terminada o suficientemente avanzada para evaluación real
+- **✅ ALL TESTS PASSING** (salida exitosa de `/gd:test-Backend` o `/gd:test-Frontend`)
+  - Backend: `npm test -- --testPathPattern=[módulo] --coverage`
+  - Frontend: `npx playwright test [feature]`
+- **✅ EVIDENCE GATE PASS** en SQLite (`evidence.artifact_type='test'` con `metadata.passed=true` para el `change_slug` activo)
 - Evidencia disponible: tests, cobertura, build, lint, endpoints/payloads y diffs revisables
 - Código commiteado o en staging
 
-Si falta evidencia real, el review debe fallar automáticamente.
+**Bloqueo automático**: Si cualquier test está fallando, el review reporta `FAIL` inmediatamente sin continuar análisis.
+
+### Gate TEST → REVIEW (modo dual)
+
+**Modo automático** — si el repo tiene infraestructura RAG/SQLite activa:
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=TEST_REVIEW
+# Exit 0 = gate pasa | Exit != 0 = gate falla → FAIL
+```
+
+**Modo manual** — si `rag/` no existe o el script no está disponible (proyectos sin infraestructura de evidencia):
+
+Verificar manualmente antes de continuar:
+- [ ] `npm test` (o `npx ng test`) ejecutado sin errores
+- [ ] Coverage ≥ umbral mínimo del stack (ver tabla en `/gd:start`)
+- [ ] Build compila sin errores de compilación
+- [ ] Lint sin errores críticos
+
+Si alguna verificación manual falla → `/gd:review` termina en `FAIL`. No hay excepción.
 
 ---
 
@@ -230,17 +266,13 @@ Completitud de OpenAPI, ADRs y README actualizados.
 
 ## Integración con Razonamiento
 
-Para módulos de alta criticidad (pagos, permisos, cálculos financieros):
+Para módulos de alta criticidad (pagos, permisos, cálculos financieros), usar razonamiento profundo antes de emitir veredicto:
 
-```
-/gd:razonar --modelo=rlm-verificacion [módulo a revisar]
-```
+> Activar modo de análisis extendido: invertir supuestos, mapear caminos al fracaso, verificar que cada escenario P0 de la spec tiene cobertura real en el código.
 
-Para detectar asunciones ocultas en el código:
-
-```
-/gd:razonar --modelo=mapa-territorio [sección de código que inquieta]
-```
+Para detectar asunciones ocultas en el código, revisar manualmente:
+- ¿Qué condiciones podrían hacer que este código falle silenciosamente?
+- ¿Hay suposiciones sobre el entorno (tenant, permisos, datos) que no se validan explícitamente?
 
 ---
 
@@ -258,8 +290,8 @@ Para detectar asunciones ocultas en el código:
 /gd:review   ← gate central severo
    ├─ FAIL → volver a /gd:implement con defectos exactos
    └─ PASS → /gd:verify
-                ├─ FAIL → volver a /gd:implement
-                └─ PASS → /gd:archive
+                 ├─ FAIL → volver a /gd:implement
+                 └─ PASS → /gd:close → /gd:archive
 ```
 
 Este comando debe comportarse como el árbitro central del ciclo de vida: preciso, reproducible, estricto y orientado a cero errores.

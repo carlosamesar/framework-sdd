@@ -1,166 +1,232 @@
-# /gd:start-backend — Inicio Estricto para Backend GoodERP Orchestation
+# /gd:start-backend — Iniciar Tarea Backend (Lambda / NestJS + AWS)
 
-## Propósito
-Iniciar tareas de backend con contexto real del proyecto `develop/backend/gooderp-orchestation`, obligando a trabajar sobre la estructura existente de Lambdas y servicios NestJS, con despliegue AWS y certificación funcional en mente desde el inicio.
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:start-backend` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
+## Alias
+- `/gd:iniciar-backend`
+- `/gd:backend`
 
 ---
 
-## Proyecto objetivo obligatorio
+## Uso
 
-- Proyecto: `develop/backend/gooderp-orchestation`
-- Lambdas: `lib/lambda/**`
-- Microservicios: `servicio-**`
-- API Gateway base para Lambdas: `https://4j950zl6na.execute-api.us-east-1.amazonaws.com/dev/api/v1/`
-- Despliegue guía: `lib/lambda/INICIO-RAPIDO.md`
+```
+/gd:start-backend [descripción de la tarea]
+/gd:start-backend --change=<slug> [descripción]
+/gd:start-backend --project=gooderp-orchestation [descripción]
+/gd:start-backend --project=sigat-orchestation [descripción]
+```
 
-## Preparación Git obligatoria
+---
 
-Antes de implementar en el repo backend:
-- identificar la rama base correspondiente del equipo;
-- crear una rama `fix/<slug-del-cambio>`;
-- trabajar exclusivamente en esa rama;
-- dejar el PR listo hacia la rama base correcta antes de cerrar o liberar.
+## Proyecto real
 
-Ejemplo:
+| `--project=` | Ruta real |
+|---|---|
+| `gooderp-orchestation` (default) | `develop/backend/gooderp-orchestation` → `/home/cto-grupo4d/Documents/Good4D/GitHub/dev/gooderp-orchestation` |
+| `sigat-orchestation` | `develop/backend/sigat-orchestation` |
+
+Si no se pasa `--project=`, asumir `gooderp-orchestation`.
+
+---
+
+## Paso 1 — Clasificar el tipo de cambio backend
+
+Antes de cualquier implementación, determinar:
+
+```
+¿Es Lambda?     → lib/lambda/<dominio>/fn<Nombre>/
+¿Es NestJS?     → servicio-<nombre>/src/
+¿Es fullstack?  → gd:start --stack=fullstack detecta el alcance real
+```
+
+| Indicador en el prompt | Tipo |
+|---|---|
+| fn*, handler, endpoint HTTP, API Gateway, CRUD básico | Lambda |
+| módulo NestJS, RabbitMQ, saga, servicio complejo | NestJS |
+| migración SQL, nuevo dominio con lambdas + servicio | Fullstack backend |
+
+---
+
+## Paso 2 — Estructura real del repositorio
+
+### Lambdas
+```
+lib/lambda/
+  <dominio>/           ← agendamiento, auth, contabilidad, core, inventario, etc.
+    fn<Nombre>/
+      index.mjs        ← handler principal
+      handlers/        ← handlers por método HTTP (GET, POST, PUT, DELETE, OPTIONS)
+      utils/           ← utilidades de dominio
+      lambda.config.json ← configuración de despliegue (nombre AWS, runtime, memoria, etc.)
+      package.json
+      __tests__/       ← tests Jest
+```
+
+### Servicios NestJS
+```
+servicio-<nombre>/
+  src/
+    <dominio>/
+      <dominio>.module.ts
+      <dominio>.controller.ts
+      <dominio>.service.ts
+      dto/
+      entities/
+  test/
+```
+
+### Dominios lambda existentes
+```
+agendamiento, auth, camposDinamicos, configuracionEventos, contabilidad,
+core, email, fiscal, fnCognitoTokenExchange, fnCustomLogin,
+functionsConfiguration, geografico, helpers, inventario, kb, motorReglas,
+negocio, nomina, parqueaderos, produccion, reportes, saga, tesoreria,
+transacciones, transversal
+```
+
+---
+
+## Paso 3 — Identificar Lambda de referencia (patrón espejo)
+
+**NUNCA** inventar una estructura nueva. Buscar la Lambda más cercana al dominio.
+
+Lambda de referencia canónica: `lib/lambda/inventario/fnEntradaInventario/`
+
+Estructura obligatoria de una Lambda:
+```
+fn<Nombre>/
+  index.mjs              ← exporta handler, enruta a handlers/ por método HTTP
+  handlers/
+    get.mjs              ← lógica GET
+    post.mjs             ← lógica POST
+    put.mjs              ← lógica PUT
+    delete.mjs           ← lógica DELETE
+    options.mjs          ← CORS preflight (siempre presente)
+  utils/
+    db.mjs               ← conexión PostgreSQL (pg)
+    response.mjs         ← ResponseBuilder
+  lambda.config.json     ← nombre AWS, runtime nodejs20.x, memoria 256, timeout 30
+  package.json
+```
+
+### Reglas de implementación Lambda
+
+- `tenantId` siempre desde JWT: `custom:tenant_id` — NUNCA desde body o query param
+- `OPTIONS` primero — siempre presente, sin validación de negocio
+- Usar `ResponseBuilder` para todas las respuestas (no construir JSON manualmente)
+- Usar `extractTenantId` desde el evento Lambda
+- Cada método HTTP en su propio archivo dentro de `handlers/`
+- Si la lambda tiene CRUD completo: GET lista, GET por ID, POST, PUT, DELETE, OPTIONS — los 6 métodos
+
+---
+
+## Paso 4 — Despliegue real
+
+**No hay GitHub Actions de despliegue en este repo.**
+
+El despliegue se hace con `lambda-deploy` (herramienta local del repo):
 
 ```bash
-git checkout microservicios
-git pull
-git checkout -b fix/ajuste-endpoint-sedes
+cd develop/backend/gooderp-orchestation
+node lambda-deploy/deploy.mjs --function=fn<Nombre> --domain=<dominio>
 ```
+
+O directamente con AWS CLI:
+```bash
+cd lib/lambda/<dominio>/fn<Nombre>
+zip -r function.zip . --exclude "node_modules/*" "*.test.mjs" "*.md"
+aws lambda update-function-code \
+  --function-name <nombre-en-lambda.config.json> \
+  --zip-file fileb://function.zip
+```
+
+El nombre de función AWS está en `lambda.config.json → name`.
+
+**Antes de desplegar**: confirmar que `lambda.config.json` tiene el nombre AWS correcto.
 
 ---
 
-## Mapa real del backend
+## Paso 5 — Tests obligatorios (gate bloqueante)
 
-```text
-gooderp-orchestation/
-├── lib/lambda/                 Lambdas por dominio con router HTTP y utils compartidas
-├── servicio-contabilidad/      microservicio NestJS
-├── servicio-tesoreria/         microservicio NestJS
-├── servicio-core/
-├── servicio-inventarios/
-├── servicio-logistica/
-├── servicio-nomina/
-├── servicio-parqueaderos/
-├── servicio-reportes/
-├── servicio-saga/
-├── servicio-transacciones/
-├── lambda-deploy/              soporte de despliegue
-├── terraform/                  infraestructura AWS
-├── scripts/                    utilidades operativas y validación
-└── tests/                      validación y evidencia
+```
+/gd:test-Backend --change=<slug>
 ```
 
----
-
-## Regla de clasificación obligatoria
-
-Antes de implementar, el pedido DEBE clasificarse en una sola vía principal:
-
-| Tipo de cambio | Ubicación correcta |
+Umbrales mínimos:
+| Tipo | Umbral |
 |---|---|
-| CRUD/API Lambda expuesta | `lib/lambda/<dominio>/fn<Nombre>/` |
-| Handler HTTP faltante | `handlers/create.mjs`, `list.mjs`, `getById.mjs`, `update.mjs`, `delete.mjs` |
-| CORS / Response / sanitización | `utils/responseBuilder.mjs`, `utils/sanitization.mjs`, `index.mjs` |
-| Lógica de negocio NestJS | `servicio-<nombre>/src/<modulo>/` |
-| Guardas/decoradores multi-tenant | `servicio-<nombre>/src/common/` |
-| Despliegue o AWS | `scripts/`, `lambda-deploy/`, `terraform/` |
-| Certificación funcional | reportes, scripts de prueba y evidencia del servicio afectado |
+| Smoke / CORS / Auth | 100% |
+| Happy path | ≥ 95% |
+| Coverage líneas Lambda | ≥ 80% |
+| Coverage líneas NestJS | ≥ 85% |
+
+Si el gate falla: **DETENER**, reportar qué falló, volver a implementar. No avanzar a `/gd:review`.
 
 ---
 
-## Reglas estrictas de ejecución
+## Paso 6 — Checklist previo a implementación
 
-- NO crear lambdas fuera del patrón `lib/lambda/<dominio>/fn<NombreCamelCase>/`.
-- NO crear microservicios fuera del patrón `servicio-<nombre>/src/**`.
-- SIEMPRE buscar primero una lambda o servicio espejo existente y seguir ese diseño.
-- En Lambdas expuestas por API Gateway, revisar obligatoriamente `GET`, `POST`, `PUT`, `DELETE` y `OPTIONS`.
-- `OPTIONS` debe resolverse primero y CORS debe quedar habilitado en todos los métodos y respuestas.
-- Si el requerimiento implica CRUD y falta un método, debe completarse siguiendo el patrón real.
-- Usar `ResponseBuilder` para respuestas de Lambdas, nunca respuestas crudas.
-- Extraer `tenant_id` desde JWT con `extractTenantId()` o `@TenantId()`, nunca desde body o params del usuario.
-- En NestJS, seguir `JwtTenantGuard` global, módulos, controladores, servicios, entidades y DTOs ya existentes.
-- Si el cambio requiere migración SQL, esta debe ejecutarse con **Node.js** usando la configuración del archivo `.env` ya mapeado dentro de la solución.
-- No usar como vía principal ejecuciones manuales ad hoc fuera del repositorio para aplicar cambios de esquema.
-- Considerar desde el inicio si el cambio requiere despliegue AWS, validación sobre API Gateway y certificación funcional.
-- Para Lambdas, el flujo estándar de deploy debe quedar mapeado a GitHub Actions con ZIP usando `.github/workflows/deploy-post-merge.yml`, `scripts/package-lambda-zip.mjs` y `aws lambda update-function-code`.
-- Desde `/gd:start-backend` se debe dejar identificado el par **ruta local de la lambda / nombre de función AWS** para que el workflow sea ejecutable sin ambigüedad.
+Antes de escribir código, el agente DEBE confirmar:
 
-## Resolución directa por URL o endpoint
-
-Si el requerimiento incluye una URL o path de API Gateway como:
-- `https://4j950zl6na.execute-api.us-east-1.amazonaws.com/dev/api/v1/sedes`
-- `/api/v1/sedes`
-
-el análisis DEBE:
-1. extraer el recurso final (`sedes`);
-2. asumir primero que se trata de una **Lambda HTTP** y no de un servicio NestJS;
-3. buscar **solo dentro de `lib/lambda/**`** como primera vía;
-4. abrir primero el folder espejo correspondiente y revisar `index.mjs`, `handlers/` y `utils/`;
-5. ampliar la búsqueda al resto del repo solo si la ruta no existe o si el problema apunta explícitamente a infraestructura compartida.
-
-### Ejemplos de resolución rápida
-
-- `/api/v1/sedes` → `lib/lambda/core/fnSede/`
-- `/api/v1/empresas` → `lib/lambda/core/fnEmpresa/`
-- `/api/v1/usuarios` → `lib/lambda/core/fnUsuario/`
-- `/api/v1/terceros` → `lib/lambda/terceros/fnTercero/`
-
-> Para un error 500 en `/sedes`, el punto de entrada correcto es `lib/lambda/core/fnSede/` y no una búsqueda global por todo el proyecto.
+- [ ] ¿Lambda o NestJS?
+- [ ] Dominio exacto: `lib/lambda/<dominio>/`
+- [ ] Nombre de la función AWS: valor de `lambda.config.json → name`
+- [ ] Lambda de referencia (patrón espejo) identificada
+- [ ] Métodos HTTP requeridos: GET / POST / PUT / DELETE / OPTIONS
+- [ ] `tenantId` validado — viene de JWT `custom:tenant_id`
+- [ ] `EVIDENCE.md` creado con `change-slug`
+- [ ] Rama `fix/<slug>` creada en el repo
 
 ---
 
-## Patrón de precisión obligatorio
-
-La salida de inicio DEBE incluir:
+## Salida Esperada al Ejecutar
 
 ```text
-🎯 Stack: backend
-📁 Proyecto: develop/backend/gooderp-orchestation
-🧩 Tipo: [lambda | nestjs | aws-deploy | certificacion]
-📍 Ruta exacta: [path real]
-🪞 Patrón espejo: [lambda o servicio existente]
-🌐 Endpoint base: https://4j950zl6na.execute-api.us-east-1.amazonaws.com/dev/api/v1/
-🔀 Métodos a revisar: [GET|POST|PUT|DELETE|OPTIONS]
-🚦 Decisión: [implementar | clarificar primero]
+Tipo: [Lambda|NestJS|Fullstack backend]
+Proyecto: develop/backend/gooderp-orchestation
+Dominio: lib/lambda/<dominio>/
+Lambda objetivo: fn<Nombre>
+Nombre AWS: [valor de lambda.config.json → name]
+Patrón espejo: lib/lambda/<dominio-referencia>/fn<Referencia>/
+Métodos HTTP: [GET|POST|PUT|DELETE|OPTIONS]
+Change slug: <change-slug>
+Gate tests: /gd:test-Backend
+Despliegue: node lambda-deploy/deploy.mjs --function=fn<Nombre>
+Política: strict + zero-error + tenantId-desde-JWT
+
+→ Iniciando con /gd:implement --change=<change-slug>...
 ```
 
-Si no se puede llenar con precisión, se debe pedir una sola aclaración concreta antes de tocar código.
+---
+
+## Reglas no negociables
+
+- **NUNCA** implementar sobre rama base directamente — siempre `fix/<slug>`
+- **NUNCA** `tenantId` desde body, headers manuales o query params — solo JWT `custom:tenant_id`
+- **NUNCA** inventar una estructura de carpetas fuera de `lib/lambda/<dominio>/fn<Nombre>/`
+- **NUNCA** omitir `OPTIONS` en una lambda expuesta por API Gateway
+- **NUNCA** construir respuestas JSON manualmente — usar `ResponseBuilder`
+- **SIEMPRE** incluir CORS antes de cualquier validación de negocio
+- **SIEMPRE** verificar que `lambda.config.json → name` coincide con el nombre AWS real
 
 ---
 
-## Anti-patrones prohibidos
+## Flujo completo (referencia rápida)
 
-- responder con una solución genérica de Node o NestJS sin aterrizarla al repo real;
-- omitir `OPTIONS` o dejar CORS parcial en una lambda HTTP;
-- cambiar solo un método y olvidar el resto del CRUD requerido;
-- crear utilidades paralelas cuando ya existen `ResponseBuilder`, `sanitization`, guards o decoradores;
-- cerrar el trabajo sin considerar despliegue AWS ni certificación funcional cuando el cambio lo exige.
-
----
-
-## Cierre esperado
-
-Cuando el cambio sea funcionalmente relevante, el flujo debe dejar previsto:
-- despliegue o validación sobre AWS;
-- prueba contra el endpoint real o entorno controlado;
-- evidencia de certificación funcional.
-
-## Certificación obligatoria
-
-La certificación siempre debe incluir, según la capa impactada:
-- pruebas unitarias;
-- pruebas de backend/consumos al endpoint o lambda;
-- validación de integración con frontend;
-- Playwright E2E del flujo completo.
-
-Sin esta cadena de verificación, no se debe considerar el cambio como terminado ni certificado.
-
----
-
-## Siguiente paso
-
-Una vez fijada la ubicación exacta:
-- cambio pequeño y claro → `/gd:implement`
-- cambio con riesgo o alcance medio/alto → `/gd:specify` → `/gd:clarify` → `/gd:plan`
+```
+/gd:start-backend
+  → Identificar Lambda/NestJS + dominio + patrón espejo
+  → /gd:implement --change=<slug>   (TDD: RED → GREEN → REFACTOR)
+  → /gd:test-Backend                (gate bloqueante)
+  → /gd:review --change=<slug>
+  → /gd:verify --change=<slug>
+  → /gd:close  --change=<slug>      (EVIDENCE.md completo)
+  → /gd:deploy --change=<slug>      (lambda-deploy o AWS CLI)
+  → /gd:archive --change=<slug>
+```

@@ -1,0 +1,29 @@
+# tasks.queue.txt
+# Tabla de tareas para ejecucion paralela de agentes.
+#
+# status permitido:
+# - READY: se ejecuta en el batch
+# - HOLD: no se ejecuta
+# - DONE: completada
+# - FAIL: fallo previo, pendiente reintento
+#
+# Opciones utiles del runner (variables de entorno):
+# - AGENT_RETRIES=1                # reintentos por tarea
+# - TASK_TIMEOUT_SECONDS=1800      # timeout por tarea (0 desactivado)
+# - AGENT_DRY_RUN=1                # simular sin ejecutar gd-cycle
+# - AGENT_GIT_AUTOCOMMIT=1         # commit automatico de resultados
+# - AGENT_GIT_AUTO_BRANCH=1        # crear branch nuevo por batch
+# - AGENT_GIT_BRANCH_PREFIX=chore/agent-batch
+# - AGENT_GIT_AUTOPUSH=1           # push al remoto (si hay commit)
+#
+# Premisa obligatoria para TODAS las tareas:
+# El Corazon del Sistema Orquestacion 100% IA
+
+| task_id | status | stack | project | project_root | complexity | objective |
+|---------|--------|-------|---------|--------------|------------|-----------|
+| FE-000 | DONE | frontend | sigat-client | /home/cto-grupo4d/Documents/Good4D/Framework-SDD/develop/frontend/sigat-client | 2 | Premisa obligatoria: El Corazon del Sistema Orquestacion 100% IA. Acoplar el diseno UI/UX para el sistema con base en /home/cto-grupo4d/Documents/Good4D/Framework-SDD/docs/template.ts; este debe ser el lineamiento oficial para todo el sitio web. |
+| FE-001 | DONE | frontend | sigat-client | /home/cto-grupo4d/Documents/Good4D/Framework-SDD/develop/frontend/sigat-client | 2 | Premisa obligatoria: El Corazon del Sistema Orquestacion 100% IA. Acoplar cada una de las funcionalidades por modulo para que queden bien separadas dentro de la estructura del proyecto Clean architecture, usando /home/cto-grupo4d/Documents/Good4D/Framework-SDD/docs/template.ts. |
+| FE-002 | DONE | frontend | sigat-client | /home/cto-grupo4d/Documents/Good4D/Framework-SDD/develop/frontend/sigat-client | 2 | Premisa obligatoria: El Corazon del Sistema Orquestacion 100% IA. Acoplar las funcionalidades existentes al nuevo diseno (formularios + logica), alineadas al esquema de trabajo Multi-Agentes definido en /home/cto-grupo4d/Documents/Good4D/Framework-SDD/docs/template.ts. |
+| FS-003 | DONE | backend  | sigat-orchestation | /home/cto-grupo4d/Documents/Good4D/Framework-SDD/develop/backend/sigat-orchestation | 3 | Premisa obligatoria: El Corazon del Sistema Orquestacion 100% IA. Acoplar a los servicios del backend todas las funcionalidades existentes al nuevo diseno de /home/cto-grupo4d/Documents/Good4D/Framework-SDD/docs/template.ts, incluyendo cambios en BD, servicios y conexiones. |
+| FS-004 | DONE | fullstack | sigat-orchestation | /home/cto-grupo4d/Documents/Good4D/Framework-SDD | 3 | Premisa obligatoria: El Corazon del Sistema Orquestacion 100% IA. Realizar la integracion con el frontend de todas las funcionalidades y ejecutar pruebas e2e. |
+

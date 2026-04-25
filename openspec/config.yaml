@@ -1,394 +1,42 @@
-# OpenSpec — configuración canónica del Framework-SDD
-# Esquema soportado por validate-spec.mjs + verify-change.mjs (scripts/lib/openspec-config.mjs)
-# Actualizado por sdd-init el 2026-04-09 (modo hybrid: Engram + Filesystem)
-# Re-inicializado el 2026-04-09 — stack verificado, skill-registry actualizado, Engram sync
-
-version: 2
-
-# Proyecto activo cuando existen varias entradas en `projects` (sin definir: si solo hay uno, se usa ese).
-# Sobrescribible en cualquier momento con: export FRAMEWORK_SDD_OPENSPEC_PROJECT=<clave>
-active_project: framework
-
-paths:
-  changes_root: openspec/changes
-  modules_root: openspec/modules
-
-projects:
-  framework:
-    display_name: "Framework-SDD (OpenSpec núcleo, agente, herramientas)"
-    develop_mirror: .
-    changes_root: openspec/changes
-
-change_requirements:
-  entry_any_of:
-    - proposal.md
-    - design.md
-    - tasks.md
-  specs_subdir: specs
-
-react_templates_root: openspec/templates/react-outputs
-
-# ============================================================
-# SDD CONTEXT — detectado por sdd-init (2026-04-09)
-# ============================================================
+# openspec/config.yaml
 schema: spec-driven
 
 context: |
-  Tech stack: Node.js 20 ESM Lambdas + NestJS 11 microservices + Angular 19 frontend
-  Architecture: Hybrid Lambda/NestJS, multi-tenant JWT, SAGA pattern, SDD 6-phase pipeline
-  Backend: servicio-contabilidad, servicio-tesoreria, servicio-core, servicio-inventarios, servicio-saga (+ 5 more)
-  Lambdas: lib/lambda/** — ResponseBuilder, extractTenantId, pool PostgreSQL, soft-delete
-  Database: PostgreSQL + pgVector + JSONB, synchronize=false, SnakeNamingStrategy
-  Auth: Cognito us-east-1_gmre5QtIx (NestJS) / us-east-1_fQl9BKSxq (Lambdas+APIGW)
-  Testing: Jest (unit+integration) + Playwright (E2E frontend) + Newman (API contracts)
-  Infra: AWS Lambda + API Gateway + Terraform + ECS + Amplify + RabbitMQ (SAGA)
-  Location: ALL developments MUST reside under /develop
+  Tech stack: Node.js (>=20), LangGraph, LangChain, PostgreSQL (pgvector), better-sqlite3
+  Architecture: RAG with pgvector over framework docs, Evidence/Audit pipeline
+  Testing: Functional tests in scripts/test-functional.mjs (skip/resilience/live modes)
+  Style: Modern ES Modules (.mjs), Scripts-heavy automation
 
 rules:
   location:
-    - "Todos los proyectos y código DEBEN residir en /develop"
-    - "Estructura: develop/backend/, develop/frontend/, develop/sdd-agent-orchestrator/"
+    - All developments MUST reside in /develop
   certification:
-    - "Todo cierre de implementación requiere EVIDENCE.md con tests funcionales, endpoints y payloads"
-    - "Cobertura mínima: 85% en módulos de negocio (60% global, 75% en críticos frontend)"
-    - "Ejecutar migraciones, seeds y pruebas E2E antes de marcar como DONE"
-    - "Política cero-error: 0 BLOCKERs, 0 errores de compilación, 0 warnings críticas"
-    - "El cierre formal del spec requiere CONSUMO.md completo con contrato, ejemplos, errores y evidencia de consumo"
-  lifecycle:
-    - "/gd:start clasifica stack y complejidad; /gd:review es el orquestador central obligatorio del cierre de calidad"
-    - "/gd:review DEBE consolidar build, lint, unit, integración, consumos, seguridad y E2E antes de permitir /gd:verify"
-    - "No existe PASS parcial para cambios productivos: el veredicto es PASS o FAIL"
-    - "Si falla multi-tenant, CORS, cobertura, contratos API o evidencia, el change vuelve a implementación"
-    - "Toda implementación en repos Git del producto debe crear primero una rama fix/<slug> desde la base correspondiente"
-    - "Todo cambio debe cerrar con PR hacia la rama base correcta antes de release o archive"
-    - "Solo con VERIFY PASS se puede ejecutar /gd:close"
-    - "Solo con cierre formal, evidencia completa y CONSUMO.md vigente se puede ejecutar /gd:archive"
+    - Every change MUST include EVIDENCE.md in /develop/{project}/
+    - Minimum coverage: 85%
   microservices:
-    - "DEBE incluir .env.example con semillas de variables de entorno"
-    - "Usar JwtTenantGuard como APP_GUARD global en AppModule"
-    - "@TenantId() decorator — NUNCA obtener tenantId desde body/params/query"
-    - "User Pool NestJS: us-east-1_gmre5QtIx / Lambdas+APIGW: us-east-1_fQl9BKSxq"
-  lambdas:
-    - "Patrón: index.mjs + handlers/ + utils/ (copiar de fnTransaccionLineas)"
-    - "ResponseBuilder para TODAS las respuestas (success, error, validationError)"
-    - "Mapear errores PostgreSQL: 23503→404, 23505→409, 23514→400"
-    - "extractTenantId: JWT claims primero, luego body para Step Functions"
-    - "GET by id: evaluar pathParameters.id ANTES de listado/búsqueda"
-  security:
-    - "tenant_id SIEMPRE desde JWT — NUNCA desde body ni headers de usuario"
-    - "No re-decodificar JWT en controladores — usar JwtTenantGuard"
-    - "OWASP Gate: 0 vulnerabilidades antes de marcar como completo"
+    - MUST include .env.example
   testing:
-    constraints:
-      - "TDD obligatorio: RED → GREEN → REFACTOR sin excepciones"
-      - "Tests deterministas — sin dependencia de hora, orden o datos externos"
-      - "Playwright para E2E Frontend; Newman para contratos API"
-      - "Coverage Gate: ≥85% en módulos de negocio"
-    tdd: true
-    test_command: "npm test"
-    coverage_threshold: 85
+    - Use Agente Playwright for UI/UX
+    - Use Newman for API Contracts
   proposal:
-    - "Incluir plan de rollback para cambios con riesgo"
-    - "Identificar módulos afectados con ruta explícita"
-    - "Clasificar complejidad: 0/P/1/2/3/4 (Atomic/PoC/Micro/Standard/Complex/Product)"
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
   specs:
-    - "Usar formato Given/When/Then (Dado/Cuando/Entonces)"
-    - "Palabras clave RFC 2119: MUST, SHALL, SHOULD, MAY"
-    - "Frontmatter obligatorio: id (M.C.S), module, change, title, status, implements"
-    - "Estados: DRAFT → IN_REVIEW → APPROVED → IMPL → DONE"
-    - "Implementar solo con spec en estado APPROVED"
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
   design:
-    - "Incluir diagramas Mermaid para flujos complejos"
-    - "Documentar decisiones de arquitectura con justificación"
-    - "Referenciar patrones maduros: fnTransaccionLineas, servicio-tesoreria"
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
   tasks:
-    - "Agrupar por fase: infraestructura → implementación → pruebas"
-    - "Numeración jerárquica: 1.1, 1.2, etc."
-    - "Cada tarea completable en una sesión"
-    - "Incluir criterios de aceptación verificables"
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
   apply:
-    constraints:
-      - "Seguir patrones existentes (patrón espejo)"
-      - "Lambdas: copiar de fnTransaccionLineas; NestJS: copiar de servicio-tesoreria"
-      - "Migraciones SOLO con Node.js — NUNCA psql ni clientes SQL interactivos"
-    tdd: true
-    test_command: "npm test"
+    - Follow existing code patterns and conventions
+    - Load relevant coding skills for the project stack
   verify:
-    constraints:
-      - "Comparar implementación contra cada escenario de la spec"
-      - "Ejecutar migraciones, seeds y pruebas E2E reales"
-      - "Generar EVIDENCE.md con resultados"
-      - "No aprobar si existe cualquier BLOCKER, warning crítica o gap P0"
-    test_command: "npm test"
-    build_command: "npm run build"
-    coverage_threshold: 85
-  review:
-    constraints:
-      - "Compilación y build deben cerrar sin errores"
-      - "Lint, unit, integración, consumos y E2E deben estar en verde según aplique"
-      - "Security gate: tenant_id desde JWT, CORS completo, 0 hallazgos críticos"
-      - "Si falta evidencia real o la cobertura es insuficiente, FAIL automático"
-    coverage_threshold: 85
-  close:
-    constraints:
-      - "No cerrar un spec sin certificación funcional al 100%"
-      - "CONSUMO.md debe contener contrato final, autenticación, endpoints, payloads, respuestas, errores y ejemplos"
-      - "EVIDENCE.md debe resumir pruebas, cobertura, build, lint y resultados funcionales"
-      - "Solo si todo está completo el change queda READY FOR ARCHIVE"
-  release:
-    constraints:
-      - "No aprobar una release sin review PASS, verify PASS y close READY FOR ARCHIVE"
-      - "Changelog, rollback y contratos públicos deben estar actualizados"
-      - "Si existe riesgo crítico, la release queda BLOCKED"
-  changelog:
-    constraints:
-      - "Las release notes deben reflejar cambios reales, contratos impactados y breaking changes"
-      - "No cerrar ni liberar una versión sin CHANGELOG/release notes consistentes con CONSUMO.md y EVIDENCE.md"
-  deploy:
-    constraints:
-      - "No desplegar si hay errores, blockers, healthchecks fallando o rollback ausente"
-      - "Validar IAM, variables de entorno, CORS, multi-tenant y observabilidad antes del deploy"
-      - "Solo desplegar artefactos consistentes con la documentación y el cierre aprobado"
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+    - AUTOMATED: Run migrations, seeds, and E2E tests
   archive:
-    constraints:
-      - "No archivar si faltan release notes, evidencia, contrato o trazabilidad de cierre"
-      - "El archivo histórico debe dejar claro qué se construyó, cómo se validó y cómo se consume"
-      - "Advertir antes de mergear deltas destructivos"
-      - "Actualizar project.md y registry.md al archivar"
-      - "Formato: openspec/changes/archive/YYYY-MM-DD-{change-name}/"
-
-# ============================================================
-# STACK PROFILES — Contextos especializados por tecnología
-# Usados por /gd:start --stack=frontend|backend|fullstack
-# y por auto-detección de keywords en el prompt
-# ============================================================
-stacks:
-  frontend:
-    display_name: "Angular 19 — Frontend GoodERP"
-    detect_keywords:
-      - "componente"
-      - "angular"
-      - "frontend"
-      - "ui"
-      - "pantalla"
-      - "vista"
-      - "template"
-      - "html"
-      - "scss"
-      - "feature"
-      - "módulo angular"
-      - "playwright"
-      - "e2e ui"
-    project_path: "develop/frontend/gooderp-client"
-    src_root: "develop/frontend/gooderp-client/src/app"
-    e2e_root: "develop/frontend/gooderp-client/e2e"
-    pattern: "features"
-    reference_module: "develop/frontend/gooderp-client/src/app/modules/transactions"
-    reference_feature: "develop/frontend/gooderp-client/src/app/features/parqueaderos"
-    structure:
-      app_layout: |
-        src/app/
-        ├── auth/                ← login, registro, guards, interceptors de autenticación
-        ├── core/                ← api, config, interceptors, models, services transversales
-        ├── shared/              ← componentes reutilizables, layouts, pipes, directives, validators
-        ├── modules/             ← dominios canónicos del negocio (transactions, inventory, treasury, etc.)
-        ├── features/            ← verticales modernas aisladas (ej: parqueaderos)
-        ├── component/           ← módulos legacy aún enroutados desde app.routes.ts
-        ├── configuration/       ← ajustes, catálogos y pantallas administrativas
-        ├── services/            ← servicios compartidos ya existentes a nivel app
-        ├── models/              ← modelos comunes de aplicación
-        └── logistica/           ← área especializada/legacy, tocar solo si el request cae allí
-      feature: |
-        src/app/features/<nombre-feature>/
-        ├── components/
-        │   ├── smart/          ← con lógica, facades, signals, orchestration
-        │   └── dumb/           ← solo inputs/outputs + render + OnPush
-        ├── models/
-        │   ├── dtos/
-        │   └── enums/
-        └── services/
-            ├── api/
-            └── facades/
-    placement_rules:
-      - "NUNCA crear nuevas carpetas top-level en src/app sin justificación explícita"
-      - "Si ya existe dominio en modules/<dominio>, extender allí y NO duplicar en features/"
-      - "shared/ SOLO para piezas reutilizables cross-module; NO lógica específica de dominio"
-      - "core/ SOLO para servicios globales, api/config, interceptors y modelos transversales"
-      - "features/ SOLO para verticales nuevas siguiendo smart/dumb + facades + models"
-      - "component/ y logistica/ son legado: modificar solo si la ruta actual ya vive allí"
-      - "Antes de implementar: identificar ubicación exacta + patrón espejo + archivos candidatos"
-    conventions:
-      - "Standalone components y lazy loading como default; no introducir NgModules nuevos"
-      - "Seguir app.routes.ts y las rutas reales del proyecto antes de proponer cambios"
-      - "Angular signals: signal(), computed(), effect(); evitar introducir patrones reactivos paralelos sin necesidad"
-      - "Facades exponen estado; smart components coordinan; shared/dumb no cargan lógica de negocio"
-      - "ChangeDetectionStrategy.OnPush en todos los componentes nuevos o intervenidos"
-      - "Mantener naming, imports y estructura igual al módulo existente (pattern mirror)"
-      - "data-testid en elementos interactivos nuevos o modificados (obligatorio para Playwright)"
-      - "Si el requerimiento es ambiguo, NO implementar todavía: primero fijar módulo/ruta exacta"
-    test_commands:
-      unit: "ng test --coverage --watch=false"
-      e2e: "npx playwright test"
-      lint: "ng lint"
-      build: "ng build"
-    coverage_threshold: 75
-    e2e_config: "develop/frontend/gooderp-client/playwright.config.ts"
-    e2e_base_url: "http://localhost:5200"
-    e2e_auth_setup: "e2e/setup/auth.setup.ts"
-    e2e_fixtures: "e2e/fixtures/e2e.ts"
-    gherkin_style: |
-      Given el usuario ve la pantalla de <módulo>
-      When hace clic en <elemento>
-      Then el componente muestra <resultado>
-      And el servicio llama a <endpoint> con <payload>
-
-  backend:
-    display_name: "Lambda Node.js 20 ESM + NestJS 11 — Backend GoodERP"
-    detect_keywords:
-      - "lambda"
-      - "handler"
-      - "endpoint"
-      - "api"
-      - "backend"
-      - "nestjs"
-      - "microservicio"
-      - "crud"
-      - "bd"
-      - "base de datos"
-      - "postgresql"
-      - "migración"
-      - "tenant"
-      - "jwt"
-    project_path: "develop/backend/gooderp-orchestation"
-    lambda_root: "develop/backend/gooderp-orchestation/lib/lambda"
-    nestjs_root: "develop/backend/gooderp-orchestation"
-    service_glob: "develop/backend/gooderp-orchestation/servicio-*"
-    api_gateway_base_url: "https://4j950zl6na.execute-api.us-east-1.amazonaws.com/dev/api/v1/"
-    deployment_guide: "develop/backend/gooderp-orchestation/lib/lambda/INICIO-RAPIDO.md"
-    reference_lambda: "develop/backend/gooderp-orchestation/lib/lambda/transacciones/fnTipoDescuento"
-    reference_nestjs: "develop/backend/gooderp-orchestation/servicio-tesoreria"
-    certification_examples:
-      - "develop/backend/gooderp-orchestation/INFORME-CERTIFICACION-FUNCIONAL-2026-04-05.md"
-      - "develop/backend/gooderp-orchestation/servicio-contabilidad/CERTIFICACION-FUNCIONAL.md"
-    lambda_structure: |
-      lib/lambda/<dominio>/fn<NombreCamelCase>/
-      ├── index.mjs                ← router HTTP: OPTIONS → extractTenantId → routing
-      ├── lambda.config.json       ← nombre AWS, memoria, timeout, runtime
-      ├── package.json
-      ├── handlers/
-      │   ├── create.mjs           ← POST
-      │   ├── list.mjs             ← GET (listado + búsqueda)
-      │   ├── getById.mjs          ← GET /:id (evaluar ANTES que list)
-      │   ├── update.mjs           ← PUT /:id
-      │   └── delete.mjs           ← DELETE /:id (soft delete)
-      └── utils/
-          ├── database.mjs         ← pool PostgreSQL singleton
-          ├── responseBuilder.mjs  ← ResponseBuilder con headers CORS
-          └── sanitization.mjs     ← extractTenantId + extractUserId + sanitizeEvent
-    nestjs_structure: |
-      servicio-<nombre>/src/
-      ├── app.module.ts            ← APP_GUARD(JwtTenantGuard), interceptores y filtros globales
-      ├── common/
-      │   ├── guards/jwt-tenant.guard.ts
-      │   └── decorators/tenant-id.decorator.ts
-      └── <modulo>/
-          ├── controllers/<recurso>.controller.ts   ← @TenantId() en endpoints
-          ├── services/<recurso>.service.ts         ← lógica con QueryRunner/servicios
-          ├── entities/<recurso>.entidad.ts         ← TypeORM + SnakeNamingStrategy
-          └── dtos/                                 ← class-validator + swagger
-    placement_rules:
-      - "NUNCA crear una lambda fuera de lib/lambda/<dominio>/fn<Nombre>"
-      - "NUNCA crear un microservicio fuera de servicio-<nombre>/src/**"
-      - "Si ya existe una lambda o servicio equivalente, extender allí y NO duplicar arquitectura"
-      - "Antes de implementar: identificar si el cambio es Lambda, NestJS o despliegue/infra"
-      - "Si la lambda es expuesta por API Gateway, revisar GET/POST/PUT/DELETE/OPTIONS y CORS completo"
-      - "Si falta un método esperado por el requerimiento, debe implementarse o justificarse explícitamente"
-      - "Si el prompt contiene una URL o path /api/v1/<recurso>, resolver primero a lib/lambda/** y NO buscar por todo el repo"
-      - "Para errores de endpoint, abrir primero index.mjs → handler específico → utils compartidos"
-      - "Todo cambio backend debe considerar despliegue AWS y certificación funcional cuando aplique"
-    endpoint_resolution_examples:
-      - "/api/v1/sedes -> develop/backend/gooderp-orchestation/lib/lambda/core/fnSede"
-      - "/api/v1/empresas -> develop/backend/gooderp-orchestation/lib/lambda/core/fnEmpresa"
-      - "/api/v1/usuarios -> develop/backend/gooderp-orchestation/lib/lambda/core/fnUsuario"
-      - "/api/v1/terceros -> develop/backend/gooderp-orchestation/lib/lambda/terceros/fnTercero"
-    conventions:
-      - "tenant_id SIEMPRE desde JWT — NUNCA desde body/params/headers de usuario"
-      - "extractTenantId() para Lambdas; @TenantId() para NestJS"
-      - "ResponseBuilder para TODAS las respuestas en Lambdas"
-      - "GET by id: evaluar pathParameters.id ANTES de listado"
-      - "Soft delete: eliminado_por + eliminado_en (NUNCA DELETE físico en tablas de negocio)"
-      - "Errores PG: 23503→404, 23505→409, 23514→400"
-      - "lambda.config.json OBLIGATORIO con nombre, runtime, memoria, timeout"
-      - "CORS habilitado para TODOS los métodos y respuestas de Lambdas expuestas por API Gateway"
-      - "OPTIONS preflight: SIEMPRE primero en index.mjs antes de cualquier validación"
-      - "Seguir endpoint base de API Gateway: https://4j950zl6na.execute-api.us-east-1.amazonaws.com/dev/api/v1/"
-      - "Despliegue de Lambdas validado con scripts del repo y configuración AWS correspondiente"
-      - "Todo cierre requiere certificación funcional con evidencia verificable"
-    test_commands:
-      lambda: "npm test"
-      nestjs: "npm run test"
-      coverage: "npm run test:cov"
-      e2e_api: "npm run test:e2e"
-    coverage_threshold: 85
-    cognito_pools:
-      lambda: "us-east-1_fQl9BKSxq"
-      nestjs: "us-east-1_gmre5QtIx"
-    gherkin_style: |
-      Given el tenant <id> tiene los datos en BD
-      When se hace <METHOD> /api/<recurso> con payload <payload>
-      Then la respuesta tiene statusCode <code>
-      And el body contiene <campo> con valor <valor>
-      And la tabla <tabla> tiene el registro con tenant_id = <tenant>
-
-  fullstack:
-    display_name: "Full-Stack — Angular + Lambda/NestJS"
-    detect_keywords:
-      - "fullstack"
-      - "full stack"
-      - "feature completa"
-      - "end to end"
-      - "integración frontend backend"
-      - "tabla"
-      - "base de datos"
-      - "bd"
-      - "lambda"
-      - "frontend y backend"
-    inherits:
-      - frontend
-      - backend
-    execution_order:
-      - "BD primero: schema, migración, compatibilidad y persistencia"
-      - "Backend segundo: lambda/nestjs, contrato, validaciones, CORS y métodos"
-      - "Frontend tercero: formulario, facade, componente y UX"
-      - "Certificación final: pruebas funcionales y evidencia end-to-end"
-    severe_rules:
-      - "Si el prompt menciona tabla + lambda + pantalla/formulario, tratarlo como fullstack transversal aunque el usuario haya puesto --stack=frontend"
-      - "NO iniciar por frontend si el contrato backend aún no está ajustado"
-      - "NO cerrar el cambio sin evidencia funcional completa"
-      - "El orden BD -> backend -> frontend -> certificación es obligatorio"
-      - "La certificación SIEMPRE debe incluir unit tests + backend consumos + integración frontend + Playwright E2E"
-    certification_gate:
-      - "Unit tests obligatorios"
-      - "Pruebas de consumos backend/endpoint obligatorias"
-      - "Validación de integración frontend obligatoria"
-      - "Playwright E2E obligatorio para el flujo afectado"
-      - "Sin esta cadena, el cambio no puede declararse certificado"
-    phases:
-      - "BD primero: spec de datos → migración/ajuste → validación"
-      - "Backend segundo: API/lambda/nestjs → tests/contrato/consumos"
-      - "Frontend tercero: facade → smart component → dumb components → integración"
-      - "Certificación al final: unitarias + backend + integración + Playwright E2E"
-
-# ============================================================
-# SDD PERSISTENCE — hybrid mode
-# ============================================================
-persistence:
-  mode: hybrid
-  engram:
-    project: framework-sdd
-    topic_prefix: sdd
-    init_topic_key: sdd-init/framework-sdd
-  filesystem:
-    changes_root: openspec/changes
-    specs_root: openspec/specs
-    archive_root: openspec/changes/archive
+    - Warn before merging destructive deltas (large removals)

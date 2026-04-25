@@ -1,16 +1,19 @@
-# Testing rules core
+# testing-rules
 
-## Flujo obligatorio
-- RED -> GREEN -> REFACTOR
-- no declarar éxito sin prueba real
-- evitar mocks que prueban solo el mock
+## Regla central
 
-## Mínimo por cambio
-- prueba unitaria o repro del bug
-- validación funcional del flujo afectado
-- si hay API o UI crítica, smoke o E2E
+TDD obligatorio: RED -> GREEN -> REFACTOR.
 
-## Red flags
-- 'debería funcionar'
-- varios fixes a la vez
-- cerrar sin evidencia
+## Aplicar en
+
+- Lambda
+- NestJS
+- Frontend con Playwright
+
+## Minimos
+
+1. Reproducir la falla.
+2. Escribir el test primero.
+3. Hacer pasar el test con el menor cambio posible.
+4. Refactorizar sin romper cobertura.
+5. Registrar evidencia de test si la tarea forma parte del pipeline SDD.

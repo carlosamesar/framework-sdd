@@ -1,11 +1,18 @@
-# SAGA pattern core
+# saga-pattern
 
-## Principios
-- orquestación central en sdd-orchestrator
-- pasos idempotentes
-- compensación definida para fallos
-- logs con correlationId y evidencia
+## Base
 
-## Regla
-- ningún agente ejecuta tareas fuera del SDD válido
-- validar entrada y salida en cada límite del flujo
+Usar SAGA cuando haya pasos distribuidos, side effects y necesidad de compensacion.
+
+## Reglas
+
+1. Cada paso debe tener exito esperado y compensacion.
+2. Mantener estado de orquestacion observable.
+3. No esconder errores transaccionales.
+4. Capturar evidencia de ejecucion y verificacion.
+
+## Aplicar en
+
+- flujos inventario
+- transacciones multi-servicio
+- integraciones asincronas con rollback logico

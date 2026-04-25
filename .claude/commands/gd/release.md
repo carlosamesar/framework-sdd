@@ -1,5 +1,12 @@
 # /gd:release — Gate de Release Estricto y Publicación con Madurez Alta
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:release` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
 ## Propósito
 Coordinar el cierre técnico y operativo de una versión para salida a producción o entorno controlado, con criterios severos de readiness. Este comando debe decidir si una release es verdaderamente liberable o si debe bloquearse sin excepciones.
 
@@ -21,7 +28,18 @@ Coordinar el cierre técnico y operativo de una versión para salida a producci�
 3. confirmar que `/gd:close` dejó el change en `READY FOR ARCHIVE`;
 4. validar versión, rama objetivo, artefactos, changelog y rollback;
 5. ejecutar gate pre-release severo;
-6. si todo pasa, habilitar `/gd:deploy`.
+6. ejecutar gate automático de evidencia para transición RELEASE → DEPLOY;
+7. si todo pasa, habilitar `/gd:deploy`.
+
+Gate obligatorio (bloqueante):
+
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=CLOSE_RELEASE
+npm run evidence:gate -- --change=<change-slug> --transition=RELEASE_DEPLOY
+```
+
+Si cualquiera falla, la release queda bloqueada.
 
 ---
 

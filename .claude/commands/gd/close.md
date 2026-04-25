@@ -1,137 +1,219 @@
-# /gd:close — Cerrar el Spec con Evidencia, Contrato y Certificación Total
+# /gd:close — Cierre de Certificación y Contrato Final del Cambio
+
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:close` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
 
 ## Propósito
-Cerrar formalmente un change o spec cuando la solución ya fue implementada, revisada, verificada y certificada al 100%. Este comando consolida la evidencia final, obliga la documentación contractual de consumo y deja el cambio listo para archivado sin ambigüedad.
+Cerrar formalmente un cambio, validando que toda la evidencia técnica y funcional está completa,
+que los contratos están documentados, y que el change puede proceder a `/gd:release` o `/gd:archive`.
 
 ## Alias
 - `/gd:cerrar`
-- `/gd:finalizar-spec`
+- `/gd:finalizar`
 
 ---
 
-## Cuándo usarlo
+## Prerrequisitos (todos obligatorios)
 
-Usa este comando únicamente cuando:
-- la implementación está completa;
-- la certificación funcional está al 100%;
-- `/gd:review` devolvió `PASS`;
-- `/gd:verify` devolvió `VERIFY PASS`;
-- no existen BLOCKERs, warnings críticas ni pruebas fallando.
-
-Si falta cualquiera de esos puntos, el cierre debe ser rechazado.
+- [ ] `/gd:review` aprobado con veredicto `PASS` documentado
+- [ ] `/gd:verify` aprobado con veredicto `VERIFY PASS` documentado
+- [ ] Todos los tests en verde (backend, frontend o ambos según el stack del change)
+- [ ] Build sin errores de compilación
+- [ ] Lint limpio o sin hallazgos críticos
+- [ ] Todas las tareas del `TASKS.md` marcadas como `[x]`
+- [ ] Código commiteado a rama `fix/<slug>` (no en rama base protegida)
 
 ---
 
-## Rol dentro del ciclo de vida
+## Gate VERIFY → CLOSE (modo dual)
 
-`/gd:close` es el gate documental y operativo previo al archivado.
+### Modo automático — si el repo tiene infraestructura RAG/SQLite activa:
 
-Flujo obligatorio:
-
-```text
-/gd:start → /gd:implement → /gd:review → /gd:verify → /gd:close → /gd:archive
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=VERIFY_CLOSE
+# Exit 0 = gate pasa | Exit != 0 = close falla
 ```
 
-Su responsabilidad es asegurar que el spec quede cerrado con trazabilidad completa, no solo con código funcionando.
+### Modo manual — si `rag/` no existe o no está disponible:
+
+Verificar antes de continuar:
+- [ ] `/gd:review` produjo veredicto `PASS` (documentado en `EVIDENCE.md`)
+- [ ] `/gd:verify` produjo veredicto `VERIFY PASS` (documentado en `EVIDENCE.md`)
+- [ ] No hay BLOCKERs ni hallazgos CRITICAL sin resolver
+- [ ] `TASKS.md` con todas las tareas `[x]`
+
+Si alguna falla → `/gd:close` termina en `FAIL`. No hay excepción.
 
 ---
 
-## Prerrequisitos obligatorios
+## Flujo de Cierre
 
-- [ ] implementación funcional terminada al 100%
-- [ ] certificación funcional aprobada al 100%
-- [ ] build, lint, unit, integración, consumos y E2E en verde según aplique
-- [ ] cobertura mínima cumplida
-- [ ] `EVIDENCE.md` actualizado con resultados verificables
-- [ ] `CONSUMO.md` actualizado con contrato de uso real
-- [ ] documentación técnica asociada actualizada (OpenAPI, README, notas operativas)
-- [ ] sin gaps P0 ni deuda crítica abierta
+### Paso 1 — Verificar prerrequisitos
 
----
+```bash
+# Estado del repo
+git status
+git log --oneline -5
 
-## Qué debe hacer
+# Tests finales
+npm test       # backend / NestJS
+# o
+npx ng test --watch=false --browsers=ChromeHeadless   # Angular
+# o
+npx playwright test   # E2E
+```
 
-1. Identificar el change o spec activo.
-2. Confirmar el estado final real de implementación y certificación.
-3. Consolidar evidencias técnicas y funcionales.
-4. Validar que `CONSUMO.md` tenga contrato completo y vigente.
-5. Preparar el handoff documental para soporte, QA, frontend y futuros agentes.
-6. Marcar el change como listo para archivado.
+### Paso 2 — Crear o completar `CONSUMO.md`
 
----
+El archivo `CONSUMO.md` documenta el contrato público del cambio y permite que otros equipos
+y futuros agentes consuman el trabajo sin releer el código.
 
-## Contrato obligatorio en CONSUMO.md
+Ubicación: `openspec/changes/<slug>/CONSUMO.md`
 
-El cierre NO es válido si `CONSUMO.md` no documenta, como mínimo:
-
-- contexto del servicio o feature;
-- URL base y ambientes;
-- autenticación y reglas multi-tenant;
-- matriz de endpoints o flujos consumibles;
-- headers requeridos;
-- payloads de request;
-- respuestas esperadas;
-- códigos de error y manejo de fallos;
-- ejemplos reales de consumo;
-- dependencias, precondiciones y notas de compatibilidad;
-- evidencia de certificación funcional asociada.
-
----
-
-## Checklist de cierre estricto
-
-- [ ] spec implementado completamente
-- [ ] tasks cerradas al 100%
-- [ ] evidencia real enlazada y consistente
-- [ ] `CONSUMO.md` completo y alineado al contrato final
-- [ ] endpoints, payloads y respuestas validados
-- [ ] riesgos residuales declarados o marcados como cero
-- [ ] siguiente estado del change = listo para `/gd:archive`
-
----
-
-## Output esperado
+Estructura obligatoria:
 
 ```markdown
-## Cierre Formal del Spec
-**Estado**: READY FOR ARCHIVE | REJECTED
-**Certificación funcional**: 100%
-**Review**: PASS
-**Verify**: VERIFY PASS
+# CONSUMO — <change-slug>
 
-### Evidencia consolidada
-- Build: OK
-- Lint: OK
-- Unit tests: OK
-- Backend/consumos: OK
-- Integración: OK
-- Playwright E2E: OK
+## Descripción
+[Qué hace este cambio en una oración]
 
-### Documentación obligatoria
-- EVIDENCE.md: completo
-- CONSUMO.md: completo
-- OpenAPI/README: actualizados
+## Endpoints / Contratos (si aplica)
 
-### Veredicto
-- Si todo está completo → ejecutar /gd:archive
-- Si falta contrato o evidencia → REJECTED y volver a completar documentación
+### POST /api/v1/<recurso>
+**Request:**
+```json
+{ "campo": "valor" }
+```
+**Response 201:**
+```json
+{ "id": "uuid", "campo": "valor" }
+```
+**Errors:** 400, 401, 403, 409
+
+## Parámetros requeridos
+- `tenantId`: extraído de JWT `custom:tenant_id`
+- `Authorization`: Bearer <JWT>
+
+## Dependencias externas
+- Lambda: `fnNombreHandler` en `us-east-1`
+- NestJS service: `NombreService`
+
+## Variables de entorno requeridas
+- `DB_HOST`, `DB_PORT`, etc.
+
+## Notas de uso
+[Gotchas, edge cases, restricciones multi-tenant]
+```
+
+### Paso 3 — Completar `EVIDENCE.md`
+
+Ubicación: `openspec/changes/<slug>/EVIDENCE.md`
+
+Agregar los gates completados:
+
+```markdown
+## Gate: close — [PASS] — [YYYY-MM-DD]
+- CONSUMO.md completo: ✅
+- Contrato final documentado: ✅
+- TASKS.md completo (todas [x]): ✅
+- Tests pasando: ✅
+- Rama: fix/<slug>
+- PR: <URL del PR o "N/A — solo framework">
+```
+
+### Paso 4 — Preparar PR (si el change toca repos productivos)
+
+```bash
+# Asegurarse de que la rama está actualizada
+git pull origin <rama-base> --rebase
+
+# Push de la rama de trabajo
+git push origin fix/<slug>
+
+# Crear PR hacia la rama base
+gh pr create \
+  --title "fix(<slug>): <descripción corta>" \
+  --body "$(cat openspec/changes/<slug>/CONSUMO.md)"
+```
+
+### Paso 5 — Capturar evidencia en RAG (si el repo tiene infraestructura SQLite)
+
+```bash
+cd rag
+npm run evidence:capture close \
+  --change="<slug>" \
+  --result="PASS" \
+  --notes="CONSUMO.md y EVIDENCE.md completos. PR creado."
 ```
 
 ---
 
-## Política de severidad
+## Veredicto de Cierre
 
-- no cerrar con certificación parcial;
-- no cerrar con evidencia incompleta;
-- no cerrar con contratos desactualizados;
-- no cerrar si el comportamiento real no coincide con lo documentado.
+El comando emite uno de dos veredictos:
 
-El estándar es: cierre formal, auditable y reproducible.
+### ✅ CLOSE PASS — READY FOR ARCHIVE
+
+```markdown
+## Close: PASS ✅
+**Change**: <slug>
+**Fecha**: <YYYY-MM-DD>
+
+### Artefactos entregados
+- CONSUMO.md: ✅ completo
+- EVIDENCE.md: ✅ con todos los gates
+- TASKS.md: ✅ todas las tareas [x]
+- Rama: fix/<slug>
+- PR: <URL o N/A>
+
+### Siguientes pasos
+→ Si el change requiere versión/deploy: ejecutar /gd:release
+→ Si el change es solo código/docs: ejecutar /gd:score luego /gd:archive
+```
+
+### ❌ CLOSE FAIL
+
+```markdown
+## Close: FAIL ❌
+**Razón**: [descripción exacta del bloqueo]
+**Gate que falla**: [review | verify | tests | consumo | evidence]
+**Acción requerida**: [qué completar antes de reintentar /gd:close]
+```
 
 ---
 
-## Siguiente paso
+## Reglas No Negociables
 
-- Si el resultado es `READY FOR ARCHIVE` y el cambio requiere salida controlada → ejecutar `/gd:release`
-- Si el resultado es `READY FOR ARCHIVE` y no requiere despliegue/versionado → ejecutar `/gd:archive`
-- Si el resultado es `REJECTED` → corregir implementación, evidencia o documentación y re-ejecutar `/gd:close`
+- **NUNCA** emitir `CLOSE PASS` si `/gd:review` o `/gd:verify` están en `FAIL` o sin ejecutar.
+- **NUNCA** emitir `CLOSE PASS` si `CONSUMO.md` está vacío o incompleto.
+- **NUNCA** omitir `EVIDENCE.md` — es el registro de auditoría del cambio.
+- **NUNCA** hacer close desde una rama base protegida — siempre desde `fix/<slug>`.
+- Si el change afecta multi-tenancy, CORS o JWT: el `CONSUMO.md` debe documentar ese contrato explícitamente.
+
+---
+
+## Qué Sigue Después de CLOSE PASS
+
+| Escenario | Próximo comando |
+|-----------|----------------|
+| Change requiere versión o release | `/gd:release` |
+| Change requiere despliegue a AWS | `/gd:release` → `/gd:deploy` |
+| Change es solo código/docs/framework | `/gd:score` → `/gd:archive` |
+| Score < 80% | Completar dimensiones rojas → `/gd:score` → `/gd:archive` |
+
+---
+
+## Integración con el Flujo Completo
+
+```
+/gd:implement → tests → /gd:review → /gd:verify → /gd:close → /gd:score → /gd:archive
+                                                         ↓
+                                                  (si requiere deploy)
+                                               /gd:release → /gd:deploy → /gd:score → /gd:archive
+```

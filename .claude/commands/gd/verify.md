@@ -1,5 +1,20 @@
 # /gd:verify — Validar que Implementación Coincide con SPEC y Tasks
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:verify` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
+> **🛑 ZERO TRUST V9 — REGLAS HEREDADAS ACTIVAS**
+> 1. **TIENES PROHIBIDO aceptar un "sí, funcionó"** como evidencia de verificación.
+> 2. Exige evidencia según el stack del cambio:
+>    - `frontend` → logs literales de **Playwright** con estado `PASS` para cada escenario generado.
+>    - `backend` → logs literales de **Jest/Supertest** con estado `PASS` y reporte de cobertura de las líneas modificadas.
+>    - `fullstack` → ambos reportes, en ese orden.
+> 3. Si los logs no cubren los escenarios negativos y de casos borde generados en `/gd:implement`, el verify es **FAIL**.
+
 ## Propósito
 Validar que la implementación final coincide exactamente con la especificación original y las tareas definidas en el breakdown. Es el último gate de calidad antes de archivar el cambio.
 
@@ -19,12 +34,32 @@ Validar que la implementación final coincide exactamente con la especificación
 
 ## Cómo Funciona
 
-1. **Cargar la spec** desde `openspec/changes/[slug]/specs/`
-2. **Cargar el task breakdown** desde `openspec/changes/[slug]/tasks.md`
+1. **Cargar la spec** desde `openspec/changes/[slug]/SPEC.md`
+2. **Cargar el task breakdown** desde `openspec/changes/[slug]/TASKS.md`
 3. **Trazar cada escenario Gherkin** → código que lo implementa → test que lo verifica
 4. **Verificar completitud** de tareas vs implementación real
 5. **Detectar scope creep**: funcionalidad implementada fuera de spec
-6. **Emitir veredicto**: `VERIFY PASS` o `VERIFY FAIL [gaps]`
+6. **Ejecutar gate REVIEW → VERIFY** (ver abajo)
+7. **Emitir veredicto**: `VERIFY PASS` o `VERIFY FAIL [gaps]`
+
+### Gate REVIEW → VERIFY (modo dual)
+
+**Modo automático** — si el repo tiene infraestructura RAG/SQLite activa:
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=REVIEW_VERIFY
+# Exit 0 = gate pasa | Exit != 0 = gate falla → VERIFY FAIL
+```
+
+**Modo manual** — si `rag/` no existe o el script no está disponible:
+
+Verificar antes de continuar:
+- [ ] `/gd:review` produjo veredicto `PASS` documentado (sin BLOCKERs, sin errores)
+- [ ] Todos los tests siguen en verde tras la implementación completa
+- [ ] `TASKS.md` tiene todas las tareas marcadas como `[x]`
+- [ ] `SPEC.md` está disponible para trazabilidad
+
+Si alguna verificación falla → `/gd:verify` termina en `VERIFY FAIL`.
 
 ---
 
@@ -43,9 +78,9 @@ Para cada escenario de la spec, completar:
 
 ---
 
-## Verificación Mecánica (CI / agentes ReAct)
+## Verificación Mecánica (Opcional — si el repo tiene `openspec/`)
 
-Desde la raíz del repositorio:
+Si el proyecto tiene infraestructura OpenSpec activa:
 
 ```bash
 # Verificar un change específico
@@ -57,10 +92,7 @@ npm run spec:verify -- --all
 # Output: reports/verify-<slug>.json
 ```
 
-El script verifica el estado de checklist `tasks.md` y lista de `specs/**`.
-
-Para **observación estructurada** adicional, emitir JSON según:
-`openspec/templates/react-outputs/verify.output.schema.json`
+Si el script no existe, la verificación se realiza manualmente con el checklist de esta sección.
 
 ---
 

@@ -1,5 +1,12 @@
 # /gd:archive — Sincronizar Delta Specs a Specs Principales y Archivar Cambio
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:archive` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
 ## Propósito
 Finalizar el ciclo SDD sincronizando las especificaciones delta con las specs principales y archivando el cambio completado. Produce un registro histórico inmutable del trabajo realizado.
 
@@ -13,8 +20,9 @@ Finalizar el ciclo SDD sincronizando las especificaciones delta con las specs pr
 - [ ] `/gd:review` pasado con veredicto `PASS`
 - [ ] `/gd:verify` pasado con veredicto `VERIFY PASS`
 - [ ] `/gd:close` pasado con veredicto `READY FOR ARCHIVE`
-- [ ] `/gd:release` aprobado si el change genera versión o salida operativa
-- [ ] `/gd:deploy` validado si el change requiere despliegue real
+- [ ] `/gd:score` ejecutado y score ≥ 80% (o declaración explícita de exención con justificación)
+- [ ] `/gd:release` aprobado **solo si** el change genera versión o salida operativa
+- [ ] `/gd:deploy` validado **solo si** el change requiere despliegue real
 - [ ] Suite de tests completa en verde (`npm test`)
 - [ ] Código commiteado a la rama de trabajo
 - [ ] Documentación actualizada (OpenAPI, README, `CONSUMO.md`, `EVIDENCE.md` y CHANGELOG si aplica)
@@ -30,8 +38,28 @@ Finalizar el ciclo SDD sincronizando las especificaciones delta con las specs pr
 5. **Agregar entrada a `registry.md`** con número secuencial y metadata
 6. **Crear carpeta de archivo** en `openspec/changes/archive/[fecha]-[slug]/`
 7. **Mover artefactos** de trabajo a la carpeta de archivo
-8. **Guardar evidencia en Engram** (`mem_session_summary`)
-9. **Emitir resumen** de qué se archivó y dónde queda
+8. **Validar gate DEPLOY → ARCHIVE** (ver abajo)
+9. **Guardar evidencia en Engram** (`mem_session_summary`)
+10. **Emitir resumen** de qué se archivó y dónde queda
+
+### Gate DEPLOY → ARCHIVE (modo dual)
+
+**Modo automático** — si el repo tiene infraestructura RAG/SQLite activa:
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=DEPLOY_ARCHIVE
+# Exit 0 = gate pasa | Exit != 0 = archive falla
+```
+
+**Modo manual** — si `rag/` no existe o el script no está disponible:
+
+Verificar antes de archivar:
+- [ ] Si el change requería deploy: deploy ejecutado y validado en el ambiente objetivo
+- [ ] Si el change NO requería deploy: declarar explícitamente "sin deploy requerido — change de código/docs"
+- [ ] `/gd:score` ejecutado (score ≥ 80% o exención justificada)
+- [ ] Todos los prerrequisitos de la sección anterior cumplidos
+
+Si el change requería deploy y no hay evidencia de deploy exitoso → archive falla.
 
 ---
 
@@ -125,7 +153,7 @@ mem_session_summary — incluir:
 - `openspec/changes/archive/[fecha]-[slug]/`
   - specs/ ([N] archivos)
   - tasks.md
-  - design.md (si existe)
+  - PLAN.md (plan técnico del cambio)
   - proposal.md (si existe)
   - EVIDENCE.md
   - referencias de contrato/consumo y release notes
@@ -163,7 +191,7 @@ openspec/changes/archive/
     ├── specs/
     │   └── [feature].spec.md
     ├── tasks.md          # tasks completadas con evidencia
-    ├── design.md         # plan técnico (si existía)
+    ├── PLAN.md           # plan técnico del cambio
     ├── proposal.md       # propuesta inicial (si existía)
     ├── EVIDENCE.md       # resumen de evidencia de tests y gates
     └── ARCHIVED.md       # metadata de archivo con fechas y links

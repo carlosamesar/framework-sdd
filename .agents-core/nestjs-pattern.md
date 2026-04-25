@@ -1,12 +1,20 @@
-# NestJS pattern core
+# nestjs-pattern
 
-## Estructura
-- controller -> dto -> service -> entity/repository
-- JwtTenantGuard global o por controlador
-- decorator @TenantId() para extraer tenant del JWT
+## Base
+
+Usar `servicio-tesoreria` como referencia madura.
 
 ## Reglas
-- lógica en services, no en controllers
-- DTOs explícitos y validación estricta
-- transacciones con QueryRunner cuando aplique
-- seguir patrón de servicio-tesoreria
+
+1. Guard o interceptor para tenant.
+2. DTOs y validacion explicita.
+3. Service sin logica HTTP.
+4. Transaction handling con `QueryRunner` cuando aplique.
+5. Reusar entidades y estructuras existentes antes de crear nuevas.
+
+## Patrones a copiar
+
+- `JwtTenantGuard`
+- `Controller MT`
+- `Entity TypeORM`
+- `QueryRunner TX`

@@ -1,5 +1,12 @@
 # /gd:deploy — Despliegue AWS Estricto con Gates de Release y Cero Errores
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:deploy` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
 ## Propósito
 Automatizar y validar despliegues de microservicios y funciones en AWS bajo un criterio severo de readiness. Este comando no debe desplegar por intuición: solo puede avanzar cuando el change ya pasó review, verify, close documental y está listo operativamente.
 
@@ -23,6 +30,15 @@ Automatizar y validar despliegues de microservicios y funciones en AWS bajo un c
 - rollback definido y documentado
 
 Si alguno falla, el despliegue debe bloquearse.
+
+Además, validar gates automáticos de evidencia antes de desplegar:
+
+```bash
+cd rag
+npm run evidence:gate -- --change=<change-slug> --transition=RELEASE_DEPLOY
+```
+
+Si el gate falla, `/gd:deploy` debe terminar en `BLOCKED`.
 
 ---
 

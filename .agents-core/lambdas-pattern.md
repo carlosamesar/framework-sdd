@@ -1,17 +1,19 @@
-# Lambda pattern core
+# lambdas-pattern
 
-## Estructura
-- index.mjs: router por método y recurso
-- utils/sanitization.mjs: tenant, validaciones
-- utils/responseBuilder.mjs: respuestas estándar
-- utils/database.mjs: pool singleton
+## Base
 
-## HTTP obligatorio
-- Implementar GET, POST, PUT, DELETE y OPTIONS
-- CORS consistente en código y API Gateway
-- 405 para métodos no soportados
+Usar como referencia madura `fnTransaccionLineas`.
 
-## Regla de implementación
-- Copiar patrón espejo de fnTransaccionLineas
-- No inventar estructura paralela
-- Validar input antes de tocar BD
+## Reglas
+
+1. Handler pequeno.
+2. Validacion y sanitizacion al inicio.
+3. `tenantId` desde JWT.
+4. `ResponseBuilder` para respuestas.
+5. Errores normalizados y logs utiles.
+
+## Patrones a copiar
+
+- `extractTenantId`
+- `ResponseBuilder`
+- `Router lastSegment`

@@ -1,120 +1,117 @@
-# /gd:clarify — Detectar Ambigüedades y Contradicciones
+# /gd:clarify — Clarificación de Dudas y Ambigüedades (Nivel 2+)
 
-## Propósito
-Realizar una revisión sistemática de la especificación para detectar ambigüedades, contradicciones, gaps y preguntas abiertas antes de planificar. Produce una spec validada o una lista de items a resolver.
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:clarify` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
 
 ## Alias
+- `/gd:aclarar`
 - `/gd:clarificar`
-- `/gd:detectar-ambiguedad`
 
 ---
 
-## Cómo Funciona
+## Propósito
 
-1. **Leer la spec activa** en `openspec/changes/[slug]/specs/`
-2. **Ejecutar los 5 chequeos** de calidad (ver abajo)
-3. **Categorizar issues** por tipo y severidad
-4. **Resolver los BLOCKER** antes de continuar — preguntar al usuario si es necesario
-5. **Emitir veredicto**: `SPEC VÁLIDA` o `SPEC BLOQUEADA [lista de issues]`
+Resolver dudas, ambigüedades o conflictos detectados durante `/gd:specify` **antes de comprometer un plan técnico**.
+
+Esta fase es corta y enfocada: no reformula la SPEC completa, solo cierra los puntos bloqueantes. Si no hay ambigüedades, se puede omitir con declaración explícita.
 
 ---
 
-## Los 5 Chequeos de Clarificación
+## Parámetros
 
-### 1. Completitud
-Verificar que todos los escenarios principales estén cubiertos.
-- ¿Hay actores sin escenarios asociados?
-- ¿Hay acciones descritas en el contexto pero sin Gherkin?
-- ¿El happy path cubre el flujo de inicio a fin sin gaps?
+```
+/gd:clarify --change=<slug>
+/gd:clarify --change=<slug> [pregunta o duda específica]
+```
 
-### 2. Claridad
-Verificar que cada escenario sea inequívoco.
-- ¿Los `Given` son observables/medibles (no "usuario autenticado" sino "usuario con token JWT válido de rol admin")?
-- ¿Los `Then` tienen criterios cuantitativos cuando aplica (no "respuesta rápida" sino "responde en < 200ms")?
-- ¿Hay términos de negocio usados sin definir?
-
-### 3. Consistencia
-Verificar que no haya contradicciones entre escenarios.
-- ¿Dos escenarios tienen el mismo `Given/When` pero diferentes `Then`?
-- ¿Las reglas de validación son consistentes entre escenarios?
-- ¿Los cambios de estado son reversibles según se espera?
-
-### 4. Medibilidad
-Verificar que cada resultado sea verificable por un test.
-- ¿Cada `Then` puede ser afirmado con `expect(actual).toBe(expected)`?
-- ¿Los errores tienen códigos HTTP y mensajes específicos?
-- ¿Los efectos secundarios (emails, jobs, webhooks) son verificables?
-
-### 5. Trazabilidad
-Verificar que cada requerimiento tenga cobertura.
-- ¿Cada bullet del contexto tiene al menos un escenario Gherkin?
-- ¿Hay criterios de aceptación del negocio sin escenario correspondiente?
+El `--change=<slug>` es obligatorio para vincular las aclaraciones al cambio correcto.
 
 ---
 
-## Formato de Reporte de Issues
+## Cuándo es obligatorio
+
+Ejecutar siempre que en `/gd:specify` se haya detectado alguna de estas condiciones:
+
+- Un criterio de aceptación no pudo escribirse sin asumir algo
+- El contrato de API tiene opciones (¿`PUT` o `PATCH`? ¿query param o body?)
+- Una regla de negocio depende de un comportamiento del sistema no documentado
+- Un borde no tiene respuesta clara (¿error silencioso o visible al usuario?)
+- El alcance puede interpretarse de más de una manera válida
+
+---
+
+## Proceso
+
+### 1. Listar dudas abiertas
+
+Formato claro por ítem:
+
+```
+DUDA-01: [Pregunta concreta]
+  Contexto: [Por qué surgió esta duda]
+  Opciones: [A] ... / [B] ...
+  Bloquea: [AC-XX / contrato / regla]
+```
+
+### 2. Resolver con el usuario o con evidencia
+
+Para cada duda:
+- Consultar al usuario si la respuesta no está en el código, docs o contexto actual
+- Si la respuesta puede inferirse del código real (patrón existente), resolverla sin preguntar
+- Documentar la decisión tomada y el criterio
+
+### 3. Actualizar la SPEC
+
+Una vez resueltas todas las dudas, actualizar `SPEC.md` con:
+- Criterios corregidos o añadidos
+- Contratos ajustados
+- Reglas clarificadas
+
+---
+
+## Salida Esperada
 
 ```markdown
-## Resultado de Clarificación
+# CLARIFY — <change-slug>
 
-**Estado**: SPEC VÁLIDA | SPEC BLOQUEADA
+## Dudas resueltas
+- DUDA-01: [Pregunta] → Decisión: [respuesta] (fuente: [usuario / código / docs])
+- DUDA-02: [Pregunta] → Decisión: [respuesta]
 
-### Issues Encontrados
+## SPEC actualizada
+[Sección o diff de los cambios aplicados a SPEC.md]
 
-| ID | Tipo | Severidad | Escenario | Descripción | Acción |
-|----|------|-----------|-----------|-------------|--------|
-| C01 | Ambigüedad | BLOCKER | Scenario: Login exitoso | "autenticado" no define qué token se usa | Especificar tipo de token y claims mínimos |
-| C02 | Gap | BLOCKER | — | No hay escenario para token expirado | Agregar Scenario: Token JWT expirado |
-| C03 | Claridad | WARNING | Scenario: Cobro | Monto no tiene tipo definido | Aclarar si es float o Decimal(10,2) |
-| C04 | Consistencia | INFO | Scenario: Cancelar | Conflicto con regla de no-modificación | Revisar si cancelación es soft-delete |
-
-### Severidades
-- **BLOCKER**: Impide implementar correctamente — debe resolverse antes de /gd:plan
-- **WARNING**: Puede causar inconsistencias — resolver antes de /gd:implement
-- **INFO**: Mejora calidad — resolver si el tiempo lo permite
-
-### Preguntas al Usuario (BLOCKERs)
-1. [C01] ¿El token de autenticación es JWT firmado con RS256 o HS256?
-2. [C02] ¿Qué debe pasar cuando el token expira: refresh automático o re-login?
+## Estado
+✅ Sin ambigüedades bloqueantes — listo para /gd:plan
 ```
 
 ---
 
-## Tipos de Ambigüedad Comunes
+## Si no hay dudas
 
-| Tipo | Señal | Ejemplo |
-|------|-------|---------|
-| **Actor vago** | "el usuario" sin rol | "usuario puede ver reportes" → ¿admin? ¿operador? |
-| **Resultado inmeasurable** | adjetivos | "respuesta rápida", "funciona bien", "muestra información" |
-| **Estado indefinido** | sin precondición | "Dado el sistema está listo" — ¿qué datos tiene? |
-| **Regla de negocio implícita** | lógica sin enunciar | "calcula el total" — ¿con IVA? ¿con descuentos? |
-| **Multi-tenant gap** | sin mención de tenant | Entidad de BD sin `tenant_id` en la spec |
-| **Error sin código** | "muestra error" | Sin HTTP status ni mensaje específico |
-| **Scope creep latente** | "también podría" | Features opcionales mezclados con requerimientos |
-
----
-
-## Uso
+Declarar explícitamente:
 
 ```
-/gd:clarify
-/gd:clarify [slug-del-change]   # clarificar un change específico por slug
+CLARIFY — <change-slug>: Sin ambigüedades detectadas. SPEC completa.
+→ Avanzando a /gd:plan --change=<change-slug>
 ```
 
 ---
 
-## Criterios de Spec Gate (para SPEC VÁLIDA)
+## Gate de Salida
 
-- ✅ **Completitud**: Todos los escenarios P0 y P1 están presentes
-- ✅ **Claridad**: Cada `Then` es verificable mecánicamente
-- ✅ **Consistencia**: Sin contradicciones entre escenarios
-- ✅ **Medibilidad**: Resultados tienen valores concretos (códigos, mensajes, campos)
-- ✅ **Trazabilidad**: Cada requerimiento de negocio tiene al menos un Gherkin
-- ✅ **Multi-tenant**: Toda entidad de BD tiene `tenant_id` especificado
-- ✅ **BLOCKERs**: 0 issues de severidad BLOCKER sin resolver
+- [ ] Todas las dudas tienen respuesta documentada
+- [ ] La SPEC está actualizada y consistente
+- [ ] No quedan suposiciones sin validar
 
 ---
 
-## Siguiente Paso
-- Si `SPEC VÁLIDA` → usar `/gd:plan` para el blueprint técnico
-- Si `SPEC BLOQUEADA` → resolver los BLOCKERs con el usuario y re-ejecutar `/gd:clarify`
+## Siguiente paso
+
+```
+/gd:plan --change=<change-slug>
+```

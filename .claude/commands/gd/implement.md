@@ -1,5 +1,20 @@
 # /gd:implement — Ejecutar con TDD: RED → GREEN → REFACTOR
 
+## Skill Enforcement (Obligatorio)
+
+1. Cargar `skill("gd-command-governance")`.
+2. Cargar skill especializado para `/gd:implement` desde `.claude/commands/gd/SKILL-ROUTING.md`.
+3. Si falta evidencia, skill requerido, o hay `BLOCKED`/`UNVERIFIED` critico: `FAIL` inmediato.
+
+
+> **🛑 ZERO TRUST V9 — REGLAS HEREDADAS ACTIVAS**
+> Si este comando se ejecuta sin haber pasado por `/gd:start`, el contexto ZERO TRUST sigue vigente. Verifica antes de continuar:
+> 1. ¿Existe un SDD y una Matriz aprobada para este cambio? Si no → ve a `/gd:start`.
+> 2. **TÚ (el LLM) escribes las pruebas**, no el desarrollador. Abarcan TODOS los escenarios: caminos felices, negativos y casos borde.
+> 3. Framework de pruebas por stack: `frontend` → **Playwright** | `backend` → **Jest + Supertest** | `fullstack` → ambos.
+> 4. TDD obligatorio: primero el test en rojo (RED), luego el código mínimo (GREEN), luego refactor.
+> El desarrollador opera sobre código heredado sin contexto histórico — sé quirúrgicamente preciso.
+
 ## Propósito
 Implementar una tarea del breakdown siguiendo el ciclo estricto TDD. Cada tarea se completa solo cuando tiene tests pasando, coverage ≥ 85% y el código respeta los patrones del repo.
 
@@ -9,8 +24,8 @@ Implementar una tarea del breakdown siguiendo el ciclo estricto TDD. Cada tarea 
 ---
 
 ## Prerrequisitos
-- `tasks.md` con tareas definidas (output de `/gd:breakdown`)
-- Plan técnico con contratos API y patrones de referencia
+- `TASKS.md` con tareas definidas (output de `/gd:breakdown`) en `openspec/changes/<slug>/TASKS.md`
+- Plan técnico `PLAN.md` con contratos API y patrones de referencia en `openspec/changes/<slug>/PLAN.md`
 - Tarea específica a implementar (por ID: T01, T02, etc.)
 - Rama de trabajo Git creada bajo el patrón `fix/<slug>` desde la base correcta del repo objetivo
 - Repo objetivo identificado antes de tocar código
@@ -123,6 +138,85 @@ describe('handler', () => {
 });
 ```
 
+**Template de test unitario (Angular 19 — componente con Signals)**:
+```typescript
+describe('[NombreComponent]', () => {
+  let component: NombreComponent;
+  let fixture: ComponentFixture<NombreComponent>;
+  let mockServicio: jasmine.SpyObj<NombreServicio>;
+
+  beforeEach(async () => {
+    mockServicio = jasmine.createSpyObj('NombreServicio', ['metodo']);
+
+    await TestBed.configureTestingModule({
+      imports: [NombreComponent], // standalone component
+      providers: [
+        { provide: NombreServicio, useValue: mockServicio }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(NombreComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should [comportamiento esperado] when [condición]', () => {
+    // Arrange
+    mockServicio.metodo.and.returnValue(of(resultado));
+
+    // Act
+    component.accion();
+    fixture.detectChanges();
+
+    // Assert
+    expect(component.signal()).toBe(valorEsperado);
+    const el = fixture.nativeElement.querySelector('[data-testid="elemento"]');
+    expect(el.textContent).toContain('texto esperado');
+  });
+
+  it('should disable submit when [condición]', () => {
+    // Arrange — signal en estado bloqueante
+    component.recaptchaToken.set(null);
+    fixture.detectChanges();
+
+    // Assert
+    const btn = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(btn.disabled).toBeTrue();
+  });
+});
+```
+
+**Template de test E2E (Playwright — Angular)**:
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('[Feature]', () => {
+  test('should [comportamiento esperado] when [condición]', async ({ page }) => {
+    // Arrange
+    await page.goto('/auth/login');
+
+    // Act
+    await page.fill('[data-testid="email"]', 'usuario@test.com');
+    await page.fill('[data-testid="password"]', 'Password123!');
+    // Para reCAPTCHA en tests: usar Google test key (siempre pasa) o mockear
+    await page.click('[data-testid="submit"]');
+
+    // Assert
+    await expect(page).toHaveURL('/dashboard');
+    await expect(page.locator('[data-testid="bienvenida"]')).toBeVisible();
+  });
+
+  test('should show error when [condición de fallo]', async ({ page }) => {
+    await page.goto('/auth/login');
+    await page.fill('[data-testid="email"]', 'invalido@test.com');
+    await page.fill('[data-testid="password"]', 'wrongpass');
+    await page.click('[data-testid="submit"]');
+
+    await expect(page.locator('[data-testid="error-msg"]')).toBeVisible();
+  });
+});
+```
+
 ---
 
 ### Fase 2 — GREEN: Implementar el Mínimo que Pasa
@@ -225,5 +319,57 @@ Para diseño de lógica de negocio compleja antes de implementar:
 
 ---
 
+## Captura de Evidencia de Código (Obligatorio)
+
+**Después de cada commit**, documentar la evidencia en `EVIDENCE.md` del change:
+
+```markdown
+## Evidencia — <change-slug>
+
+### Código
+- Commit: <git-sha>
+- Tarea: T01 — <descripcion>
+- Archivos modificados: [lista]
+- Tests: <resultado de npm test>
+- Build: OK / ERROR
+```
+
+**Modo automático** — si el repo tiene infraestructura RAG/SQLite:
+```bash
+node <ruta-al-repo-framework>/rag/scripts/capture-evidence.mjs \
+  --type=code \
+  --change=<change-slug> \
+  --title="T01: <descripcion>" \
+  --description="Implementacion completada" \
+  --metadata='{"task_id":"T01","commit":"<git-sha>"}'
+```
+
+**Verificar hook de evidencia automático** (si existe en el repo):
+```bash
+npm run evidence:hooks:check
+# Si falta: npm run evidence:hooks:install
+```
+
+Sin evidencia documentada de código y tests, el gate de `/gd:close` fallará.
+
+## Post-Implementation Validation Gate: Tests Obligatorios
+
+**OBLIGATORIO**: Después de completar la implementación, ejecutar el comando de testing para su stack ANTES de proceder a `/gd:review`:
+
+```bash
+# Si la tarea es BACKEND (Lambda o NestJS)
+/gd:test-Backend --scope=integration
+
+# Si la tarea es FRONTEND (Angular + Playwright)
+/gd:test-Frontend --scope=smoke
+```
+
+**Regla de bloqueo**: Si los tests fallan:
+- ❌ NO proceder a `/gd:review`
+- ↩️ VOLVER a `/gd:implement` y corregir
+- ✅ Solo cuando TODOS los tests pasen, ejecutar `/gd:review`
+
+---
+
 ## Siguiente Paso
-Después de implementar todas las tareas, usar `/gd:review` para revisión automática de calidad antes de verificar.
+Una vez que `/gd:test-Backend` o `/gd:test-Frontend` reportan ✅ PASS, ejecutar `/gd:review` para revisión automática de calidad antes de verificar.

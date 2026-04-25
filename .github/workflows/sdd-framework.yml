@@ -1,0 +1,111 @@
+# Quality gate del Framework-SDD: validación OpenSpec + reportes de verificación por change.
+name: SDD Framework
+
+on:
+  push:
+    paths:
+      - 'openspec/**'
+      - 'scripts/validate-spec.mjs'
+      - 'scripts/validate-react-schemas.mjs'
+      - 'scripts/validate-spec.mjs'
+      - 'scripts/check-spec-implements.mjs'
+      - 'scripts/e2e-spec-implements.mjs'
+      - 'scripts/react-runner.mjs'
+      - 'scripts/extract-json-block.mjs'
+      - 'scripts/e2e-extract-json.mjs'
+      - 'scripts/e2e-path-sandbox.mjs'
+      - 'scripts/fixtures/**'
+      - 'scripts/lib/**'
+      - 'scripts/verify-change.mjs'
+      - 'bin/framework-sdd.mjs'
+      - 'packages/sdd-agent-orchestrator/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/sdd-framework.yml'
+  pull_request:
+    paths:
+      - 'openspec/**'
+      - 'scripts/validate-spec.mjs'
+      - 'scripts/validate-react-schemas.mjs'
+      - 'scripts/validate-spec.mjs'
+      - 'scripts/check-spec-implements.mjs'
+      - 'scripts/e2e-spec-implements.mjs'
+      - 'scripts/react-runner.mjs'
+      - 'scripts/extract-json-block.mjs'
+      - 'scripts/e2e-extract-json.mjs'
+      - 'scripts/e2e-path-sandbox.mjs'
+      - 'scripts/fixtures/**'
+      - 'scripts/lib/**'
+      - 'scripts/verify-change.mjs'
+      - 'bin/framework-sdd.mjs'
+      - 'packages/sdd-agent-orchestrator/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/sdd-framework.yml'
+  workflow_dispatch: {}
+
+jobs:
+  validate-openspec:
+    name: OpenSpec structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install (dependencies: Ajv + yaml)
+        run: npm ci
+
+      - name: Pack sanity (bin + files publicables)
+        run: npm pack --dry-run
+
+      - name: Validate OpenSpec structure
+        run: npm run spec:validate
+
+      - name: Validate ReAct JSON schemas + examples
+        run: npm run spec:validate-react
+
+      - name: Check implements paths (framework tree)
+        run: npm run spec:implements
+
+      - name: E2E spec implements (temp sandboxes)
+        run: npm run test:implements-e2e
+
+      - name: E2E extract JSON from markdown
+        run: npm run test:extract-json-e2e
+
+      - name: E2E path sandbox (verify + validate-react + react-runner)
+        run: npm run test:path-sandbox-e2e
+
+      - name: Extract-all + ReAct NDJSON validation (transcript simulado)
+        run: |
+          { echo '```json'; echo '{"schema_version":1,"feature_title":"a","gherkin_scenarios":[{"id":"1","given":"g","when":"w","then":"t"}],"open_questions":[]}'; echo '```'; echo '```json'; echo '{"schema_version":1,"feature_title":"b","gherkin_scenarios":[{"id":"2","given":"g","when":"w","then":"t"}],"open_questions":[]}'; echo '```'; } | node scripts/extract-json-block.mjs --all | node scripts/validate-react-schemas.mjs --stdin-ndjson --schema specify
+
+      - name: ReAct runner smoke (tools-manifest plan)
+        run: npm run react:smoke
+
+      - name: ReAct runner dry-run (validación de plan)
+        run: node scripts/react-runner.mjs --dry-run --plan scripts/fixtures/react-plan-smoke.json
+
+      - name: LangGraph orchestrator (tests + pipeline read_only)
+        run: |
+          npm ci --prefix packages/sdd-agent-orchestrator
+          npm test --prefix packages/sdd-agent-orchestrator
+          npm run graph:pipeline --prefix packages/sdd-agent-orchestrator
+          npm run graph:llm --prefix packages/sdd-agent-orchestrator
+
+      - name: sdd-agent CLI (bin smoke)
+        run: node bin/sdd-agent.mjs list-tools > /tmp/sdd-agent-tools.json && node -e "const j=require('/tmp/sdd-agent-tools.json'); if(!j.langchain_tools?.length) process.exit(1)"
+
+      - name: Generate verify reports (informational)
+        run: npm run spec:verify -- --all
+
+      - name: Upload verify artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-reports
+          path: reports/*.json
+          if-no-files-found: ignore

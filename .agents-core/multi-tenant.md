@@ -1,15 +1,22 @@
-# Multi-tenant core
+# multi-tenant
 
-## Reglas obligatorias
-- tenantId sale del JWT claim custom:tenant_id.
-- Nunca usar body, params o query para tenant.
-- Si la ejecución viene de orquestación interna, aceptar tenant_id ya resuelto por Step Functions.
-- Toda consulta SQL o TypeORM debe filtrar por tenant.
+## Regla central
 
-## Orden de extracción
-1. requestContext.authorizer.claims['custom:tenant_id']
-2. claims['custom:tenant_id']
-3. tenant_id interno ya validado
+`tenantId` siempre sale del JWT `custom:tenant_id`. No aceptar `tenantId` desde body, params ni query.
 
-## Rechazo
-- Si no hay tenant válido, responder 401 o 403.
+## Aplicar en
+
+- Lambdas con API Gateway
+- Controllers NestJS
+- Services con filtros por tenant
+
+## Patrones a copiar
+
+- `extractTenantId`
+- `JwtTenantGuard`
+
+## Errores a evitar
+
+- confiar en payload del cliente
+- mezclar tenant de ruta con tenant del token
+- ejecutar consultas sin filtro por tenant
